@@ -1,0 +1,21 @@
+feature,area,priority,original,clone,notes
+Pick 12-20 selfies from Photos,onboarding,must,yes,no,
+Check selfie count before continuing,onboarding,must,yes,no,show n/20 and block under 12
+Train a persona from the selfies,persona,must,yes,no,hosted AI service; takes minutes
+Show training progress and survive the app closing,persona,must,yes,no,
+Type any scene as a prompt,create,must,yes,no,the core loop
+Generate realistic photos of you from the prompt,create,must,yes,no,
+View results full screen,results,must,yes,no,
+Save a photo to the Photos app,results,must,yes,no,
+Share a photo with the iOS share sheet,results,must,yes,no,
+Gallery of past photos,gallery,should,yes,no,
+Prompt suggestions (headshot / dating / casual),create,should,yes,no,
+Delete a photo,gallery,should,no,no,reviews complain the original lacks this
+Delete persona and all data,settings,should,no,no,reviews complain the original lacks this
+Clear error when the AI service refuses or fails,create,should,yes,no,
+Redo the persona with new selfies,settings,could,yes,no,
+Style presets (cinematic / professional / historical),create,could,yes,no,listing mentions these styles
+Count how many photos you have made (cost tracking),settings,could,no,no,useful since you pay the AI service directly
+Weekly subscription to create a persona,payments,skip,yes,skip,personal use; no payments
+Generation packs (10 / 25),payments,skip,yes,skip,personal use; no payments
+Their own tuned AI model,ai,skip,yes,skip,proprietary; use a hosted model instead
