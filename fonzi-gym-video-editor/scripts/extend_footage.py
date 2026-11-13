@@ -11,7 +11,7 @@ Only when Alfonso asked for it. It runs BEFORE the Storyboard Agent, because the
 free-local ($0, no AI): replays of the real reps at different speeds and virtual camera framings.
 ltx-cheap / seedance-2.5 (AI): the generator continues the same take: same person, room, light, camera.
 
-Never touches input/. Never uses Google Omni or Sora. Never adds AI audio. Writes:
+Never touches input/. Never Sora; no Omni here (Omni is only for Flow multicam reframes). Never adds AI audio. Writes:
   output/extended/<name>_extended.mp4   1080x1920, 30fps, original audio then silence
   output/extended/extend.json           which seconds are real, replayed or AI-made, and the cost
 """
@@ -25,7 +25,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import FPS, H, OUT, ROOT, W, WORK, die, probe, rel, resolve, run, save_json, sha256  # noqa: E402
+from common import FPS, H, OUT, ROOT, W, WORK, check_generator, die, probe, rel, resolve, run, save_json, sha256  # noqa: E402
 from multicam_generate import env_key, fal_generate  # noqa: E402
 
 PROMPT = """Continue the video seamlessly from its last frame as one continuous take. This is the same moment carrying on: the same person, the same face, identity, clothing, body proportions and build, the same room, equipment, lighting, colour and shadows, and the same locked-off camera position, framing, lens and angle. Do not cut, do not move the camera, do not change the scene.
@@ -94,14 +94,13 @@ def main():
     a = ap.parse_args()
 
     cfg = yaml.safe_load((ROOT / "config.yaml").read_text())
-    name = a.provider or cfg["generator"]["provider"]
+    name = a.provider or cfg["generator"].get("extend_provider", "free-local")
     if name == "local-reframe":
         name = "free-local"
-    if any(b in name.lower() for b in cfg["generator"].get("blocked", [])) or "omni" in name or "sora" in name:
-        die(f"generator {name!r} is blocked (no Google Omni, no Sora)")
     if name not in cfg["providers"]:
         die(f"unknown generator {name!r}; config.yaml has: {', '.join(cfg['providers'])}")
     pcfg = cfg["providers"][name]
+    check_generator(name, pcfg, cfg, "extend")
     local = pcfg.get("api") == "local"
     if not local and not any(k in pcfg.get("model", "") for k in ("seedance", "ltx")):
         die(f"footage extension supports free-local, ltx-cheap and seedance-2.5 (got {name})")

@@ -57,9 +57,19 @@ The Director reports after each step ("Storyboard done", "Cuts done", "Multicam 
 
 ### Multicam / B-roll generator
 
-Set in `config.yaml`. Default **Seedance 2.5**, second choice **Kling Multi-Cam**. Google Omni and Sora
-are blocked. It needs your own key: put `FAL_KEY=...` in `.env`. Without a key the Multicam step stops and
-says so; it never fakes a clip. Your original audio is always kept as the truth.
+Order is set in `config.yaml`:
+1. **Google Flow**: free, the default for multicam. It has no API, so it's a hand-off. The Multicam Agent
+   writes the 4 frozen prompts (wide, top-down, right side, left side) and builds `output/flow_pack/`. You
+   make the 4 clips at flow.google.com on the free tier (Omni Flash 1.2 reframes, Veo 3.1 Lite for B-roll,
+   never Veo 3.1 Quality) and send them back. The agent cuts them in over your footage.
+2. **Seedance 2.5**: paid API.
+3. **Kling Multi-Cam**: paid API.
+4. **LTX-2.5**: backup, B-roll only, API only.
+5. **MiniMax H3**: backup only, generated audio off.
+
+`free-local` ($0 crops of your real footage) always works as the last resort. There is no Sora anywhere,
+and Omni is used only inside Google Flow for multicam reframes. Paid APIs need your own key in `.env`
+(`FAL_KEY`) and your go-ahead on cost. Your original audio is always kept as the truth.
 
 ## What you get in `output/`
 
@@ -68,6 +78,7 @@ says so; it never fakes a clip. Your original audio is always kept as the truth.
 | `storyboard.md`, `storyboard.json` | Storyboard Agent |
 | `cut_version.mp4` | Cuts Agent (1080x1920, 30fps, H.264 + AAC, 60-90s) |
 | `multicam_prompt.txt` (+ `broll_prompt.txt`) | Multicam/B-Roll Agent, prompt-maker job |
+| `flow_pack/` (reference clips, start frames, `FLOW_STEPS.md`) | Multicam/B-Roll Agent, for you to run in Google Flow |
 | `multicam/*.mp4`, `multicam_version.mp4` | Multicam/B-Roll Agent, generator job |
 | `final_edit.mp4` | Text/Visuals Agent |
 | `carousel/` | slide images + `carousel.json` (exercises + sets x reps) when the video has 2+ exercises |

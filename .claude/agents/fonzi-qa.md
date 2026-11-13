@@ -23,7 +23,8 @@ Work inside `fonzi-gym-video-editor/` (cd there first).
    - **own footage**: the source is the one video from `input/`, and whether Alfonso confirmed it is his
    - **multicam / B-roll**: prompt written, original audio untouched, angle cuts never mid-word,
      **cut timing within 0.2s** of the plan (measured on the picture), every generated clip fills its
-     slot exactly, and which generator made the angles
+     slot exactly, which generator made the angles, and for Google Flow: 4 angles cut in, every Flow
+     clip 720p or better, the multicam prompt still frozen (unchanged), no dropped or rewritten words
    It saves 3 frames: `output/qa/frame_1.jpg` (animated captions), `frame_2.jpg` (a multicam angle
    change), `frame_3.jpg` (a punch-in), and one side-by-side per generated shot,
    `output/qa/compare_<id>.jpg`: LEFT = original camera, RIGHT = final video, same instant.
@@ -38,6 +39,8 @@ Work inside `fonzi-gym-video-editor/` (cd there first).
    - **Lip sync matches?** In each side-by-side where he is speaking, the mouth is in the same position
      left and right (same open/closed shape at the same instant). Grab one more instant per shot if one
      is not enough to tell.
+   - **Same face, same room, same voice across all 4 angles?** Compare the side-by-sides with each other
+     too, not only with the original: one face, one room, one set of clothes in every angle.
    - **B-roll matches the moment?** Left and right show the same person, same room, same clothes, same
      point of the same rep; only the camera angle differs. For a requested B-roll, it shows what Alfonso
      asked for (the note is printed next to the file).

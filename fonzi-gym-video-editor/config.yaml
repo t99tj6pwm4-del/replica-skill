@@ -1,63 +1,99 @@
 # fonzi-gym-video-editor settings. No secrets in this file: API keys live in .env only.
 
 generator:
-  # Cheapest first. free-local costs $0 (no AI). ltx-cheap is about $0.02 per second. seedance-2.5 is the
-  # best quality, about $0.47 per second at 720p. Switch here or per run with --provider <name>.
-  provider: free-local          # default: free, runs on this machine, uses only your real footage
-  ai_provider: seedance-2.5     # best AI generator, used when you pass --provider seedance-2.5
-  fallback: kling-multicam      # second-choice AI generator (--provider kling-multicam)
-  # Never used, whatever anyone asks: Google Omni, and OpenAI Sora (shut down).
-  blocked: [google-omni, omni, sora, openai-sora]
-  # Money guard: the generator stops and asks if one job would send more than this many seconds.
+  # Multicam / B-roll generator order. The first one that is ready gets used:
+  #   1. google-flow     FREE, first choice for multicam (Alfonso runs it at flow.google.com, no key)
+  #   2. seedance-2.5    paid API, second
+  #   3. kling-multicam  paid API, third
+  #   4. ltx-2.5         backup, API only, never self-hosted
+  #   5. minimax-h3      backup only if needed, generated audio FULLY OFF
+  #   free-local         $0, no AI: virtual angles cropped from the real footage (always available)
+  order: [google-flow, seedance-2.5, kling-multicam, ltx-2.5, minimax-h3]
+  provider: google-flow          # multicam default
+  extend_provider: free-local    # footage extension default ($0)
+  blocked: [sora, openai-sora]   # Sora is shut down: never, anywhere
+  # Money guard for the paid APIs: stop and ask if one job would generate more than this many seconds.
   max_generated_seconds: 24
+  paid_needs_yes_spend: true     # a paid API never runs without --yes-spend (Alfonso's go-ahead)
 
 providers:
+  google-flow:
+    api: manual-web              # flow.google.com, signed in with Alfonso's Google account. No API key.
+    site: https://flow.google.com
+    plan: free                   # 50 credits a day, no subscription, credits do not roll over
+    daily_credits: 50
+    # OMNI EXCEPTION: Omni Flash 1.2 is allowed ONLY here, ONLY for multicam reframes of existing
+    # footage. Omni is not used anywhere else in this project (not for B-roll, captions or posting).
+    reframe_model: Omni Flash 1.2       # video-to-video reframe of the real clip, ~16s of 720p a day
+    broll_model: Veo 3.1 Lite           # new angle / B-roll from a still frame, 10 credits per clip
+    never_on_free_tier: [Veo 3.1 Quality]   # 100 credits a clip: impossible on 50 a day
+    clip_seconds: [4, 6, 8]
+    max_clip_seconds: 8
+    min_clip_seconds: 3
+    resolution: 720p
+    aspect_ratio: "9:16"
+    if_blocked_at_peak: wait and retry; never switch to a paid plan without asking Alfonso
   seedance-2.5:
-    api: fal                                   # fal.ai queue API, key in .env as FAL_KEY
+    api: fal
     model: bytedance/seedance-2.5/reference-to-video
     key_env: FAL_KEY
-    task: editing                              # edit the reference clip, keep its timing
-    resolution: 720p                           # 480p | 720p | 1080p (1080p costs about 2.5x)
+    task: editing
+    resolution: 720p
     aspect_ratio: "9:16"
-    min_clip_seconds: 4                        # model limits: 4-30s output, 1.8-30.2s reference
+    min_clip_seconds: 4
     max_clip_seconds: 30
+    cost_per_second_usd: 0.473
   kling-multicam:
     api: fal
-    # Kling has no public endpoint called "Multi-Cam" that could be confirmed. Put the model id of
-    # the Kling video-reference endpoint your account has here before using it.
+    # 3-10s reference clip in; profile / three-quarter / low / high; 5-10s out; 9:16. Fill in the Kling
+    # video-reference model id your account has before using it.
     model: ""
     key_env: FAL_KEY
     aspect_ratio: "9:16"
-    min_clip_seconds: 5                        # 3-10s reference clip in, 5-10s out
+    min_clip_seconds: 5
     max_clip_seconds: 10
-    reference_min_seconds: 3
-    reference_max_seconds: 10
-  free-local:
-    api: local
-    # $0, NOT AI. Multicam: "virtual camera" angles cropped and re-framed from your own real pixels.
-    # Extension: replays of your real reps at different speeds and framings. Everything stays real footage.
-    cost_per_second_usd: 0
+  ltx-2.5:
+    api: fal
+    # B-roll only, API only. LTX-2.5 is not listed on fal.ai yet; put its model id here when it is.
+    model: ""
+    key_env: FAL_KEY
+    broll_only: true
+  minimax-h3:
+    api: fal
+    # Backup only. Generated audio FULLY OFF, 4-15s short B-roll inserts only. Model id once listed.
+    model: ""
+    key_env: FAL_KEY
+    generate_audio: false
+    min_clip_seconds: 4
+    max_clip_seconds: 15
   ltx-cheap:
     api: fal
     model: fal-ai/ltxv-13b-098-distilled/extend
     key_env: FAL_KEY
     resolution: 720p
     aspect_ratio: "9:16"
-    cost_per_second_usd: 0.02   # billed at 24fps on the whole output, the reference part included
-    # extension only: LTX continues a clip, it cannot re-film a new camera angle
+    cost_per_second_usd: 0.02    # footage extension only
+  free-local:
+    api: local                   # $0, NOT AI: re-framed crops / replays of the real footage
+    cost_per_second_usd: 0
   local-reframe:
-    api: local                  # old name of free-local, kept so old commands still work
+    api: local                   # old name of free-local
     cost_per_second_usd: 0
 
 multicam:
-  cuts: 4                       # 4 hard cuts = 2 angle changes away from the original camera and back
+  shots: 4                       # Google Flow: 4 angle shots, one clip each, one per timestamp
+  flow_angles: [wide, top-down, right-side, left-side]
+  flow_prompt: >-
+    Reframe this exact video from [ANGLE]. Same person, same face, same room, same clothes, same lighting.
+    Keep the original voice, speech and lip-sync exactly — do not rewrite, drop or add words. No music,
+    no subtitles, no text on screen. Vertical 9:16, 8 seconds.
+  cuts: 4                        # other generators: 4 hard cuts = 2 angle shots
   min_shot_seconds: 4.0
   max_shot_seconds: 6.0
-  angles: [three-quarter, low]  # choose from: profile, three-quarter, low, high
-  broll_seconds: 5.0            # default length of a requested B-roll shot
+  angles: [three-quarter, low]   # other generators: profile, three-quarter, low, high
+  broll_seconds: 6.0             # Veo 3.1 Lite clips are 4 / 6 / 8 s
 
 audio:
-  # Only audio you uploaded: the video's own sound plus mp3s in songs/. No stock music, no AI music.
-  songs_dir: songs
+  songs_dir: songs               # only Alfonso's own mp3s; no stock or AI music
   allow_generated_music: false
-  original_audio_is_truth: true # generated clips never replace or shift the audio
+  original_audio_is_truth: true  # generated clips never replace or shift the audio

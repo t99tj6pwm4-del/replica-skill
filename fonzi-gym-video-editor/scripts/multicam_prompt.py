@@ -30,6 +30,11 @@ ANGLES = {
     "three-quarter": "three-quarter angle, camera about 45 degrees to the person's side, eye level",
     "low": "low angle, camera near the floor looking up at the person",
     "high": "high angle, camera above head height looking down at the person",
+    # Google Flow angles
+    "wide": "a wide, distant angle",
+    "top-down": "a top-down angle",
+    "right-side": "the right side",
+    "left-side": "the left side",
 }
 
 HEAD = """Use the uploaded video as the only source. Video timing must be exactly the same as the original video.
@@ -128,11 +133,20 @@ def overlap(a0, a1, b0, b1) -> float:
 def main():
     cfg = yaml.safe_load((ROOT / "config.yaml").read_text())
     mc = cfg["multicam"]
-    provider = cfg["generator"]["provider"]
+    provider = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--provider=")), None) \
+        or cfg["generator"]["provider"]
     pcfg = cfg["providers"][provider]
+    flow = provider == "google-flow"
+    old_plan = load_json(WORK / "multicam_plan.json", default={})
+    if old_plan.get("generation_started") and "--unfreeze" not in sys.argv:
+        die("multicam_prompt.txt is FROZEN: generation already started with it. It is not changed after that. "
+            "Only if the Director says the plan must change (e.g. a new cut), re-run with --unfreeze.")
     pmin = float(pcfg.get("min_clip_seconds", 4))
     smin, smax = max(float(mc["min_shot_seconds"]), pmin), max(float(mc["max_shot_seconds"]), pmin + 1)
     min_between = 3.0
+    n_spans = int(mc["cuts"]) // 2
+    if flow:   # 4 angle shots, one Flow clip each (Flow clips are at most 8s)
+        smin, smax, min_between, n_spans = 3.0, float(pcfg.get("max_clip_seconds", 8)), 1.5, int(mc.get("shots", 4))
     cut = OUT / "cut_version.mp4"
     if not cut.exists():
         die("output/cut_version.mp4 is missing: the Cuts Agent has to run first")
@@ -146,7 +160,7 @@ def main():
     words = tr["words"]
 
     # a short take goes to the generator WHOLE (see multicam_generate.py), so angle shots can be short
-    if pcfg.get("api") != "local" and dur <= float(pcfg.get("max_clip_seconds", 10)) \
+    if not flow and pcfg.get("api") not in ("local", "manual-web") and dur <= float(pcfg.get("max_clip_seconds", 10)) \
             and dur <= float(cfg["generator"].get("max_generated_seconds", 24)) and not job.get("broll"):
         smin, smax, min_between = 1.2, 3.5, 1.0
     hook = next((s for s in cm["segments"] if s["type"] == "hook"), None)
@@ -175,9 +189,9 @@ def main():
             continue                                                       # never straddle two different shots
         score = speech - 4 * clash - 6 * crosses + min(a["gap"], 0.6) + min(b["gap"], 0.6)
         spans.append((score, a, b))
-    n_spans = int(mc["cuts"]) // 2
     best, best_score = None, -1e9
-    for combo in itertools.combinations(sorted(spans, key=lambda s: -s[0])[:60], n_spans):
+    top = 60 if n_spans <= 2 else 32
+    for combo in itertools.combinations(sorted(spans, key=lambda s: -s[0])[:top], n_spans):
         combo = sorted(combo, key=lambda s: s[1]["t"])
         if any(y[1]["t"] - x[2]["t"] < min_between for x, y in zip(combo, combo[1:])):
             continue                                                       # at least 3s of original camera between angles
@@ -186,12 +200,12 @@ def main():
         if score > best_score:
             best, best_score = combo, score
     if not best:
-        die(f"could not find {mc['cuts']} cut points on speech beats inside single continuous shots "
+        die(f"could not find {n_spans} angle shots on speech beats inside single continuous shots "
             f"({len(cands)} phrase starts, {len(shots)} shot changes between {lo:.1f}s and {hi:.1f}s). "
             "A multicam pass needs stretches of one continuous take of at least "
             f"{smin:.0f}s with speech: tell the Director.")
 
-    angles = list(mc["angles"])
+    angles = list(mc["flow_angles"] if flow else mc["angles"])
     plan_spans, lines, cuts = [], ["* At [0.0s]: original camera angle, unchanged."], []
     for i, (_, a, b) in enumerate(best):
         angle = angles[i % len(angles)]
@@ -210,7 +224,18 @@ def main():
     bad = [t for t in cuts if mid_word(t, words)]
     if bad:
         die(f"internal check failed: cut(s) {bad} land mid-word")
-    prompt = HEAD + "\n" + "\n".join(lines) + "\n" + TAIL.format(dur=f"{dur:.2f}")
+    if flow:
+        template = " ".join(mc["flow_prompt"].split())
+        blocks = [f"FROZEN MULTICAM PROMPT for output/cut_version.mp4 ({dur:.2f}s). Generator: Google Flow "
+                  f"({pcfg.get('reframe_model')} reframe). Do not edit after generation starts.\n",
+                  "Timestamps (cut-version time): " + ", ".join(f"{s['from']:.2f}s" for s in plan_spans) + "\n"]
+        for s in plan_spans:
+            s["flow_prompt"] = template.replace("[ANGLE]", ANGLES[s["angle"]])
+            blocks.append(f"--- {s['id']} | {s['angle']} | cut in at {s['from']:.2f}s, back to the original at "
+                          f"{s['to']:.2f}s ({s['to'] - s['from']:.2f}s used) ---\n{s['flow_prompt']}\n")
+        prompt = "\n".join(blocks)
+    else:
+        prompt = HEAD + "\n" + "\n".join(lines) + "\n" + TAIL.format(dur=f"{dur:.2f}")
     (OUT / "multicam_prompt.txt").write_text(prompt)
 
     # B-roll Alfonso asked for: "at 0:23, bench press lockout"
@@ -238,6 +263,7 @@ def main():
         if any(overlap(start, end, s["from"], s["to"]) > 0 for s in plan_spans + broll):
             die(f"B-roll request {req!r} overlaps another generated shot; pick a different time")
         broll.append({"id": f"broll_{n}", "kind": "broll", "from": start, "to": end, "angle": angle, "note": note,
+                      "model": pcfg.get("broll_model") if flow else None,
                       "requested_at": at, "request": req})
         texts.append(f"--- B-roll {n}: {req} | cut-version time {start:.2f}s-{end:.2f}s ---\n"
                      + BROLL.format(note=note, angle=ANGLES[angle], dur=f"{end - start:.2f}"))
@@ -250,12 +276,15 @@ def main():
     save_json(WORK / "multicam_plan.json", {
         "source": "output/cut_version.mp4", "duration": round(dur, 3), "provider": provider, "cuts": cuts,
         "spans": plan_spans, "broll": broll, "prompt_file": "output/multicam_prompt.txt",
+        "frozen_sha256": __import__("hashlib").sha256(prompt.encode()).hexdigest(), "generation_started": False,
         "phrase_starts_found": len(cands), "cut_basis": "rep still points (no speech)" if no_speech else "speech beats"})
 
     print(f"speech     {len(words)} words, {len(cands)} "
           + ("rep still points (no speech: cutting on the movement)" if no_speech else "phrase starts / breaths")
           + " usable as cut points")
-    print(f"4 cuts     {', '.join(f'{t:.2f}s' for t in cuts)}  (none mid-word)")
+    starts = ", ".join(f"{s['from']:.2f}s" for s in plan_spans)
+    every_cut = ", ".join(f"{t:.2f}s" for t in cuts)
+    print(f"{len(plan_spans)} angles  " + (f"cut in at {starts}" if flow else f"cuts {every_cut}") + "  (none mid-word)")
     for s in plan_spans:
         print(f"  {s['from']:6.2f}-{s['to']:6.2f}s  {s['angle']:<14} in on {s['cut_in']}, out on {s['cut_out']}")
     for b in broll:

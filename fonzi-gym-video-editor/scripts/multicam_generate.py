@@ -14,11 +14,16 @@ Writes:
   output/multicam_version.mp4        the cut with the angles cut in (same length, same audio)
   output/work/multicam_map.json      what was inserted where, and by which generator
 
-Never used: Google Omni, OpenAI Sora. API keys come from .env only.
+    python3 scripts/multicam_generate.py --provider google-flow      # (default) Google Flow, free:
+        1st run: makes the hand-off pack output/flow_pack/ and FREEZES multicam_prompt.txt
+        2nd run, after Alfonso's Flow clips are in output/flow_pack/returned/: cuts them in
+
+Never Sora. Omni only inside Google Flow, only for multicam reframes. API keys come from .env only.
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import hashlib
 import os
 import shutil
@@ -29,7 +34,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import FPS, H, OUT, ROOT, W, WORK, die, load_json, probe, rel, run, save_json  # noqa: E402
+from common import FPS, H, OUT, ROOT, W, WORK, check_generator, die, load_json, probe, rel, run, save_json  # noqa: E402
 from multicam_prompt import ANGLES, HEAD  # noqa: E402
 
 # stand-in "angles": perspective re-framing of the same pixels (source corner points as fractions of w,h)
@@ -92,6 +97,67 @@ def stand_in_generate(clip: Path, angle: str, out: Path):
          "-c:v", "libx264", "-preset", "fast", "-crf", "14", out])
 
 
+FLOW_STEPS = """# Google Flow hand-off: {n} clips to make (free tier)
+
+Open https://flow.google.com on your phone or computer, signed in with your Google account. Free tier:
+50 credits a day, they do not roll over. Never pick Veo 3.1 Quality (100 credits). If Flow says it is busy
+(peak hours), wait and try again later. Do not buy a plan without telling the Director first.
+
+Make ONE clip per shot below, in this order. For each shot:
+1. Upload the reference clip named for that shot (it is {maxs:g}s or less, 9:16, your real footage).
+2. Model: {reframe} (reframe of the uploaded video). Vertical 9:16, 720p, 8 seconds.
+3. Paste the prompt for that shot EXACTLY as written below. Do not change a word.
+4. Continuity: if Flow offers it, use the shot's start frame (`<id>_start.jpg`) as the first frame / scene
+   anchor, so the new angle cuts in cleanly on the real moment.
+5. Download the result and name it `<id>.mp4` (e.g. `angle_1.mp4`), then send all {n} files back to Claude
+   (upload them in the chat, or drop them in output/flow_pack/returned/).
+
+{shots}
+B-roll shots (if any) use {broll} from the still `<id>_start.jpg` instead: picture only, 6 or 8 seconds.
+Their sound is thrown away; your original audio always stays.
+"""
+
+
+def flow_handoff(cut: Path, plan: dict, pcfg: dict, shots: list) -> dict:
+    """Google Flow has no API: build the pack Alfonso runs in Flow, or pick up the clips he sent back."""
+    pack, ret = OUT / "flow_pack", OUT / "flow_pack" / "returned"
+    ret.mkdir(parents=True, exist_ok=True)
+    found, missing = {}, []
+    for s in shots:
+        hits = sorted(p for p in ret.glob(f"{s['id']}*") if p.suffix.lower() in (".mp4", ".mov", ".webm"))
+        if hits:
+            found[s["id"]] = hits[0]
+        else:
+            missing.append(s)
+    if not missing:
+        print(f"found all {len(found)} Flow clips in output/flow_pack/returned/")
+        return found
+    maxs = float(pcfg.get("max_clip_seconds", 8))
+    blocks = []
+    for s in shots:
+        length = min(maxs, plan["duration"] - s["from"])
+        ref = pack / f"{s['id']}_reference.mp4"
+        if not ref.exists():
+            run(["ffmpeg", "-v", "error", "-y", "-ss", f"{s['from']:.3f}", "-t", f"{length:.3f}", "-i", cut,
+                 "-vf", "scale=720:1280,setsar=1", "-c:v", "libx264", "-crf", "17", "-c:a", "aac", "-b:a", "128k", ref])
+            run(["ffmpeg", "-v", "error", "-y", "-ss", f"{s['from']:.3f}", "-i", cut, "-frames:v", "1", "-q:v", "2",
+                 pack / f"{s['id']}_start.jpg"])
+        prompt = s.get("flow_prompt") or "(see output/broll_prompt.txt)"
+        blocks.append(f"## {s['id']}  ({s['angle']}{', B-roll, ' + str(s.get('model')) if s['kind'] == 'broll' else ''})\n"
+                      f"- Reference clip: `{ref.name}`   Start frame: `{s['id']}_start.jpg`\n"
+                      f"- Cuts in at {s['from']:.2f}s, back to your original camera at {s['to']:.2f}s\n"
+                      f"- Prompt:\n\n    {prompt}\n"
+                      + ("- STILL NEEDED\n" if s in missing else "- received\n"))
+    (pack / "FLOW_STEPS.md").write_text(FLOW_STEPS.format(n=len(shots), maxs=maxs, reframe=pcfg.get("reframe_model"),
+                                                          broll=pcfg.get("broll_model"), shots="\n".join(blocks)))
+    print(f"Google Flow hand-off pack ready: output/flow_pack/ ({len(missing)} of {len(shots)} clips still needed)")
+    for s in missing:
+        print(f"   {s['id']:<8} {s['angle']:<11} reference {s['id']}_reference.mp4   cut in at {s['from']:.2f}s")
+    print("multicam_prompt.txt is now FROZEN. Steps for Alfonso: output/flow_pack/FLOW_STEPS.md")
+    print("When the clips are in output/flow_pack/returned/<id>.mp4, run this script again to cut them in.")
+    sys.exit(4)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--provider")
@@ -102,15 +168,12 @@ def main():
     cfg = yaml.safe_load((ROOT / "config.yaml").read_text())
     gen = cfg["generator"]
     name = "free-local" if a.stand_in else (a.provider or gen["provider"])
-    if any(b in name.lower() for b in gen.get("blocked", [])) or "omni" in name.lower() or "sora" in name.lower():
-        die(f"generator {name!r} is blocked for this project (no Google Omni, no Sora). Use seedance-2.5 or kling-multicam.")
     if name not in cfg["providers"]:
         die(f"unknown generator {name!r}; config.yaml has: {', '.join(cfg['providers'])}")
     pcfg = cfg["providers"][name]
+    check_generator(name, pcfg, cfg, "multicam")
     if "/extend" in str(pcfg.get("model", "")):
         die(f"{name} can only extend a clip; it cannot re-film a camera angle. Use free-local or seedance-2.5 for multicam.")
-    if any(b in str(pcfg.get("model", "")).lower() for b in ("omni", "sora", "veo")):
-        die(f"config.yaml points {name} at a blocked model ({pcfg['model']})")
 
     cut = OUT / "cut_version.mp4"
     plan = load_json(WORK / "multicam_plan.json")
@@ -125,10 +188,19 @@ def main():
     shots = plan["spans"] + plan.get("broll", [])
     if not shots:
         die("the plan has no shots to generate")
-
+    if plan.get("provider") != name and not (name == "free-local" and plan.get("provider") == "local-reframe"):
+        die(f"multicam_prompt.txt was planned for {plan.get('provider')}, not {name}. Re-run multicam_prompt.py "
+            f"--provider={name} (only before generation starts).")
+    if hashlib.sha256(frozen.encode()).hexdigest() != plan.get("frozen_sha256"):
+        die("output/multicam_prompt.txt was changed after it was frozen. Restore it or re-plan with --unfreeze.")
+    plan["generation_started"] = True
+    save_json(WORK / "multicam_plan.json", plan)
+    returned = {}
+    if pcfg["api"] == "manual-web":
+        returned = flow_handoff(cut, plan, pcfg, shots)
     simulated = pcfg["api"] == "local"
     key = None
-    if not simulated:
+    if not simulated and not returned:
         if not pcfg.get("model"):
             die(f"config.yaml providers.{name}.model is empty. Set the model id for {name} first.")
         key = env_key(pcfg["key_env"])
@@ -152,7 +224,7 @@ def main():
     tmp.mkdir(parents=True)
 
     # whole-take mode: a short video goes to the generator once, with the frozen prompt verbatim
-    whole = (not simulated and not plan.get("broll") and dur <= float(pcfg.get("max_clip_seconds", 10))
+    whole = (not simulated and not returned and not plan.get("broll") and dur <= float(pcfg.get("max_clip_seconds", 10))
              and dur <= float(gen.get("max_generated_seconds", 24)))
     whole_raw = tmp / "whole_raw.mp4"
     if whole:
@@ -168,7 +240,9 @@ def main():
         clip = mdir / f"{s['id']}_{s['angle']}.mp4"
         run(["ffmpeg", "-v", "error", "-y", "-ss", f"{s['from']:.3f}", "-t", f"{length:.3f}", "-i", cut, "-an",
              "-c:v", "libx264", "-preset", "fast", "-crf", "16", ref])       # 3-10s reference clip, picture only
-        if simulated:
+        if returned:
+            raw, offset = returned[s["id"]], 0.0
+        elif simulated:
             stand_in_generate(ref, s["angle"], raw)
             offset = 0.0
         elif whole:
@@ -193,8 +267,11 @@ def main():
         run(["ffmpeg", "-v", "error", "-y", "-ss", f"{offset:.3f}", "-i", raw, "-an", "-vf",
              f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},setsar=1,fps={FPS},format=yuv420p",
              "-t", f"{length:.3f}", "-c:v", "libx264", "-preset", "medium", "-crf", "16", clip])
+        rv = probe(raw)["video"] or {}
         inserts.append({**s, "clip": rel(clip), "provider": name, "simulated": simulated,
-                        "returned_seconds": round(got, 3)})
+                        "returned_seconds": round(got, 3), "returned_width": rv.get("width"),
+                        "returned_height": rv.get("height"),
+                        "model": (s.get("model") or pcfg.get("reframe_model")) if returned else pcfg.get("model")})
 
     # cut the angles in OVER the A-roll; audio is copied, never re-encoded
     cmd = ["ffmpeg", "-v", "error", "-y", "-i", cut]

@@ -150,6 +150,17 @@ def find_duplicate(final: Path | None, source_sha: str | None = None, threshold:
     return None
 
 
+def check_generator(name: str, pcfg: dict, cfg: dict, purpose: str) -> None:
+    """Sora: never. Omni: only Google Flow, only for multicam reframes. Everything else is refused."""
+    text = f"{name} {pcfg.get('model', '')} {pcfg.get('reframe_model', '')}".lower()
+    if any(b in text for b in cfg["generator"].get("blocked", [])) or "sora" in text:
+        die(f"generator {name!r} is blocked: no Sora, ever")
+    if "omni" in f"{name} {pcfg.get('model', '')}".lower() and name != "google-flow":
+        die(f"{name!r}: Omni is allowed only inside Google Flow for multicam reframes")
+    if name == "google-flow" and purpose not in ("multicam", "broll"):
+        die("Google Flow is used only for multicam angles and B-roll")
+
+
 def base_video() -> Path:
     """The picture the Text/Visuals Agent works on: the multicam version when that step ran, else the cut."""
     mc = OUT / "multicam_version.mp4"

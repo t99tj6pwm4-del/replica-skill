@@ -173,6 +173,21 @@ def main():
         slot = [i for i in inserts if abs(probe(resolve(i["clip"]))["duration"] - (i["to"] - i["from"])) > 0.05]
         add("each generated clip fills its slot exactly (lip sync cannot drift)", not slot,
             "all clips match their slot length" if not slot else f"wrong length: {[i['id'] for i in slot]}", "multicam")
+        plan = load_json(WORK / "multicam_plan.json", default={})
+        pf = OUT / "multicam_prompt.txt"
+        if pf.exists():
+            import hashlib
+            same = hashlib.sha256(pf.read_text().encode()).hexdigest() == plan.get("frozen_sha256")
+            add("multicam prompt frozen (unchanged since generation started)", same,
+                "matches the frozen copy" if same else "multicam_prompt.txt was edited after generation", "multicam")
+        if mmap.get("provider") == "google-flow":
+            angles = [i for i in inserts if i["kind"] == "multicam"]
+            add("4 Google Flow angles cut in (wide, top-down, right side, left side)", len(angles) == 4,
+                ", ".join(f"{i['angle']}@{i['from']:.2f}s" for i in angles), "multicam")
+            low = [i["id"] for i in inserts if (i.get("returned_height") or 0) < 720 and (i.get("returned_width") or 0) < 720]
+            add("Flow clips are 720p or better", not low, "all 720p+" if not low else f"below 720p: {low}", "multicam")
+        add("no dropped or rewritten words (original audio kept bit for bit)",
+            mmap.get("audio_identical_to_cut") is True, "audio identical to the cut", "multicam")
         add("angles made by the AI generator in config.yaml", not mmap.get("simulated"),
             f"generator: {mmap.get('provider')}" if not mmap.get("simulated")
             else "free-local: virtual camera angles cropped from the real footage ($0), not AI re-filmed angles",

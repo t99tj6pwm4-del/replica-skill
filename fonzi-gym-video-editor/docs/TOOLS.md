@@ -12,7 +12,7 @@ to exist. Add-ons are other people's software: each is installed only when you n
 | Transcription | Whisper (`faster-whisper`, runs on your machine) |
 | Motion graphics | Remotion (the composition engine OpenMontage uses) |
 | Multicam prompt templates | skills `kinetic-multicam` and `cine-multicam-capcut`, cloned to `~/.claude/skills/` by `setup.sh` |
-| Multicam / B-roll generation | Seedance 2.5 (default), Kling Multi-Cam (second choice), set in `config.yaml`. **Never Google Omni. Never Sora.** |
+| Multicam / B-roll generation | Order in `config.yaml`: Google Flow (free, default; you run it at flow.google.com), Seedance 2.5, Kling Multi-Cam, LTX-2.5, MiniMax H3; `free-local` crops as last resort. **No Sora. Omni only inside Google Flow for multicam reframes.** |
 | Posting | Meta Graph API (`scripts/post_to_meta.py`) |
 
 ## Video add-ons
