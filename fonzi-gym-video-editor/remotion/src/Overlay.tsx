@@ -107,6 +107,10 @@ const TitleCard: React.FC<{
             alignItems: "flex-start",
             transform: "rotate(-7deg)",
             transformOrigin: "left top",
+            // nothing of the title may cross the face-safe line, even mid-animation
+            clipPath: "inset(-400px 0px -400px -400px)",
+            // Flash In lights up the title only, never the whole frame
+            filter: inFlash ? `brightness(${1 + 2.5 * inFlash})` : undefined,
           }}
         >
           {words.map((w, i) => {
@@ -127,7 +131,7 @@ const TitleCard: React.FC<{
                   color: last ? brand.color : brand.textColor,
                   textShadow: SHADOW,
                   opacity: interpolate(s, [0, 0.3], [0, 1], clamp),
-                  transform: `scale(${interpolate(s, [0, 1], [2.3, 1])})`,
+                  transform: `scale(${interpolate(s, [0, 1], [1.6, 1])})`,
                   transformOrigin: "left center",
                   marginLeft: i * TITLE_INDENT,
                   whiteSpace: "nowrap",
@@ -165,7 +169,6 @@ const TitleCard: React.FC<{
           ) : null}
         </div>
       </AbsoluteFill>
-      {inFlash ? <AbsoluteFill style={{ backgroundColor: "#fff", opacity: inFlash }} /> : null}
     </AbsoluteFill>
   );
 };
@@ -536,7 +539,7 @@ const EventAccent: React.FC<{ ev: TimedEvent; brand: Brand; frames: number }> = 
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   if (ev.kind === "punch_in") {
-    const flash = interpolate(frame, [0, 5], [0.4, 0], clamp);
+    const flash = 0; // no unlisted flash: flashes only come from the effects library (effects_plan.json)
     const s = spring({ frame, fps, config: { damping: 12, stiffness: 240, mass: 0.5 } });
     const inset = interpolate(s, [0, 1], [10, 44]);
     const fade = interpolate(frame, [0, 3, frames - 5, frames], [0, 1, 1, 0], clamp);

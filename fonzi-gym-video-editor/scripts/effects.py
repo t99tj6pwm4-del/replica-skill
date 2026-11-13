@@ -118,7 +118,7 @@ def recipe(kind: str, d: float) -> str:
     if kind == "flashshake":
         return recipe("shake", d) + "," + recipe("whiteflash", d)
     if kind == "whiteflash":
-        return f"eq=brightness='0.85*max(0,1-t/{d})':eval=frame"
+        return f"eq=brightness='0.7*max(0,1-t/{d})':eval=frame"
     if kind == "warmflash":
         return f"eq=brightness='0.45*max(0,1-t/{d})':eval=frame,colorbalance=rs=0.15:gs=0.06:bs=-0.12"
     if kind == "glare":
@@ -263,9 +263,9 @@ def log(video: str, plan: dict, items: list) -> None:
                        "|---|---|---|---|---|---|\n")
     cat = {"video_effects": "video effect", "transitions": "transition", "velocity_effects": "velocity effect"}
     eff = "; ".join(f"{i['from']:.2f}s {i['name']} ({cat[i['group']]}) {i['dur']}s" for i in items) or "hard cuts only"
-    sb = load_json(OUT / "storyboard.json", default={})
-    curves = [f"{e['from']}s Hero curve" for s in sb.get("segments", []) for e in s.get("effects", [])
-              if e.get("type") == "hero"]
+    cmap = load_json(WORK / "cut_map.json", default={})
+    curves = [f"{e['out_start']:.2f}-{e['out_end']:.2f}s Hero curve" for e in cmap.get("events", [])
+              if e["kind"] == "hero"]
     if curves:
         eff += "; speed: " + ", ".join(curves)
     line = (f"| {time.strftime('%Y-%m-%d %H:%M')} | {video} | {combo_key(plan) or '-'} | {plan.get('filter') or '-'} | "
@@ -292,8 +292,10 @@ def apply(base: Path, out: Path, video: str) -> dict | None:
     dur = probe(base)["duration"]
     fchain = FILTERS.get(plan.get("filter") or "", FILTERS["Cinematic"] if plan.get("filter") else "null")
     # split the timeline at every effect edge (frame-exact), filter each piece, concat
-    edges = sorted({0.0, round(dur, 3)} | {round(round(i["from"] * FPS) / FPS, 3) for i in items}
-                   | {round(round(i["to"] * FPS) / FPS, 3) for i in items})
+    snap = lambda t: round(round(t * FPS) / FPS, 3)  # noqa: E731  frame grid
+    for i in items:          # snap first, so the "is this effect active here" test uses the same edges
+        i["f0"], i["f1"] = snap(i["from"]), snap(i["to"])
+    edges = sorted({0.0, round(dur, 3)} | {i["f0"] for i in items} | {i["f1"] for i in items})
     tmp = WORK / "fx_tmp"
     shutil.rmtree(tmp, ignore_errors=True)
     tmp.mkdir(parents=True)
@@ -301,8 +303,10 @@ def apply(base: Path, out: Path, video: str) -> dict | None:
     for k, (a, b) in enumerate(zip(edges, edges[1:])):
         if b - a < 0.5 / FPS:
             continue
-        active = [i for i in items if i["from"] - 1e-3 <= a and b <= i["to"] + 1e-3]
-        chain = ",".join([recipe(i["kind"], b - a) for i in active] + [fchain, f"fps={FPS}", "format=yuv420p"])
+        active = [i for i in items if i["f0"] - 1e-6 <= a and b <= i["f1"] + 1e-6]
+        # t must start at 0 inside each window, or the time-based recipes (flash, shake, zoom) do nothing
+        chain = ",".join(["setpts=PTS-STARTPTS"] + [recipe(i["kind"], b - a) for i in active]
+                         + [fchain, f"fps={FPS}", "format=yuv420p"])
         piece = tmp / f"p{k:03d}.mp4"
         run(["ffmpeg", "-v", "error", "-y", "-ss", f"{a:.4f}", "-i", base, "-t", f"{b - a:.4f}", "-an",
              "-vf", chain, "-c:v", "libx264", "-preset", "medium", "-crf", "15", piece])
@@ -315,6 +319,8 @@ def apply(base: Path, out: Path, video: str) -> dict | None:
     shutil.rmtree(tmp, ignore_errors=True)
     if abs(probe(out)["duration"] - dur) > 0.1:
         die("effects pass changed the video length: not passing it on")
+    for i in items:
+        i.pop("f0", None), i.pop("f1", None)
     log(video, plan, items)
     summary = {"filter": plan.get("filter"), "title_animation": plan.get("title_animation"),
                "items": items, "notes": notes, "combo": combo_key(plan)}
