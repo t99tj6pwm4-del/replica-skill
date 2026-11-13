@@ -130,7 +130,52 @@ def overlap(a0, a1, b0, b1) -> float:
     return max(0.0, min(a1, b1) - max(a0, b0))
 
 
+def retime(arg: str) -> None:
+    """Alfonso changed one shot's time range after the prompt was frozen (e.g. QA found the shot only
+    works for part of its slot). Only the timestamps of that shot change; the shot and wording stay.
+        python3 scripts/multicam_prompt.py --retime angle_4=44.80,46.70 --reason "Alfonso: shorten #10"
+    """
+    import hashlib
+    sid, rng = arg.split("=", 1)
+    a, b = (float(x) for x in rng.split(","))
+    plan = load_json(WORK / "multicam_plan.json")
+    span = next((s for s in plan["spans"] if s["id"] == sid), None)
+    if not span:
+        die(f"--retime: no shot called {sid}")
+    if not span["from"] - 0.05 <= a < b <= span["to"] + 0.05:
+        die(f"--retime: {a}-{b}s must sit inside the planned slot {span['from']:.2f}-{span['to']:.2f}s")
+    words = load_json(WORK / "transcript.json", default={"words": []})["words"]
+    a, b = snap(a), snap(b)
+    if mid_word(a, words) or mid_word(b, words):
+        die("--retime: a cut would land mid-word")
+    pf = OUT / "multicam_prompt.txt"
+    text = pf.read_text()
+    old_from, old_to = span["from"], span["to"]
+    text = re.sub(rf"(--- {sid} \|.*?\| cut in at ){old_from:.2f}s, back to the original at {old_to:.2f}s "
+                  rf"\({old_to - old_from:.2f}s used\)",
+                  lambda m: f"{m.group(1)}{a:.2f}s, back to the original at {b:.2f}s ({b - a:.2f}s used)", text)
+    text = text.replace(f"{old_from:.2f}s", f"{a:.2f}s", 1) if f"Timestamps" in text else text
+    reason = next((x.split("=", 1)[1] for x in sys.argv if x.startswith("--reason=")), "Alfonso's decision")
+    pmin = float(yaml.safe_load((ROOT / "config.yaml").read_text())["providers"].get(plan.get("provider"), {})
+                 .get("min_clip_seconds", 0))
+    span.update({"from": a, "to": b, "retimed": {"was": [old_from, old_to], "reason": reason}})
+    if plan.get("provider") == "google-flow" and b - a < pmin:
+        span["flow"] = False      # too short for a Flow clip: this shot stays free-local
+        text += (f"\nNOTE: {sid} was shortened to {b - a:.2f}s ({reason}). That is under Flow's {pmin:g}s minimum, "
+                 f"so it is not made in Flow; it stays a free-local crop.\n")
+    pf.write_text(text)
+    plan["cuts"] = sorted(t for s in plan["spans"] for t in (s["from"], s["to"]))
+    plan["frozen_sha256"] = hashlib.sha256(text.encode()).hexdigest()
+    plan.setdefault("changes", []).append(f"{sid}: {old_from:.2f}-{old_to:.2f}s -> {a:.2f}-{b:.2f}s ({reason})")
+    save_json(WORK / "multicam_plan.json", plan)
+    print(f"{sid} retimed {old_from:.2f}-{old_to:.2f}s -> {a:.2f}-{b:.2f}s ({reason}); prompt re-frozen"
+          + ("; not a Flow shot any more (too short)" if span.get("flow") is False else ""))
+
+
 def main():
+    for x in sys.argv[1:]:
+        if x.startswith("--retime="):
+            return retime(x.split("=", 1)[1])
     cfg = yaml.safe_load((ROOT / "config.yaml").read_text())
     mc = cfg["multicam"]
     provider = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--provider=")), None) \

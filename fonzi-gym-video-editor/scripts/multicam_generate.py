@@ -157,6 +157,7 @@ def flow_handoff(cut: Path, plan: dict, pcfg: dict, shots: list) -> dict:
     pack, ret = OUT / "flow_pack", OUT / "flow_pack" / "returned"
     ret.mkdir(parents=True, exist_ok=True)
     found, missing = {}, []
+    shots = [s for s in shots if s.get("flow", True)]   # shots too short for Flow stay free-local
     for s in shots:
         hits = sorted(p for p in ret.glob(f"{s['id']}*") if p.suffix.lower() in (".mp4", ".mov", ".webm"))
         if hits:
@@ -298,9 +299,10 @@ def main():
         clip = mdir / f"{s['id']}_{s['angle']}.mp4"
         run(["ffmpeg", "-v", "error", "-y", "-ss", f"{s['from']:.3f}", "-t", f"{length:.3f}", "-i", cut, "-an",
              "-c:v", "libx264", "-preset", "fast", "-crf", "16", ref])       # 3-10s reference clip, picture only
-        if returned:
+        if returned and s["id"] in returned:
             raw, offset = returned[s["id"]], 0.0
-        elif simulated:
+        elif simulated or (returned and s.get("flow") is False):
+            # free-local: either the whole run, or a shot too short for Flow
             stand_in_generate(ref, s["angle"], raw, s)
             offset = 0.0
         elif whole:
@@ -329,7 +331,8 @@ def main():
         inserts.append({**s, "clip": rel(clip), "provider": name, "simulated": simulated,
                         "returned_seconds": round(got, 3), "returned_width": rv.get("width"),
                         "returned_height": rv.get("height"),
-                        "model": (s.get("model") or pcfg.get("reframe_model")) if returned else pcfg.get("model")})
+                        "model": ("free-local crop" if s.get("flow") is False or s["id"] not in returned else
+                  (s.get("model") or pcfg.get("reframe_model"))) if returned else pcfg.get("model")})
 
     # cut the angles in OVER the A-roll; audio is copied, never re-encoded
     cmd = ["ffmpeg", "-v", "error", "-y", "-i", cut]
