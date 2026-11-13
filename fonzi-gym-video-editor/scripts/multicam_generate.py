@@ -65,6 +65,23 @@ def audio_md5(path: Path) -> str:
     return hashlib.md5(p.stdout).hexdigest()
 
 
+def wan_generate(pcfg: dict, token: str, still: Path, prompt: str, seconds: float, out: Path):
+    """Free AI angle: Wan 2.2 image-to-video on a Hugging Face ZeroGPU Space, from the real frame."""
+    try:
+        from gradio_client import Client, handle_file
+    except ImportError:
+        die("gradio_client is not installed. Run: pip install gradio_client")
+    c = Client(pcfg["space"], token=token, verbose=False)
+    r = c.predict(input_image=handle_file(str(still)), prompt=prompt, steps=int(pcfg.get("steps", 6)),
+                  duration_seconds=float(min(max(seconds, 1.0), float(pcfg.get("max_clip_seconds", 4.5)))),
+                  guidance_scale=1, guidance_scale_2=1, seed=int(pcfg.get("seed", 42)), randomize_seed=False,
+                  api_name="/generate_video")
+    v = r[0] if isinstance(r, (list, tuple)) else r
+    if isinstance(v, dict):
+        v = v.get("video") or v.get("path")
+    shutil.copy(v, out)
+
+
 def fal_generate(pcfg: dict, key: str, clip: Path, prompt: str, seconds: float, out: Path):
     try:
         import fal_client
@@ -273,7 +290,7 @@ def main():
     simulated = pcfg["api"] == "local" and not returned
     key = None
     if not simulated and not returned:
-        if not pcfg.get("model"):
+        if not pcfg.get("model") and not pcfg.get("space"):
             die(f"config.yaml providers.{name}.model is empty. Set the model id for {name} first.")
         key = env_key(pcfg["key_env"])
         if not key:
@@ -285,7 +302,7 @@ def main():
                 die(f"{s['id']} is {s['to'] - s['from']:.1f}s but {name} takes {lo:g}-{hi:g}s clips. "
                     "Change multicam.min/max_shot_seconds in config.yaml and re-run scripts/multicam_prompt.py")
         total = sum(s["to"] - s["from"] for s in shots)
-        if total > float(gen.get("max_generated_seconds", 24)) and not a.yes_spend:
+        if pcfg["api"] != "hf-space" and total > float(gen.get("max_generated_seconds", 24)) and not a.yes_spend:
             die(f"this would generate {total:.1f}s of video, over the {gen['max_generated_seconds']}s guard in config.yaml. "
                 "Ask Alfonso, then re-run with --yes-spend.", code=3)
 
@@ -296,7 +313,7 @@ def main():
     tmp.mkdir(parents=True)
 
     # whole-take mode: a short video goes to the generator once, with the frozen prompt verbatim
-    whole = (not simulated and not returned and not plan.get("broll") and dur <= float(pcfg.get("max_clip_seconds", 10))
+    whole = (not simulated and not returned and pcfg["api"] != "hf-space" and not plan.get("broll") and dur <= float(pcfg.get("max_clip_seconds", 10))
              and dur <= float(gen.get("max_generated_seconds", 24)))
     whole_raw = tmp / "whole_raw.mp4"
     if whole:
@@ -317,6 +334,24 @@ def main():
         elif simulated or (returned and s.get("flow") is False):
             # free-local: either the whole run, or a shot too short for Flow
             stand_in_generate(ref, s["angle"], raw, s)
+            offset = 0.0
+        elif pcfg["api"] == "hf-space":
+            # free AI angle from the REAL frame at this timestamp; any failure -> free-local crop for this shot
+            still = tmp / f"{s['id']}_start.png"
+            run(["ffmpeg", "-v", "error", "-y", "-ss", f"{s['from']:.3f}", "-i", cut, "-frames:v", "1",
+                 "-vf", "scale=720:1280", still])
+            prompt = s.get("flow_prompt") or ANGLES.get(s["angle"], s["angle"])
+            try:
+                print(f"{s['id']}: free AI angle ({pcfg['model']}) for {length:.1f}s ...", flush=True)
+                wan_generate(pcfg, key, still, prompt, length, raw)
+                got_ai = probe(raw)["duration"]
+                if got_ai < length - 0.2:
+                    raise RuntimeError(f"returned {got_ai:.2f}s for a {length:.2f}s slot")
+                s["ai"] = True
+            except Exception as e:     # quota, Space busy, too short: stay automatic
+                print(f"   {s['id']}: AI angle failed ({str(e)[:120]}); using a free-local crop for this shot")
+                s["ai"], s["fallback"] = False, str(e)[:200]
+                stand_in_generate(ref, s["angle"], raw, s)
             offset = 0.0
         elif whole:
             raw, offset = whole_raw, s["from"]
@@ -341,7 +376,8 @@ def main():
              f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},setsar=1,fps={FPS},format=yuv420p",
              "-t", f"{length:.3f}", "-c:v", "libx264", "-preset", "medium", "-crf", "16", clip])
         rv = probe(raw)["video"] or {}
-        inserts.append({**s, "clip": rel(clip), "provider": name, "simulated": simulated,
+        inserts.append({**s, "clip": rel(clip), "provider": name,
+                        "simulated": simulated or s.get("ai") is False,
                         "returned_seconds": round(got, 3), "returned_width": rv.get("width"),
                         "returned_height": rv.get("height"),
                         "model": ("free-local crop" if s.get("flow") is False or s["id"] not in returned else

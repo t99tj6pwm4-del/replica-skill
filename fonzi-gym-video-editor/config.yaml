@@ -9,8 +9,10 @@ generator:
   #   4. kling-multicam  model id blank until confirmed
   #   5. ltx-2.5         API only, model id blank until confirmed
   #   6. minimax-h3      audio off, model id blank until confirmed
-  order: [free-local, seedance-2.5, google-flow, kling-multicam, ltx-2.5, minimax-h3]
-  provider: free-local           # multicam default: automatic, no manual step
+  #   0. wan-free        FREE real AI angles: Wan 2.2 image-to-video on a Hugging Face ZeroGPU Space, from the
+  #                      real frame at each timestamp (free token HF_TOKEN). Any shot that fails falls back to free-local.
+  order: [wan-free, free-local, seedance-2.5, google-flow, kling-multicam, ltx-2.5, minimax-h3]
+  provider: wan-free             # multicam default: free AI, automatic, crop fallback per shot
   extend_provider: free-local    # footage extension default ($0)
   blocked: [sora, openai-sora]   # Sora is shut down: never, anywhere
   # Money guard for the paid APIs: stop and ask if one job would generate more than this many seconds.
@@ -76,6 +78,15 @@ providers:
     resolution: 720p
     aspect_ratio: "9:16"
     cost_per_second_usd: 0.02    # footage extension only
+  wan-free:
+    api: hf-space                # free, automatic: gradio_client call, no manual step
+    space: zerogpu-aoti/wan2-2-fp8da-aoti-faster
+    model: Wan 2.2 image-to-video (fp8, ZeroGPU)
+    key_env: HF_TOKEN            # free Hugging Face token, daily ZeroGPU quota
+    min_clip_seconds: 2.5
+    max_clip_seconds: 4.5        # short clips (480x832, 16fps), upscaled to 1080x1920 30fps
+    steps: 6
+    seed: 42
   free-local:
     api: local                   # $0, NOT AI: re-framed crops / replays of the real footage
     cost_per_second_usd: 0

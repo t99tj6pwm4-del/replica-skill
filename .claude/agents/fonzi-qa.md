@@ -48,6 +48,8 @@ Work inside `fonzi-gym-video-editor/` (cd there first).
      Wrong effect -> **text_visuals**; wrong speed curve -> **cuts**.
    - **Hard cuts only?** Each library shot cuts in and out in one frame: no morphing, dissolve or drift
      at the cut (grab a frame just before and just after a cut if unsure).
+   - **AI angles (wan-free) only:** no added people (look at mirrors / background), no extra limbs, no warped
+     equipment, his face, cap and clothes still his. Any of those -> **multicam** (fall back to a crop).
    - **Same face, same room, same voice across all 4 angles?** Compare the side-by-sides with each other
      too, not only with the original: one face, one room, one set of clothes in every angle.
    - **B-roll matches the moment?** Left and right show the same person, same room, same clothes, same

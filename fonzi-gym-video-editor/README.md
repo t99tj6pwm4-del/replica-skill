@@ -61,13 +61,15 @@ You upload one video and nothing else. For every video the Multicam Agent:
 1. Picks 4 fresh shots from the 100-shot library (`docs/multicam_shot_library.md`): 4 different
    categories, fitted to the moment, never repeating your last video's shots
    (`output/multicam_shots_log.md`). There are no default angles.
-2. Makes them itself with ffmpeg crops, punch-ins and reframes of your real footage, so your face,
-   room, clothes and light match exactly. That's $0 and instant.
+2. Generates them with **free real AI**: Wan 2.2 on a Hugging Face Space, from the real frame at each
+   timestamp, using your free `HF_TOKEN` in `.env`. If a shot fails (daily quota, busy Space, or QA sees
+   your face change or an extra person), that shot falls back to a free ffmpeg crop of your real footage.
 3. Saves them as `output/angle_1.mp4` to `angle_4.mp4` and cuts them in with hard cuts, keeping your
    audio untouched.
 
 Generator order in `config.yaml`:
-1. **free-local**: the default.
+0. **wan-free**: the default, free real AI angles.
+1. **free-local**: free crops, used for any shot the AI misses.
 2. **Seedance 2.5** via the fal.ai API: real AI angles, only after your yes and with fal.ai credit
    confirmed.
 3. **Google Flow**: manual, optional later upgrade only.

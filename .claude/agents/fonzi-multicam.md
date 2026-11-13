@@ -91,11 +91,24 @@ Report job (a) to the Director before starting job (b): the 4 timestamps, what e
 Alfonso uploads ONE video and does nothing else. Never ask him to make, open, upload or wait for clips.
 If a step would need him to do something by hand, do not use it: use the automatic alternative.
 
-Generator order (config.yaml): **1. free-local (default, $0, instant)**, 2. Seedance 2.5 via the fal.ai API
+Generator order (config.yaml): **0. wan-free (default): FREE real AI angles** (Wan 2.2 image-to-video on a
+Hugging Face ZeroGPU Space, called automatically with the free `HF_TOKEN`, from the real frame at each
+timestamp, 2.5-4.5s clips; any shot that fails or comes back wrong falls back to a free-local crop),
+1. free-local ($0, instant crops), 2. Seedance 2.5 via the fal.ai API
 (only after Alfonso's explicit yes AND confirmed fal.ai credit), 3. Google Flow (manual, optional later
 upgrade only, never required, never waited for), 4. Kling, 5. LTX-2.5, 6. MiniMax H3 (ids blank).
 
-### free-local (default): make the 4 angles yourself from his real footage
+### wan-free (default): free AI angles
+`python3 scripts/multicam_generate.py` generates each shot with Wan 2.2 from the real frame at its
+timestamp, using the frozen "Hard cut to [shot] ..." prompt. Quota exhausted or the Space busy: that shot
+falls back to a free-local crop automatically (the run never waits for anyone). Then LOOK at every AI clip
+against the real frame: same face, cap, clothes, gym and light; **no added people** (check mirrors and
+background), no extra limbs, no warped dumbbell. If an AI clip fails that, re-run that shot as a crop:
+`python3 scripts/multicam_generate.py --stand-in` renders all shots as crops; to keep the good AI shots,
+tell the Director which shot failed so it can be retimed or replaced. AI clips are short (max 4.5s) and
+animate from one frame, so the movement will not match his real rep beat for beat; his audio stays.
+
+### free-local: make the angles yourself from his real footage
 1. You chose 4 FRESH library shots in job (a) (no default angles; nothing from the previous video's log).
 2. Make each one with ffmpeg from the real footage at its timestamp, so face, room, clothes, light and
    identity match by construction. Grab frames across each shot (`scripts/grab_frames.py`) and frame it so

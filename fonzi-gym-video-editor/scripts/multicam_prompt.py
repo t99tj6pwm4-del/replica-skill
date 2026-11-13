@@ -190,7 +190,10 @@ def main():
     smin, smax = max(float(mc["min_shot_seconds"]), pmin), max(float(mc["max_shot_seconds"]), pmin + 1)
     min_between = 3.0
     n_spans = int(mc.get("shots", 4))   # 4 library shots, every generator
-    if flow:   # Flow clips are at most 8s
+    per_shot = flow or pcfg.get("api") == "hf-space"   # one prompt per shot
+    if pcfg.get("api") == "hf-space":  # free AI (Wan 2.2): short clips
+        smin, smax, min_between = float(pcfg.get("min_clip_seconds", 2.5)), float(pcfg.get("max_clip_seconds", 4.5)), 1.5
+    elif flow:   # Flow clips are at most 8s
         smin, smax, min_between = 3.0, float(pcfg.get("max_clip_seconds", 8)), 1.5
     elif pcfg.get("api") == "local":
         lo, hi = mc.get("local_shot_seconds", [3.0, 8.0])
@@ -290,12 +293,14 @@ def main():
     bad = [t for t in cuts if mid_word(t, words)]
     if bad:
         die(f"internal check failed: cut(s) {bad} land mid-word")
-    if flow:
+    if per_shot:
         template = " ".join(mc["flow_prompt"].split())
         if "[SHOT]" not in template:
             die("config.yaml multicam.flow_prompt must contain [SHOT]")
-        blocks = [f"FROZEN MULTICAM PROMPT for output/cut_version.mp4 ({dur:.2f}s). Generator: Google Flow "
-                  f"({pcfg.get('reframe_model')} reframe). Do not edit after generation starts.\n",
+        gen_name = (f"Google Flow ({pcfg.get('reframe_model')} reframe)" if flow
+                    else f"{provider} ({pcfg.get('model', '')}, from the real frame at each timestamp)")
+        blocks = [f"FROZEN MULTICAM PROMPT for output/cut_version.mp4 ({dur:.2f}s). Generator: {gen_name}. "
+                  "Do not edit after generation starts.\n",
                   "Timestamps (cut-version time): " + ", ".join(f"{s['from']:.2f}s" for s in plan_spans) + "\n"]
         for s in plan_spans:
             s["flow_prompt"] = template.replace("[SHOT]", ANGLES[s["angle"]])
