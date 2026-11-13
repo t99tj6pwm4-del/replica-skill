@@ -89,12 +89,27 @@ def fal_generate(pcfg: dict, key: str, clip: Path, prompt: str, seconds: float, 
                 fh.write(chunk)
 
 
-def stand_in_generate(clip: Path, angle: str, out: Path):
-    c = STAND_IN.get(angle, STAND_IN["three-quarter"])
-    pts = ":".join(f"{'W' if i % 2 == 0 else 'H'}*{v}" for i, v in enumerate(c))
-    run(["ffmpeg", "-v", "error", "-y", "-i", clip, "-an", "-vf",
-         f"perspective={pts}:sense=source:interpolation=cubic,scale={W}:{H}:flags=lanczos,unsharp=5:5:0.6",
-         "-c:v", "libx264", "-preset", "fast", "-crf", "14", out])
+# free-local look per library category (virtual camera from the real pixels)
+CATEGORY_LOOK = {"Camera height": "low", "Direction around you": "three-quarter", "Cinematic": "low",
+                 "Lens and composition": "three-quarter", "Point of view": "high", "Through something": "profile"}
+CLOSE_UP = {"Shot size", "Body detail close-ups"}
+
+
+def stand_in_generate(clip: Path, angle: str, out: Path, shot: dict | None = None):
+    """free-local: a virtual camera made from the real pixels. A shot may carry its own crop
+    {"zoom": 1.6, "x": 0.4, "y": 0.5} (x/y = what to centre on, 0-1), set by the Multicam Agent."""
+    crop = (shot or {}).get("crop")
+    cat = (shot or {}).get("category")
+    if crop or cat in CLOSE_UP:
+        z = float((crop or {}).get("zoom", 1.6))
+        fx, fy = float((crop or {}).get("x", 0.5)), float((crop or {}).get("y", 0.45))
+        vf = (f"crop=iw/{z}:ih/{z}:'max(0,min(iw-ow,iw*{fx}-ow/2))':'max(0,min(ih-oh,ih*{fy}-oh/2))',"
+              f"scale={W}:{H}:flags=lanczos,unsharp=5:5:0.8")
+    else:
+        c = STAND_IN.get(CATEGORY_LOOK.get(cat, angle), STAND_IN["three-quarter"])
+        pts = ":".join(f"{'W' if i % 2 == 0 else 'H'}*{v}" for i, v in enumerate(c))
+        vf = f"perspective={pts}:sense=source:interpolation=cubic,scale={W}:{H}:flags=lanczos,unsharp=5:5:0.6"
+    run(["ffmpeg", "-v", "error", "-y", "-i", clip, "-an", "-vf", vf, "-c:v", "libx264", "-preset", "fast", "-crf", "14", out])
 
 
 FLOW_STEPS = """# Google Flow hand-off: {n} clips to make (free tier)
@@ -166,6 +181,8 @@ def main():
     ap.add_argument("--provider")
     ap.add_argument("--stand-in", action="store_true", help="TEST ONLY: no AI generator, re-frame the original pixels")
     ap.add_argument("--yes-spend", action="store_true", help="allow more generated seconds than the config guard")
+    ap.add_argument("--crop", action="append", default=[],
+                    help="free-local close-up framing per shot: angle_3=1.6,0.35,0.5 (zoom, centre x, centre y)")
     a = ap.parse_args()
 
     cfg = yaml.safe_load((ROOT / "config.yaml").read_text())
@@ -188,10 +205,18 @@ def main():
     dur = info["duration"]
     if abs(dur - plan["duration"]) > 0.1:
         die("multicam_prompt.txt was written for a different cut. Re-run scripts/multicam_prompt.py")
+    for c in a.crop:
+        sid, vals = c.split("=", 1)
+        z, cx, cy = (float(v) for v in vals.split(","))
+        hit = next((s for s in plan["spans"] + plan.get("broll", []) if s["id"] == sid), None)
+        if not hit:
+            die(f"--crop: no shot called {sid}")
+        hit["crop"] = {"zoom": z, "x": cx, "y": cy}
     shots = plan["spans"] + plan.get("broll", [])
     if not shots:
         die("the plan has no shots to generate")
-    if plan.get("provider") != name and not (name == "free-local" and plan.get("provider") == "local-reframe"):
+    # free-local can render any plan's shots (e.g. while Alfonso's Flow clips are still being made)
+    if plan.get("provider") != name and name not in ("free-local", "local-reframe"):
         die(f"multicam_prompt.txt was planned for {plan.get('provider')}, not {name}. Re-run multicam_prompt.py "
             f"--provider={name} (only before generation starts).")
     if hashlib.sha256(frozen.encode()).hexdigest() != plan.get("frozen_sha256"):
@@ -203,7 +228,7 @@ def main():
     plan["generation_started"] = True
     save_json(WORK / "multicam_plan.json", plan)
     returned = {}
-    if pcfg["api"] == "manual-web":
+    if pcfg["api"] == "manual-web" and not a.stand_in:
         returned = flow_handoff(cut, plan, pcfg, shots)
     simulated = pcfg["api"] == "local"
     key = None
@@ -250,7 +275,7 @@ def main():
         if returned:
             raw, offset = returned[s["id"]], 0.0
         elif simulated:
-            stand_in_generate(ref, s["angle"], raw)
+            stand_in_generate(ref, s["angle"], raw, s)
             offset = 0.0
         elif whole:
             raw, offset = whole_raw, s["from"]
