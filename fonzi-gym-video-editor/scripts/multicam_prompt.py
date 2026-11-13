@@ -205,17 +205,35 @@ def main():
             "A multicam pass needs stretches of one continuous take of at least "
             f"{smin:.0f}s with speech: tell the Director.")
 
-    angles = list(mc["flow_angles"] if flow else mc["angles"])
+    # pick the shots from the 100-shot library: 4 different categories, fitted to each moment
+    import shot_library
+    seg_of = lambda t: next((s for s in cm["segments"] if s["out_start"] <= t < s["out_end"]), None)  # noqa: E731
+    moments = []
+    for _, a, b in best:
+        talk = sum(overlap(a["t"], b["t"], w["start"], w["end"]) for w in words) / max(b["t"] - a["t"], 0.1)
+        seg = seg_of(a["t"] + 0.01)
+        if talk > 0.4:
+            moments.append("talking")
+        elif seg and (seg["type"] in ("hook", "broll") or "setup" in (seg.get("label") or "").lower()
+                      or "walk" in (seg.get("label") or "").lower()):
+            moments.append("setup")
+        else:
+            moments.append("hard_rep")
+    chosen = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--shots=")), None)
+    chosen = [int(x) for x in chosen.split(",")] if chosen else None
+    picked = shot_library.pick(moments, set(mc.get("skip_shots", [])), chosen, "--allow-repeat" in sys.argv,
+                               video=job.get("video", ""))
     plan_spans, lines, cuts = [], ["* At [0.0s]: original camera angle, unchanged."], []
     for i, (_, a, b) in enumerate(best):
-        angle = angles[i % len(angles)]
-        if angle not in ANGLES:
-            die(f"config.yaml multicam.angles: unknown angle {angle!r} (use {', '.join(ANGLES)})")
+        shot = picked[i]
+        angle = f"shot-{shot['num']}"
+        ANGLES[angle] = shot_library.description(shot)
         cuts += [a["t"], b["t"]]
         where = ("still point of a rep", "still point of a rep") if no_speech else (
             f"breath before \"{a['before']}\"", f"breath before \"{b['before']}\"")
         plan_spans.append({"id": f"angle_{i + 1}", "kind": "multicam", "from": a["t"], "to": b["t"], "angle": angle,
-                           "cut_in": where[0], "cut_out": where[1]})
+                           "shot": shot["num"], "shot_text": shot["text"], "category": shot["category"],
+                           "moment": moments[i], "cut_in": where[0], "cut_out": where[1]})
         lines.append(f"* At [{a['t']:.2f}s]: hard cut to a {ANGLES[angle]}. Same moment, same motion"
                      + (", same lip sync." if not no_speech else "."))
         last = i == len(best) - 1
@@ -226,12 +244,15 @@ def main():
         die(f"internal check failed: cut(s) {bad} land mid-word")
     if flow:
         template = " ".join(mc["flow_prompt"].split())
+        if "[SHOT]" not in template:
+            die("config.yaml multicam.flow_prompt must contain [SHOT]")
         blocks = [f"FROZEN MULTICAM PROMPT for output/cut_version.mp4 ({dur:.2f}s). Generator: Google Flow "
                   f"({pcfg.get('reframe_model')} reframe). Do not edit after generation starts.\n",
                   "Timestamps (cut-version time): " + ", ".join(f"{s['from']:.2f}s" for s in plan_spans) + "\n"]
         for s in plan_spans:
-            s["flow_prompt"] = template.replace("[ANGLE]", ANGLES[s["angle"]])
-            blocks.append(f"--- {s['id']} | {s['angle']} | cut in at {s['from']:.2f}s, back to the original at "
+            s["flow_prompt"] = template.replace("[SHOT]", ANGLES[s["angle"]])
+            blocks.append(f"--- {s['id']} | shot {s['shot']}: {s['shot_text']} ({s['category']}, {s['moment'].replace('_', ' ')}) "
+                          f"| cut in at {s['from']:.2f}s, back to the original at "
                           f"{s['to']:.2f}s ({s['to'] - s['from']:.2f}s used) ---\n{s['flow_prompt']}\n")
         prompt = "\n".join(blocks)
     else:
@@ -286,7 +307,8 @@ def main():
     every_cut = ", ".join(f"{t:.2f}s" for t in cuts)
     print(f"{len(plan_spans)} angles  " + (f"cut in at {starts}" if flow else f"cuts {every_cut}") + "  (none mid-word)")
     for s in plan_spans:
-        print(f"  {s['from']:6.2f}-{s['to']:6.2f}s  {s['angle']:<14} in on {s['cut_in']}, out on {s['cut_out']}")
+        print(f"  {s['from']:6.2f}-{s['to']:6.2f}s  #{s['shot']:<3} {s['shot_text'][:44]:<44} [{s['category']}] "
+              f"{s['moment'].replace('_', ' ')}")
     for b in broll:
         print(f"  {b['from']:6.2f}-{b['to']:6.2f}s  B-roll {b['angle']:<8} \"{b['note']}\" (asked for {b['requested_at']:.1f}s)")
     print("wrote      output/multicam_prompt.txt" + (" + output/broll_prompt.txt" if texts else ""))

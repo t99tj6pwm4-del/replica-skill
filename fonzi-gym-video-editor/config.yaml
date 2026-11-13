@@ -81,16 +81,17 @@ providers:
     cost_per_second_usd: 0
 
 multicam:
-  shots: 4                       # Google Flow: 4 angle shots, one clip each, one per timestamp
-  flow_angles: [wide, top-down, right-side, left-side]
+  shots: 4                       # 4 shots per video from the 100-shot library (docs/multicam_shot_library.md),
+                                 # 4 different categories, fitted to the moment, logged in output/multicam_shots_log.md
+  skip_shots: [42, 74]           # cannot be done safely / cleanly in Flow: fisheye, camera mounted on the bar
   flow_prompt: >-
-    Reframe this exact video from [ANGLE]. Same person, same face, same room, same clothes, same lighting.
-    Keep the original voice, speech and lip-sync exactly — do not rewrite, drop or add words. No music,
-    no subtitles, no text on screen. Vertical 9:16, 8 seconds.
+    Hard cut to [SHOT]. Preserve identity and room exactly: same person, same face, same clothes, same gym,
+    same lighting. Keep the original voice, speech and lip-sync exactly — do not rewrite, drop or add words.
+    No music, no subtitles, no text on screen. Vertical 9:16, 8 seconds.
   cuts: 4                        # other generators: 4 hard cuts = 2 angle shots
   min_shot_seconds: 4.0
   max_shot_seconds: 6.0
-  angles: [three-quarter, low]   # other generators: profile, three-quarter, low, high
+  angles: [three-quarter, low]   # old fixed angles, no longer used (shots come from the library)
   broll_seconds: 6.0             # Veo 3.1 Lite clips are 4 / 6 / 8 s
 
 audio:

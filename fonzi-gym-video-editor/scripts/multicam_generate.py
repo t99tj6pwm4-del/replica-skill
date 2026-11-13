@@ -90,7 +90,7 @@ def fal_generate(pcfg: dict, key: str, clip: Path, prompt: str, seconds: float, 
 
 
 def stand_in_generate(clip: Path, angle: str, out: Path):
-    c = STAND_IN[angle]
+    c = STAND_IN.get(angle, STAND_IN["three-quarter"])
     pts = ":".join(f"{'W' if i % 2 == 0 else 'H'}*{v}" for i, v in enumerate(c))
     run(["ffmpeg", "-v", "error", "-y", "-i", clip, "-an", "-vf",
          f"perspective={pts}:sense=source:interpolation=cubic,scale={W}:{H}:flags=lanczos,unsharp=5:5:0.6",
@@ -106,7 +106,10 @@ Open https://flow.google.com on your phone or computer, signed in with your Goog
 Make ONE clip per shot below, in this order. For each shot:
 1. Upload the reference clip named for that shot (it is {maxs:g}s or less, 9:16, your real footage).
 2. Model: {reframe} (reframe of the uploaded video). Vertical 9:16, 720p, 8 seconds.
-3. Paste the prompt for that shot EXACTLY as written below. Do not change a word.
+3. Paste the prompt for that shot EXACTLY as written below. Do not change a word. Every shot is a HARD CUT
+   from the library: same person, face, clothes, tattoos, gym, equipment and lighting. If the reframe
+   cannot show that shot (e.g. it needs a camera position Omni cannot invent), use Veo 3.1 Lite from the
+   start frame instead, never Veo 3.1 Quality.
 4. Continuity: if Flow offers it, use the shot's start frame (`<id>_start.jpg`) as the first frame / scene
    anchor, so the new angle cuts in cleanly on the real moment.
 5. Download the result and name it `<id>.mp4` (e.g. `angle_1.mp4`), then send all {n} files back to Claude
@@ -143,7 +146,7 @@ def flow_handoff(cut: Path, plan: dict, pcfg: dict, shots: list) -> dict:
             run(["ffmpeg", "-v", "error", "-y", "-ss", f"{s['from']:.3f}", "-i", cut, "-frames:v", "1", "-q:v", "2",
                  pack / f"{s['id']}_start.jpg"])
         prompt = s.get("flow_prompt") or "(see output/broll_prompt.txt)"
-        blocks.append(f"## {s['id']}  ({s['angle']}{', B-roll, ' + str(s.get('model')) if s['kind'] == 'broll' else ''})\n"
+        blocks.append(f"## {s['id']}  (shot {s.get('shot', '-')}: {s.get('shot_text', s['angle'])}{', B-roll, ' + str(s.get('model')) if s['kind'] == 'broll' else ''})\n"
                       f"- Reference clip: `{ref.name}`   Start frame: `{s['id']}_start.jpg`\n"
                       f"- Cuts in at {s['from']:.2f}s, back to your original camera at {s['to']:.2f}s\n"
                       f"- Prompt:\n\n    {prompt}\n"
@@ -193,6 +196,10 @@ def main():
             f"--provider={name} (only before generation starts).")
     if hashlib.sha256(frozen.encode()).hexdigest() != plan.get("frozen_sha256"):
         die("output/multicam_prompt.txt was changed after it was frozen. Restore it or re-plan with --unfreeze.")
+    if not plan.get("generation_started"):
+        import shot_library
+        shot_library.log_shots(load_json(OUT / "job.json", default={}).get("video", plan.get("source", "")),
+                               [s for s in plan["spans"] if s.get("shot")])
     plan["generation_started"] = True
     save_json(WORK / "multicam_plan.json", plan)
     returned = {}

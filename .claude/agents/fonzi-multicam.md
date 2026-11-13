@@ -43,21 +43,31 @@ FIRST, before the Storyboard Agent:
 1. `python3 scripts/multicam_prompt.py`
    - transcribes the cut word by word with Whisper
    - finds the speech beats: phrase starts and breaths (no speech in the video: the still points of the reps)
-   - Google Flow (default): picks **4 timestamps**, one per angle: wide / distant, top-down, right side,
-     left side, each shot 8s or less, and fills the Flow template for each
+   - picks **4 timestamps** (each shot 8s or less) and **4 shots from the 100-shot library**
+     (`docs/multicam_shot_library.md`), from 4 DIFFERENT categories, fitted to the moment
+     (hard rep: low hero / detail close-up; talking: face / chest up; setup: wide / full body), never a
+     shot number from the previous video (`output/multicam_shots_log.md`), shot 100 only as the closer,
+     never the skip list (`multicam.skip_shots`: 42 fisheye, 74 camera on the bar)
+   - fills the Flow template for each: "Hard cut to [shot]. Preserve identity and room exactly: ..."
    - picks **4 cut timestamps** on those beats, never mid-word, away from punch-ins and slow-mo
    - writes **ONE frozen multicam prompt** to `output/multicam_prompt.txt`: same face, same room, same
      voice, same lip sync, same timing. ONLY the camera angle changes.
    - if the Director passed B-roll requests (e.g. "at 0:23, bench press lockout"; times are cut-version
      times), writes one prompt per request to `output/broll_prompt.txt`
    - saves the plan to `output/work/multicam_plan.json`
-2. Read `output/multicam_prompt.txt` and the plan. Check against the word list in
+2. **Choose the shots yourself.** The script's picks are a first guess from the moment type. Grab the
+   frame at each timestamp and judge what fits what is really on screen and what this clip can show
+   (no "chain" close-up if he wears no chain, no "knees at the bottom of the squat" on a curl). To set
+   them: `python3 scripts/multicam_prompt.py --unfreeze --shots=22,91,80,10` (only before generation
+   starts; 4 numbers, 4 categories, not from the previous video unless Alfonso asked: `--allow-repeat`).
+   If a shot cannot be done cleanly in Flow, pick the next best from a different category; never force it.
+3. Read `output/multicam_prompt.txt` and the plan. Check against the word list in
    `output/work/transcript.json`: every cut sits in a silence between words; each angle shot covers a
    complete phrase; no shot straddles two exercises. For a requested B-roll, grab the frame
    (`python3 scripts/grab_frames.py output/cut_version.mp4 output/work/mc_check <time>`) and confirm the
    moment Alfonso described is really what is on screen at that time. If it is not, stop and tell the
    Director the time that does match.
-3. The prompt is **frozen** once generation starts (the scripts enforce it): never reword, shorten,
+4. The prompt is **frozen** once generation starts (the scripts enforce it): never reword, shorten,
    translate or "improve" it. The only things that may
    differ between videos are the timestamps and the angle names. To change angles or shot length, edit
    `multicam:` in `config.yaml` and re-run the script.
@@ -66,7 +76,13 @@ FIRST, before the Storyboard Agent:
    when the Director says Alfonso asked for that style, follow that skill's own steps, and still save
    the result as `output/multicam_prompt.txt`.
 
-Report job (a) to the Director before starting job (b): the 4 timestamps, the words they sit before, the angles.
+Every shot is a **hard cut**: no morph, dissolve or camera move between angles unless the shot says so.
+Same person, face, body, clothes, tattoos, gym, equipment and lighting; nothing added or removed. The
+anchor for each shot is the frame of his REAL video at its timestamp (`<id>_start.jpg`).
+
+Report job (a) to the Director before starting job (b): the 4 timestamps, what each moment is, and the
+4 shot numbers + names + categories you chose and why they fit. The shots are logged in
+`output/multicam_shots_log.md` when generation starts.
 
 ## Job (b): GENERATOR
 

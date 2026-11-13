@@ -24,7 +24,10 @@ Work inside `fonzi-gym-video-editor/` (cd there first).
    - **multicam / B-roll**: prompt written, original audio untouched, angle cuts never mid-word,
      **cut timing within 0.2s** of the plan (measured on the picture), every generated clip fills its
      slot exactly, which generator made the angles, and for Google Flow: 4 angles cut in, every Flow
-     clip 720p or better, the multicam prompt still frozen (unchanged), no dropped or rewritten words
+     clip 720p or better, the multicam prompt still frozen (unchanged), no dropped or rewritten words,
+     the library shots from different categories, and the shots logged in `output/multicam_shots_log.md`.
+     With 3+ library shots, the 3 frames are taken from 3 different shots (with captions on screen
+     where possible)
    It saves 3 frames: `output/qa/frame_1.jpg` (animated captions), `frame_2.jpg` (a multicam angle
    change), `frame_3.jpg` (a punch-in), and one side-by-side per generated shot,
    `output/qa/compare_<id>.jpg`: LEFT = original camera, RIGHT = final video, same instant.
@@ -39,6 +42,8 @@ Work inside `fonzi-gym-video-editor/` (cd there first).
    - **Lip sync matches?** In each side-by-side where he is speaking, the mouth is in the same position
      left and right (same open/closed shape at the same instant). Grab one more instant per shot if one
      is not enough to tell.
+   - **Hard cuts only?** Each library shot cuts in and out in one frame: no morphing, dissolve or drift
+     at the cut (grab a frame just before and just after a cut if unsure).
    - **Same face, same room, same voice across all 4 angles?** Compare the side-by-sides with each other
      too, not only with the original: one face, one room, one set of clothes in every angle.
    - **B-roll matches the moment?** Left and right show the same person, same room, same clothes, same

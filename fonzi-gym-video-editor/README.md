@@ -59,7 +59,9 @@ The Director reports after each step ("Storyboard done", "Cuts done", "Multicam 
 
 Order is set in `config.yaml`:
 1. **Google Flow**: free, the default for multicam. It has no API, so it's a hand-off. The Multicam Agent
-   writes the 4 frozen prompts (wide, top-down, right side, left side) and builds `output/flow_pack/`. You
+   picks 4 shots from the 100-shot library (`docs/multicam_shot_library.md`): 4 different categories,
+   fitted to the moment, no repeats from your last video, logged in `output/multicam_shots_log.md`.
+   It writes the 4 frozen "Hard cut to ..." prompts and builds `output/flow_pack/`. You
    make the 4 clips at flow.google.com on the free tier (Omni Flash 1.2 reframes, Veo 3.1 Lite for B-roll,
    never Veo 3.1 Quality) and send them back. The agent cuts them in over your footage.
 2. **Seedance 2.5**: paid API.

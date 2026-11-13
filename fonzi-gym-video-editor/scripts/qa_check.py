@@ -182,10 +182,19 @@ def main():
                 "matches the frozen copy" if same else "multicam_prompt.txt was edited after generation", "multicam")
         if mmap.get("provider") == "google-flow":
             angles = [i for i in inserts if i["kind"] == "multicam"]
-            add("4 Google Flow angles cut in (wide, top-down, right side, left side)", len(angles) == 4,
-                ", ".join(f"{i['angle']}@{i['from']:.2f}s" for i in angles), "multicam")
+            add("4 Google Flow shots cut in", len(angles) == 4,
+                ", ".join(f"#{i.get('shot', i['angle'])}@{i['from']:.2f}s" for i in angles), "multicam")
             low = [i["id"] for i in inserts if (i.get("returned_height") or 0) < 720 and (i.get("returned_width") or 0) < 720]
             add("Flow clips are 720p or better", not low, "all 720p+" if not low else f"below 720p: {low}", "multicam")
+        shots = [i for i in inserts if i.get("shot")]
+        if shots:
+            cats = [i["category"] for i in shots]
+            add("library shots from different categories", len(set(cats)) == len(cats),
+                ", ".join(f"#{i['shot']} ({i['category']})" for i in shots), "multicam")
+            logf = OUT / "multicam_shots_log.md"
+            logged = logf.exists() and all(f"#{i['shot']} " in logf.read_text().splitlines()[-1] for i in shots)
+            add("shots logged in output/multicam_shots_log.md", logged,
+                "logged" if logged else "the last log row does not list these shots", "multicam")
         add("no dropped or rewritten words (original audio kept bit for bit)",
             mmap.get("audio_identical_to_cut") is True, "audio identical to the cut", "multicam")
         add("angles made by the AI generator in config.yaml", not mmap.get("simulated"),
@@ -205,16 +214,26 @@ def main():
     def inside(t, spans):
         return any(s["from"] <= t <= s["to"] for s in spans)
 
+    shot_ins = [i for i in inserts if i.get("shot")]
+    if len(shot_ins) >= 3:
+        # 3 frames from 3 different library shots, each with animated captions on screen where possible
+        for ins in shot_ins[:3]:
+            hit = [cap_time(c) for c in allcaps if ins["from"] + 0.3 <= cap_time(c) <= ins["to"] - 0.1]
+            picks.append((f"shot #{ins['shot']} {ins['shot_text']} ({ins['category']})"
+                          + (" + animated captions" if hit else ""),
+                          hit[0] if hit else ins["from"] + (ins["to"] - ins["from"]) * 0.4))
     caps = [c for c in allcaps if not inside(cap_time(c), inserts)]
-    if caps:
+    if caps and len(picks) < 3:
         picks.append(("animated word-by-word captions", cap_time(caps[len(caps) // 2])))
-    if inserts:
+    if inserts and len(picks) < 3:
         ins = inserts[0]
         hit = [cap_time(c) for c in allcaps if ins["from"] + 0.3 <= cap_time(c) <= ins["to"] - 0.1]
         picks.append((f"multicam angle change ({ins['angle']})", hit[0] if hit else ins["from"] + (ins["to"] - ins["from"]) * 0.4))
     punches = [e for e in props.get("events", []) if e["kind"] == "punch_in"]
     lts = props.get("lowerThirds") or []
-    if punches:
+    if len(picks) >= 3:
+        pass
+    elif punches:
         p = punches[len(punches) // 2]
         picks.append(("punch-in (zoomed)", (p["from"] + p["to"]) / 2))
     elif lts:

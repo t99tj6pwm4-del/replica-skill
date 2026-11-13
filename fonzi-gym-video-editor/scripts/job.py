@@ -58,7 +58,7 @@ def main():
         if not video.exists():
             die(f"video not found: {a.video}")
         OUT.mkdir(exist_ok=True)
-        old = [p for p in OUT.iterdir() if p.name not in ("archive", ".gitkeep")]
+        old = [p for p in OUT.iterdir() if p.name not in ("archive", ".gitkeep", "multicam_shots_log.md")]
         if old:
             dest = OUT / "archive" / time.strftime("%Y%m%d-%H%M%S")
             dest.mkdir(parents=True)
