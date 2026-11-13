@@ -59,7 +59,7 @@ Work inside `fonzi-gym-video-editor/` (cd there first).
 
 Send it back to the right agent only:
 - wrong size / fps / length, no audio, lifter cropped out, bad zoom, black frames, bad jump cut -> **cuts**
-- angle cut mid-word or more than 0.2s off, lip sync off in a generated angle, a generated clip that
+- an angle or B-roll shot that spans two different shots or people, angle cut mid-word or more than 0.2s off, lip sync off in a generated angle, a generated clip that
   changed the face / room / clothes, B-roll that does not match the moment, audio altered -> **multicam**
 - unreadable or wrong captions, text on the face, graphics misplaced, hashtag or non-English text,
   missing title / lower-third / progress bar / end card -> **text_visuals**

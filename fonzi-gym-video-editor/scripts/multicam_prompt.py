@@ -79,6 +79,22 @@ def boundaries(words: list, lo: float, hi: float) -> list[dict]:
     return out
 
 
+def scene_cuts(path: Path) -> list[float]:
+    """Hard picture changes in the cut (jump cuts, shot changes). An angle shot must sit inside ONE shot."""
+    import subprocess
+    import numpy as np
+    w, h = 48, 86
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-vf", f"fps={FPS},scale={w}:{h},format=gray",
+                          "-f", "rawvideo", "-"], capture_output=True).stdout
+    a = np.frombuffer(raw, dtype=np.uint8)
+    n = len(a) // (w * h)
+    if n < 3:
+        return []
+    d = np.abs(np.diff(a[: n * w * h].reshape(n, h, w).astype(np.float32), axis=0)).mean(axis=(1, 2))
+    thr = max(18.0, float(np.median(d)) * 6)
+    return [round(float(i + 1) / FPS, 3) for i in np.where(d > thr)[0]]
+
+
 def mid_word(t: float, words: list) -> bool:
     return any(w["start"] + 0.02 < t < w["end"] - 0.02 for w in words)
 
@@ -110,6 +126,7 @@ def main():
     hi = cm["end_card"]["out_start"] - 1.0
     cands = boundaries(words, lo, hi)
     busy = [(e["out_start"], e["out_end"]) for e in cm["events"]]          # punch-ins, slow-mo, ramps
+    shots = scene_cuts(cut)
     seg_starts = [s["out_start"] for s in cm["segments"]]
 
     # every span = (cut in, cut out) on two speech beats, the right length for the generator
@@ -121,6 +138,8 @@ def main():
         clash = sum(overlap(a["t"], b["t"], x, y) for x, y in busy)
         speech = sum(overlap(a["t"], b["t"], w["start"], w["end"]) for w in words)
         crosses = sum(1 for s in seg_starts if a["t"] < s < b["t"])       # do not straddle two exercises
+        if any(a["t"] + 0.1 < c < b["t"] - 0.1 for c in shots):
+            continue                                                       # never straddle two different shots
         score = speech - 4 * clash - 6 * crosses + min(a["gap"], 0.6) + min(b["gap"], 0.6)
         spans.append((score, a, b))
     n_spans = int(mc["cuts"]) // 2
@@ -134,8 +153,10 @@ def main():
         if score > best_score:
             best, best_score = combo, score
     if not best:
-        die(f"could not find {mc['cuts']} cut points on speech beats ({len(cands)} phrase starts found between "
-            f"{lo:.1f}s and {hi:.1f}s). The video may have too little speech for a multicam pass: tell the Director.")
+        die(f"could not find {mc['cuts']} cut points on speech beats inside single continuous shots "
+            f"({len(cands)} phrase starts, {len(shots)} shot changes between {lo:.1f}s and {hi:.1f}s). "
+            "A multicam pass needs stretches of one continuous take of at least "
+            f"{smin:.0f}s with speech: tell the Director.")
 
     angles = list(mc["angles"])
     plan_spans, lines, cuts = [], ["* At [0.0s]: original camera angle, unchanged."], []
@@ -168,9 +189,16 @@ def main():
         if mid_word(start, words):   # never cut mid-word: slide to the start of that word's silence
             w = next(w for w in words if w["start"] < start < w["end"])
             start = snap(max(0.0, w["start"] - 0.06))
-        end = snap(min(start + length, hi + 1.0))
+        before = [c for c in shots if c <= at + 0.05]
+        after = [c for c in shots if c > at + 0.05]
+        shot_in, shot_out = (before[-1] if before else 0.0), (after[0] if after else hi + 1.0)
+        start = max(start, snap(shot_in))
+        while mid_word(start, words):
+            start = snap(start + 1 / FPS)
+        end = snap(min(start + length, shot_out, hi + 1.0))
         if end - start < pmin - 0.01 or start < 0:
-            die(f"B-roll request {req!r}: no room for a {pmin:.0f}s shot at {at:.1f}s (video body ends at {hi + 1:.1f}s)")
+            die(f"B-roll request {req!r}: the shot that holds {at:.1f}s runs {shot_in:.2f}-{shot_out:.2f}s, "
+                f"too short for a {pmin:.0f}s generated clip. Pick a moment inside a longer continuous shot.")
         if any(overlap(start, end, s["from"], s["to"]) > 0 for s in plan_spans + broll):
             die(f"B-roll request {req!r} overlaps another generated shot; pick a different time")
         broll.append({"id": f"broll_{n}", "kind": "broll", "from": start, "to": end, "angle": angle, "note": note,
