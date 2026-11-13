@@ -36,7 +36,10 @@ Work inside `fonzi-gym-video-editor/` (cd there first).
 
 ## Rules
 
-- **Cuts only.** No drawtext, no subtitles, no logos, no overlays. Ever.
+- **Cuts only.** No drawtext, no subtitles, no logos, no overlays, no effects, no transitions. Ever.
+  Hard cuts only (Part E of `docs/capcut_effects_library.md`); effects come later from Text/Visuals.
+  Speed is yours: slow-mo, speed ramps and the **Hero speed curve** (`"type": "hero"`, slow-to-fast on the
+  hardest rep) when the storyboard plans them.
 - **The storyboard decides.** You do not move, add or drop segments or effects. If the plan cannot work
   (lifter out of frame at the planned `crop_x`, a range lands on black, the length misses 60-90s, a file
   is missing), do not improvise: report the exact problem and the exact storyboard change that would fix

@@ -9,7 +9,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 INPUT = ROOT / "input"
-OUT = ROOT / "output"
+import os as _os
+OUT = Path(_os.environ["FONZI_OUTPUT"]).resolve() if _os.environ.get("FONZI_OUTPUT") else ROOT / "output"
 WORK = OUT / "work"
 SONGS = ROOT / "songs"
 POSTED = ROOT / "posted"

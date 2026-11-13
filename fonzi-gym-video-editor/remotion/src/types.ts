@@ -52,7 +52,7 @@ export type OverlayProps = {
   duration: number; // seconds
   brand: Brand;
   layout: { captionY: number; lowerThirdY: number };
-  title: { from: number; to: number; text: string; subtitle?: string } | null;
+  title: { from: number; to: number; text: string; subtitle?: string; animation?: string } | null;
   lowerThirds: LowerThird[];
   progress: ProgressSegment[];
   captions: CaptionPage[];

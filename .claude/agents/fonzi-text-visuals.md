@@ -42,14 +42,30 @@ ffmpeg is only used to lay the finished Remotion layer over the cut.
    - each callout ring sits on the body part it names: set its `x`, `y` (0-1 of the frame) from the frame
    - nothing important under the top 110px or bottom 420px (Instagram's own buttons cover those)
    Fix in `overlay_props.json` and preview again until it is right.
-4. **Render:** `python3 scripts/render_final.py`  (a few minutes)
+4. **Effects from the CapCut library** (`docs/capcut_effects_library.md`, Parts A-F). The editor is
+   ffmpeg + Remotion, not the CapCut app: you pick effects BY NAME from the library and
+   `scripts/effects.py` renders the closest ffmpeg equivalent in the same category. Never invent a name.
+   - `python3 scripts/effects.py suggest` writes a starting `output/work/effects_plan.json`; edit it to fit
+     the real moments (grab frames), then `python3 scripts/effects.py check` until it says OK.
+   - ONE filter for the whole video (Cinematic / Warm / Moody / Teal and Orange ...; never Food / Style).
+   - 1 video effect max per clip, on a hard rep / beat drop (e.g. Camera Shake 0.3s); shake 2-3 moments max.
+   - Transitions only where they earn it (new exercise / section change): max 1 per 3 cuts, 0.2-0.5s
+     (Fade to Black 0.5-1s), never two different fancy ones back-to-back, never a spin / glitch / flash
+     over a heavy lift where it hides the form. Default everywhere else: hard cut.
+   - Velocity effect (Flash / Blur Shake) on a beat drop; `title_animation` (Flash In / Fade In / Zoom 1 /
+     Focus) on the hook title. Animations are for text, never on his face.
+   - Body effects: none (this editor cannot track the body). NEVER face / body reshape, cartoon, comic,
+     joke or horror effects. Pro effects only with Alfonso's yes.
+   - Never the same effect + transition combo as the previous video (`output/effects_log.md`).
+   Effects change the picture only; his audio is copied untouched.
+5. **Render:** `python3 scripts/render_final.py`  (a few minutes)
    Renders the Remotion layer, composites it over the cut, writes `output/final_edit.mp4`, and when the
    storyboard has 2+ exercises also `output/carousel/` (slide images + `carousel.json` with every exercise
    and its sets x reps).
-5. **Verify:** `ffprobe -v error -show_entries format=duration:stream=codec_name,codec_type,width,height,r_frame_rate -of compact output/final_edit.mp4`
+6. **Verify:** `ffprobe -v error -show_entries format=duration:stream=codec_name,codec_type,width,height,r_frame_rate -of compact output/final_edit.mp4`
    Must be 1080x1920, 30fps, h264 + aac, same length as the cut. Then grab 3 frames from the final
    (`python3 scripts/grab_frames.py output/final_edit.mp4 output/work/final_check <t1> <t2> <t3>`) and look.
-6. Reply to the Director: file path, what is on screen (title, lower-thirds, caption word count, callouts,
+7. Reply to the Director: file path, what is on screen (title, lower-thirds, caption word count, callouts,
    end card), every caption correction you made, and the carousel files if any.
 
 ## Rules

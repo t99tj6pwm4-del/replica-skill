@@ -42,6 +42,10 @@ Work inside `fonzi-gym-video-editor/` (cd there first).
    - **Lip sync matches?** In each side-by-side where he is speaking, the mouth is in the same position
      left and right (same open/closed shape at the same instant). Grab one more instant per shot if one
      is not enough to tell.
+   - **Effects (CapCut library):** qa_check lists every filter / effect / transition / velocity effect /
+     title animation with its duration. Look at the frames around each one: no effect hides his face, form
+     or the bar; nothing changes his body shape; no cartoon look; captions still readable over the effect.
+     Wrong effect -> **text_visuals**; wrong speed curve -> **cuts**.
    - **Hard cuts only?** Each library shot cuts in and out in one frame: no morphing, dissolve or drift
      at the cut (grab a frame just before and just after a cut if unsure).
    - **Same face, same room, same voice across all 4 angles?** Compare the side-by-sides with each other

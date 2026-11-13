@@ -77,6 +77,8 @@ FIRST, before the Storyboard Agent:
    the result as `output/multicam_prompt.txt`.
 
 Every shot is a **hard cut**: no morph, dissolve or camera move between angles unless the shot says so.
+Transitions between angles (Part E of `docs/capcut_effects_library.md`) only if a hard cut jars, and the
+Text/Visuals Agent adds them, not you.
 Same person, face, body, clothes, tattoos, gym, equipment and lighting; nothing added or removed. The
 anchor for each shot is the frame of his REAL video at its timestamp (`<id>_start.jpg`).
 

@@ -64,6 +64,12 @@ def build_pieces(seg: dict, dead: list) -> list[dict]:
             zooms.append((e["at"], e["at"] + e["dur"], float(e.get("zoom", 1.2)), e))
         elif e["type"] == "slow_mo":
             speeds.append((e["from"], e["to"], float(e["speed"]), "slow_mo"))
+        elif e["type"] == "hero":
+            # CapCut "Hero" speed curve, free here: slow on the peak of the rep, ramping back to normal
+            f, t = e["from"], e["to"]
+            part = (t - f) / 4
+            for k, sp in enumerate((0.35, 0.5, 0.75, 1.0)):
+                speeds.append((f + k * part, f + (k + 1) * part, sp, "hero"))
         elif e["type"] == "speed_ramp":
             # ramp = ease in, hold, ease out
             f, t, sp = e["from"], e["to"], float(e["speed"])
@@ -201,11 +207,23 @@ def main():
             last = events[-1] if events else None
             if last and last["kind"] == kind and abs(last["out_end"] - p["out_a"]) < 1e-3 and kind != "punch_in":
                 last["out_end"] = p["out_b"]
-                last["speed"] = min(last["speed"], p["speed"]) if kind == "slow_mo" else max(last["speed"], p["speed"])
+                last["speed"] = min(last["speed"], p["speed"]) if kind in ("slow_mo", "hero") else max(last["speed"], p["speed"])
             elif last and last["kind"] == kind == "punch_in" and abs(last["out_end"] - p["out_a"]) < 1e-3 and last["zoom"] == p["zoom"]:
                 last["out_end"] = p["out_b"]
             else:
                 events.append({"kind": kind, "out_start": p["out_a"], "out_end": p["out_b"], **extra})
+    # merge pieces of the same event that were split by another event's boundaries
+    merged = []
+    for e in sorted(events, key=lambda e: (e["kind"], e["out_start"])):
+        last = merged[-1] if merged else None
+        if (last and last["kind"] == e["kind"] and abs(last["out_end"] - e["out_start"]) < 1e-3
+                and (e["kind"] != "punch_in" or last.get("zoom") == e.get("zoom"))):
+            last["out_end"] = e["out_end"]
+            if "speed" in e:
+                last["speed"] = min(last["speed"], e["speed"]) if e["kind"] in ("slow_mo", "hero") else max(last["speed"], e["speed"])
+        else:
+            merged.append(dict(e))
+    events = sorted(merged, key=lambda e: e["out_start"])
     for seg in sb["segments"]:
         for e in seg.get("effects", []):
             if e["type"] == "callout":

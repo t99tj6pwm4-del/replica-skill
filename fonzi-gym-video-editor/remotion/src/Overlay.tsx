@@ -33,8 +33,14 @@ const TitleCard: React.FC<{
   subtitle?: string;
   brand: Brand;
   frames: number;
-}> = ({ text, subtitle, brand, frames }) => {
+  animation?: string;
+}> = ({ text, subtitle, brand, frames, animation }) => {
   const frame = useCurrentFrame();
+  // CapCut library Animation > In for the hook: Flash In / Fade In / Zoom 1 / Focus
+  const inFlash = animation === "Flash In" ? interpolate(frame, [0, 2, 6], [0, 0.9, 0], clamp) : 0;
+  const inFade = animation === "Fade In" ? interpolate(frame, [0, 8], [0, 1], clamp) : 1;
+  const inZoom = animation === "Zoom 1" ? interpolate(frame, [0, 10], [1.25, 1], { ...clamp, easing: Easing.out(Easing.cubic) }) : 1;
+  const inBlur = animation === "Focus" ? interpolate(frame, [0, 10], [18, 0], clamp) : 0;
   const { fps, width } = useVideoConfig();
   const words = text.split(/\s+/).filter(Boolean);
   // Keep the whole hook block in the left part of the frame so it never
@@ -69,8 +75,9 @@ const TitleCard: React.FC<{
       <AbsoluteFill style={{ backgroundColor: brand.darkColor, opacity: scrim }} />
       <AbsoluteFill
         style={{
-          opacity: 1 - exit,
-          transform: `translateY(${-exit * 160}px)`,
+          opacity: (1 - exit) * inFade,
+          transform: `translateY(${-exit * 160}px) scale(${inZoom})`,
+          filter: inBlur ? `blur(${inBlur}px)` : undefined,
         }}
       >
         {/* diagonal brand stripes */}
@@ -158,6 +165,7 @@ const TitleCard: React.FC<{
           ) : null}
         </div>
       </AbsoluteFill>
+      {inFlash ? <AbsoluteFill style={{ backgroundColor: "#fff", opacity: inFlash }} /> : null}
     </AbsoluteFill>
   );
 };
@@ -833,6 +841,7 @@ export const Overlay: React.FC<OverlayProps> = (p) => {
             subtitle={p.title.subtitle}
             brand={p.brand}
             frames={seq(p.title.from, p.title.to).durationInFrames}
+            animation={p.title.animation}
           />
         </Sequence>
       ) : null}

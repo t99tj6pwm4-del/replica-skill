@@ -121,6 +121,17 @@ def main():
             print(rel(jpg))
         return
 
+    # CapCut-library effects (filter, video effects, transitions, velocity) on the picture, audio untouched
+    import effects
+    video_name = load_json(OUT / "job.json", default={}).get("video", "")
+    fx_base = WORK / "effects_base.mp4"
+    fx = effects.apply(cut, fx_base, video_name)
+    if fx:
+        print(f"effects: filter {fx['filter']}, " + ", ".join(f"{i['name']} {i['dur']}s @{i['from']:.2f}s" for i in fx["items"]))
+        cut = fx_base
+    if fx and fx.get("title_animation") and props.get("title"):
+        props["title"]["animation"] = fx["title_animation"]
+        save_json(props_path, props)
     overlay = WORK / "overlay.mov"
     print(f"rendering {props['duration']:.1f}s of motion graphics with Remotion (a few minutes) ...")
     remotion(["render", "src/index.ts", "Overlay", str(overlay), f"--props={props_path}",
@@ -132,6 +143,7 @@ def main():
          "-t", f"{info['duration']:.3f}", "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-profile:v", "high",
          "-pix_fmt", "yuv420p", "-r", str(FPS), "-c:a", "copy", "-movflags", "+faststart", final])
     overlay.unlink(missing_ok=True)
+    fx_base.unlink(missing_ok=True)
     out = probe(final)
     v = out["video"]
     print(f"wrote  output/final_edit.mp4  {v['width']}x{v['height']} {v['fps']}fps {v['codec']}+"

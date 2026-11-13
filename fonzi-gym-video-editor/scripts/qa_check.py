@@ -202,6 +202,28 @@ def main():
             else "free-local: virtual camera angles cropped from the real footage ($0), not AI re-filmed angles",
             "multicam", soft=True)
 
+    # CapCut-library effects: list every one with its duration, re-check the rules
+    fx = load_json(WORK / "effects_applied.json", default=None)
+    if fx:
+        import effects as fxmod
+        plan = load_json(WORK / "effects_plan.json", default={})
+        errs, _, _ = fxmod.validate(plan, load_json(WORK / "cut_map.json"), job.get("video", ""), strict=False)
+        add("effects follow the library rules (1 filter, durations, max per clip, no cartoon / reshape / Pro)",
+            not errs, "all rules met" if not errs else "; ".join(errs), "text_visuals")
+        add("filter (one, whole video)", bool(fx.get("filter")), str(fx.get("filter")), "text_visuals")
+        for i in fx["items"]:
+            add(f"{i['group'][:-1].replace('_', ' ')}: {i['name']}", True,
+                f"{i['dur']}s at {i['from']:.2f}-{i['to']:.2f}s (ffmpeg equivalent)" + (f", {i['why']}" if i.get("why") else ""),
+                "text_visuals")
+        if fx.get("title_animation"):
+            add(f"title animation in: {fx['title_animation']}", True, "hook title, first 2s", "text_visuals")
+        hero = [e for e in load_json(WORK / "cut_map.json").get("events", []) if e["kind"] == "hero"]
+        for e in hero:
+            add("speed curve: Hero", True, f"{e['out_start']:.2f}-{e['out_end']:.2f}s, slow-to-fast", "cuts")
+        logf = OUT / "effects_log.md"
+        add("effects logged in output/effects_log.md", logf.exists() and job.get("video", "?") in logf.read_text(),
+            "logged" if logf.exists() else "missing", "text_visuals")
+
     # 3 frames: animated captions, a multicam angle change, a punch-in (or lower-third)
     dur = info["duration"]
     body_end = (props.get("endCard") or {}).get("from", dur)

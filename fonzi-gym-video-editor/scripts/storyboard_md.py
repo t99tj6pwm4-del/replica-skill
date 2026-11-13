@@ -14,7 +14,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 from common import OUT, WORK, die, load_json, resolve  # noqa: E402
 
 TYPES = {"hook", "exercise", "talk", "broll"}
-EFFECTS = {"punch_in", "slow_mo", "speed_ramp", "callout"}
+EFFECTS = {"punch_in", "slow_mo", "speed_ramp", "hero", "callout"}
+HERO = [0.35, 0.5, 0.75, 1.0]   # Hero speed curve: slow-to-fast, four equal steps
 
 
 def english_only(text: str, where: str, errors: list):
@@ -74,6 +75,10 @@ def validate(sb: dict, src_duration: float | None = None) -> tuple[list, list, f
                 continue
             if e["type"] == "punch_in" and not 1.10 <= e.get("zoom", 1.2) <= 1.30:
                 errors.append(f"{name}: punch-in zoom must be 1.10-1.30")
+            if e["type"] == "hero":
+                part = (t1 - t0) / len(HERO)
+                seg_len += sum(part / s for s in HERO) - (t1 - t0) / float(s.get("speed", 1.0))
+                continue
             if e["type"] in ("slow_mo", "speed_ramp"):
                 sp = e.get("speed")
                 if not sp or not 0.25 <= sp <= 4:
@@ -125,6 +130,10 @@ def render(sb: dict, total: float) -> str:
             elif e["type"] == "slow_mo":
                 fx.append(f"slow-mo {e['speed']}x on {fmt(e['from'])}-{fmt(e['to'])}")
                 length += (e["to"] - e["from"]) * (1 / e["speed"] - 1 / float(s.get("speed", 1.0)))
+            elif e["type"] == "hero":
+                fx.append(f"Hero speed curve (slow-to-fast) on {fmt(e['from'])}-{fmt(e['to'])}")
+                part = (e["to"] - e["from"]) / len(HERO)
+                length += sum(part / x for x in HERO) - (e["to"] - e["from"]) / float(s.get("speed", 1.0))
             elif e["type"] == "speed_ramp":
                 fx.append(f"speed ramp {e['speed']}x on {fmt(e['from'])}-{fmt(e['to'])}")
                 length += (e["to"] - e["from"]) * (1 / e["speed"] - 1 / float(s.get("speed", 1.0)))

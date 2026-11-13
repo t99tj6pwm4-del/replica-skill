@@ -12,3 +12,4 @@ songs/*
 vendor/
 exports/*
 !exports/.gitkeep
+output_*/

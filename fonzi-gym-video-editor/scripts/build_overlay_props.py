@@ -121,6 +121,8 @@ def main():
         ev = {"from": e["out_start"], "to": e["out_end"], "kind": e["kind"]}
         if e["kind"] == "slow_mo":
             ev["label"] = f"SLOW-MO {e['speed']:g}x"
+        elif e["kind"] == "hero":
+            ev["kind"], ev["label"] = "slow_mo", "HERO SLOW-MO"
         elif e["kind"] == "speed_ramp":
             ev["label"] = f"{e['speed']:g}x SPEED"
         events.append(ev)

@@ -42,6 +42,8 @@ Work inside `fonzi-gym-video-editor/` (cd there first). The Director gives you t
 - **Punch-in** (`punch_in`): zoom 1.10-1.30 on the key rep or key cue of each exercise.
 - **Slow-mo** (`slow_mo`, speed 0.5): on the single hardest rep of the video.
 - **Speed ramp** (`speed_ramp`, speed 1.5-3): over setup, walk-outs, re-racks, repeated easy reps.
+- **Hero speed curve** (`hero`, `from`/`to`, no speed): CapCut's "Hero" curve, slow-to-fast, on the single
+  hardest rep (use it OR slow_mo there, not both). See Part F5 of `docs/capcut_effects_library.md`.
 - **Callout** (`callout`): a short form cue (max 3 words) pointing at a body part, at the moment he says it.
 - Landscape footage is cropped to 9:16: set `crop_x` (0 = left edge, 0.5 = centre, 1 = right) per segment
   so the lifter stays in frame. Check the contact sheets.
