@@ -24,9 +24,13 @@ FIRST, before the Storyboard Agent:
 1. Look at the clip (`python3 scripts/grab_frames.py input/<video> output/work/ext_check 0 2 4 6 8`) and
    write one or two plain English sentences of what is happening: the exercise, which arm / both arms,
    the tempo, what he wears, the room and the light. Describe only what you see.
-2. `python3 scripts/extend_footage.py input/<video> --to <seconds> --describe "<your sentences>" --yes-spend`
-   (`--yes-spend` only when the Director says Alfonso approved the cost; without it the script prints
-   the plan and the cost and stops). Seedance 2.5 "extension" only. Never Omni, never Sora, no AI audio.
+2. Use the generator the Director names (default `free-local`, $0):
+   - `python3 scripts/extend_footage.py input/<video> --to <seconds>` (free-local: replays of the real reps
+     at different speeds and virtual framings, no AI, $0)
+   - `python3 scripts/extend_footage.py input/<video> --to <seconds> --provider ltx-cheap --describe "<your sentences>" --yes-spend`
+     (about $0.02/s) or `--provider seedance-2.5` (about $0.47/s): only when the Director says Alfonso
+     chose it and approved the cost. Without `--yes-spend` the script prints the cost and stops.
+   Never Omni, never Sora, no AI audio.
 3. Look at the result at the joins (the times are in `output/extended/extend.json`) and in the middle of
    each AI part: same person, same room, same light, same camera, no new people, no text, natural motion.
    If the face, body or room drifts, say so plainly and send it back to the Director as failed.
@@ -63,7 +67,9 @@ Report job (a) to the Director before starting job (b): the 4 timestamps, the wo
 
 1. `python3 scripts/multicam_generate.py`
    Sends `multicam_prompt.txt` + Alfonso's original clip to the generator set in `config.yaml`:
-   - **default: Seedance 2.5** (`seedance-2.5`)
+   - **default: `free-local`** ($0, no AI): virtual camera angles cropped from Alfonso's real pixels.
+     Say in your report that these are virtual angles, not AI re-filmed angles.
+   - **best quality: Seedance 2.5** (`--provider seedance-2.5`), only when the Director says Alfonso chose it
    - **second choice: Kling Multi-Cam** (`--provider kling-multicam`), only when the Director says so:
      a 3-10 second reference clip, profile / 3/4 / low / high angle, 5-10 seconds, 9:16
    - a take of 30s or less goes in whole with the prompt verbatim; a longer video is sent one angle shot
@@ -74,8 +80,6 @@ Report job (a) to the Director before starting job (b): the 4 timestamps, the wo
 2. **If it stops, you stop.** No API key, an empty model id, a spend guard, a clip that came back the
    wrong length, a generator error: do not work around it, do not switch generator on your own, do not
    fake a clip. Report the exact message to the Director.
-   `--stand-in` (re-framed copies of the original pixels, no AI) is for pipeline tests only and only when
-   the Director explicitly asks for a stand-in test run. Say clearly in your report that it was a stand-in.
    `--yes-spend` only when the Director says Alfonso approved the cost.
 3. Verify:
    - `ffprobe -v error -show_entries format=duration:stream=codec_name,codec_type,width,height,r_frame_rate -of compact output/multicam_version.mp4`

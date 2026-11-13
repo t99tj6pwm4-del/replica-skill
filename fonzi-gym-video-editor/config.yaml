@@ -1,8 +1,11 @@
 # fonzi-gym-video-editor settings. No secrets in this file: API keys live in .env only.
 
 generator:
-  provider: seedance-2.5        # default generator for multicam angles and B-roll
-  fallback: kling-multicam      # second choice, used only when you ask for it (--provider kling-multicam)
+  # Cheapest first. free-local costs $0 (no AI). ltx-cheap is about $0.02 per second. seedance-2.5 is the
+  # best quality, about $0.47 per second at 720p. Switch here or per run with --provider <name>.
+  provider: free-local          # default: free, runs on this machine, uses only your real footage
+  ai_provider: seedance-2.5     # best AI generator, used when you pass --provider seedance-2.5
+  fallback: kling-multicam      # second-choice AI generator (--provider kling-multicam)
   # Never used, whatever anyone asks: Google Omni, and OpenAI Sora (shut down).
   blocked: [google-omni, omni, sora, openai-sora]
   # Money guard: the generator stops and asks if one job would send more than this many seconds.
@@ -29,8 +32,22 @@ providers:
     max_clip_seconds: 10
     reference_min_seconds: 3
     reference_max_seconds: 10
+  free-local:
+    api: local
+    # $0, NOT AI. Multicam: "virtual camera" angles cropped and re-framed from your own real pixels.
+    # Extension: replays of your real reps at different speeds and framings. Everything stays real footage.
+    cost_per_second_usd: 0
+  ltx-cheap:
+    api: fal
+    model: fal-ai/ltxv-13b-098-distilled/extend
+    key_env: FAL_KEY
+    resolution: 720p
+    aspect_ratio: "9:16"
+    cost_per_second_usd: 0.02   # billed at 24fps on the whole output, the reference part included
+    # extension only: LTX continues a clip, it cannot re-film a new camera angle
   local-reframe:
-    api: local   # NOT AI. A stand-in for tests: re-frames your own pixels so the pipeline can run without a key.
+    api: local                  # old name of free-local, kept so old commands still work
+    cost_per_second_usd: 0
 
 multicam:
   cuts: 4                       # 4 hard cuts = 2 angle changes away from the original camera and back

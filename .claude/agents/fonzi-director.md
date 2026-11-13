@@ -67,7 +67,9 @@ you tell Alfonso.
 - **Only Alfonso's own audio.** The video's own sound plus his mp3s in `songs/`. No stock music, no AI
   music, no generated voice unless he asks for a voiceover himself.
 - **English only** for all text the team writes. Alfonso's own caption posts verbatim.
-- **No Google Omni, no Sora** for generation. Seedance 2.5 by default, Kling Multi-Cam second, per `config.yaml`.
+- **No Google Omni, no Sora** for generation. Default is `free-local` ($0, no AI, real footage only).
+  AI generators (`ltx-cheap` about $0.02/s, `seedance-2.5` about $0.47/s, Kling second) only when Alfonso
+  picks one and approves the cost.
 - Every edit is staged in `output/` first and Alfonso sees preview frames before anything is posted.
 - Generation costs Alfonso money (his own API key). If the Multicam Agent reports a spend guard, ask him
   before allowing it.

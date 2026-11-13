@@ -101,12 +101,14 @@ def main():
 
     cfg = yaml.safe_load((ROOT / "config.yaml").read_text())
     gen = cfg["generator"]
-    name = "local-reframe" if a.stand_in else (a.provider or gen["provider"])
+    name = "free-local" if a.stand_in else (a.provider or gen["provider"])
     if any(b in name.lower() for b in gen.get("blocked", [])) or "omni" in name.lower() or "sora" in name.lower():
         die(f"generator {name!r} is blocked for this project (no Google Omni, no Sora). Use seedance-2.5 or kling-multicam.")
     if name not in cfg["providers"]:
         die(f"unknown generator {name!r}; config.yaml has: {', '.join(cfg['providers'])}")
     pcfg = cfg["providers"][name]
+    if "/extend" in str(pcfg.get("model", "")):
+        die(f"{name} can only extend a clip; it cannot re-film a camera angle. Use free-local or seedance-2.5 for multicam.")
     if any(b in str(pcfg.get("model", "")).lower() for b in ("omni", "sora", "veo")):
         die(f"config.yaml points {name} at a blocked model ({pcfg['model']})")
 
@@ -221,7 +223,7 @@ def main():
         print(f"       {ins['from']:6.2f}-{ins['to']:6.2f}s  {ins['kind']:<8} {ins['angle']:<14} {ins['clip']}")
     print(f"       original audio untouched: {'yes' if same_audio else 'NO'}")
     if simulated:
-        print("NOTE   STAND-IN run: these clips are re-framed copies of the original pixels, NOT AI-generated angles.")
+        print("NOTE   free-local: these angles are virtual cameras cropped from your real pixels ($0), not AI re-filmed angles.")
     if not same_audio or abs(o["duration"] - dur) > 0.05:
         die("the multicam version does not match the cut's audio/length. Do not pass it on.")
 
