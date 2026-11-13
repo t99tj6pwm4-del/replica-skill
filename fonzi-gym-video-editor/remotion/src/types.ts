@@ -36,6 +36,9 @@ export type Callout = {
   text: string;
   x: number; // 0..1 of frame width — the thing being pointed at
   y: number; // 0..1 of frame height
+  // optional: ring follows a moving target (absolute seconds, 0..1 coords);
+  // the label stays anchored to x/y
+  track?: { t: number; x: number; y: number }[];
 };
 
 export type TimedEvent = {

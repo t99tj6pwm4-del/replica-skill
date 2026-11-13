@@ -454,8 +454,18 @@ const CalloutMark: React.FC<{ item: Callout; brand: Brand; frames: number }> = (
 }) => {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
-  const cx = item.x * width;
-  const cy = item.y * height;
+  const tNow = item.from + frame / fps;
+  const tr = item.track && item.track.length > 1 ? item.track : null;
+  const tx = tr
+    ? interpolate(tNow, tr.map((k) => k.t), tr.map((k) => k.x), { ...clamp, easing: Easing.inOut(Easing.sin) })
+    : item.x;
+  const ty = tr
+    ? interpolate(tNow, tr.map((k) => k.t), tr.map((k) => k.y), { ...clamp, easing: Easing.inOut(Easing.sin) })
+    : item.y;
+  const ax = item.x * width; // label anchor (static)
+  const ay = item.y * height;
+  const cx = tx * width; // ring centre (may track)
+  const cy = ty * height;
   const r = 78;
   const circ = 2 * Math.PI * r;
   const draw = interpolate(frame, [0, 10], [circ, 0], {
@@ -464,8 +474,8 @@ const CalloutMark: React.FC<{ item: Callout; brand: Brand; frames: number }> = (
   });
   const pulse = 1 + 0.05 * Math.sin((frame / fps) * Math.PI * 3);
   const right = item.x < 0.5;
-  const lx = right ? Math.min(cx + 150, width - 60) : Math.max(cx - 150, 60);
-  const ly = Math.max(cy - 210, 330);
+  const lx = right ? Math.min(ax + 150, width - 60) : Math.max(ax - 150, 60);
+  const ly = Math.max(ay - 210, 330);
   const line = interpolate(frame, [7, 15], [0, 1], clamp);
   const pop = spring({ frame: frame - 12, fps, config: { damping: 10, stiffness: 220, mass: 0.6 } });
   const out = interpolate(frame, [frames - 6, frames], [1, 0], clamp);
