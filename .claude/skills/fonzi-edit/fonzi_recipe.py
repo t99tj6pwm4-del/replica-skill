@@ -53,6 +53,43 @@ def joins_for(recipe):
                         recipe.get("transition_seconds", 0.3))
 
 
+def crop_expr(z, cx, cy):
+    if z == 1:
+        return ""
+    return "crop=iw/%s:ih/%s:(iw-iw/%s)*%s:(ih-ih/%s)*%s," % (z, z, z, cx, z, cy)
+
+
+def cam_label(z):
+    return "CAM 1" if z <= 1.01 else ("CAM 2" if z < 1.45 else "CAM 3")
+
+
+def cam_plan(c):
+    """The virtual cameras of a clip, in order: [{at, zoom, cx, cy, label}]. A clip without
+    "cams" is one full-frame camera."""
+    cams = [dict(k) for k in c.get("cams", [])] or [{"at": 0}]
+    cams.sort(key=lambda k: k["at"])
+    if cams[0]["at"] > 0:
+        cams.insert(0, {"at": 0})
+    for k in cams:
+        k.setdefault("zoom", 1.0)
+        k.setdefault("cx", 0.5)
+        k.setdefault("cy", 0.5)
+        k.setdefault("label", cam_label(k["zoom"]))
+    return cams
+
+
+def cam_graph(cams, speed, length):
+    """One clip as several hard-cut angles cropped from the same footage."""
+    n = len(cams)
+    parts = ["[0:v]setpts=(PTS-STARTPTS)/%s,fps=%d,split=%d%s" % (speed, FPS, n, "".join("[s%d]" % i for i in range(n)))]
+    for i, k in enumerate(cams):
+        end = cams[i + 1]["at"] if i + 1 < n else length + 1
+        parts.append("[s%d]trim=%.3f:%.3f,setpts=PTS-STARTPTS,%sscale=%d:%d:flags=lanczos,setsar=1[c%d]"
+                     % (i, k["at"], end, crop_expr(k["zoom"], k["cx"], k["cy"]), W, H, i))
+    parts.append("%sconcat=n=%d:v=1:a=0[v]" % ("".join("[c%d]" % i for i in range(n)), n))
+    return ";".join(parts)
+
+
 def render_pieces(src, recipe, workdir, has_audio):
     """Cut every clip and b-roll insert to its own small file. Doing it this way (rather than
     one giant filter over the whole source) keeps memory flat."""
@@ -62,9 +99,19 @@ def render_pieces(src, recipe, workdir, has_audio):
         s = float(c.get("speed", 1))
         ext = (joins[i][1] * s) if i < len(clips) - 1 else 0
         path = os.path.join(workdir, "clip%02d.mp4" % i)
-        vf = "setpts=(PTS-STARTPTS)/%s,fps=%d,scale=%d:%d:flags=lanczos,setsar=1" % (s, FPS, W, H)
+        length = out_len(c) + (joins[i][1] if i < len(clips) - 1 else 0)
+        cams = cam_plan(c)
         cmd = ["ffmpeg", "-v", "error", "-y", "-ss", "%.3f" % c["start"], "-t", "%.3f" % (c["end"] - c["start"] + ext),
-               "-i", src, "-vf", vf]
+               "-i", src]
+        if len(cams) > 1:
+            cmd += ["-filter_complex", cam_graph(cams, s, length), "-map", "[v]"]
+            if has_audio:
+                cmd += ["-map", "0:a"]
+        else:
+            z, cx, cy = cams[0]["zoom"], cams[0]["cx"], cams[0]["cy"]
+            vf = ("setpts=(PTS-STARTPTS)/%s,fps=%d,%sscale=%d:%d:flags=lanczos,setsar=1"
+                  % (s, FPS, crop_expr(z, cx, cy), W, H))
+            cmd += ["-vf", vf]
         if has_audio:
             cmd += ["-af", ("atempo=%s," % s if s != 1 else "") + "aresample=48000,aformat=channel_layouts=stereo"]
         else:
@@ -123,13 +170,23 @@ def render_base(src, recipe, out, has_audio):
             "-r", str(FPS), "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-movflags", "+faststart", out])
 
 
+def cam_tags(c, first=False):
+    """When the CAM badge shows: at every angle change, and on the very first shot."""
+    cams = cam_plan(c)
+    tags = []
+    for k, cam in enumerate(cams):
+        if k > 0 or first:
+            tags.append({"label": cam["label"], "at": cam["at"] + 0.1, "dur": 2.2})
+    return tags
+
+
 def overlay_plan(recipe, total, groups):
     clips, callouts, captions = [], [], []
     for c in recipe["clips"]:
         clips.append({"start": c["_start"], "end": c["_end"], "group": c.get("group"),
                       "first_of_group": bool(c.get("_first")),
                       "group_index": next((g["index"] for g in groups if g["name"] == c.get("group")), 0),
-                      "bracket": c.get("bracket"), "cam": c.get("cam"),
+                      "bracket": c.get("bracket"), "cams": cam_tags(c, first=not clips),
                       "slow": c.get("speed") if float(c.get("speed", 1)) != 1 else None})
         for k in c.get("callouts", []):
             callouts.append(dict(k, abs_at=c["_start"] + k["at"]))

@@ -312,9 +312,8 @@ def draw_frame(t, plan, tracks):
                     b = clip.get("bracket")
                     if b:
                         brackets(d, t, clip["start"] + b[0], clip["start"] + b[0] + b[1])
-                cam = clip.get("cam")
-                if cam:
-                    a = window(t, clip["start"] + cam["at"], clip["start"] + cam["at"] + cam["dur"], 0.2, 0.2)
+                for cam in clip.get("cams", []):
+                    a = window(t, clip["start"] + cam["at"], clip["start"] + cam["at"] + cam["dur"], 0.15, 0.2)
                     if a > 0:
                         pill(d, 48, 236, cam["label"], a, (235, 50, 50))
                 if clip.get("slow"):

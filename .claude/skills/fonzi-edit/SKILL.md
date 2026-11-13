@@ -33,6 +33,11 @@ Needs `ffmpeg`, `ffprobe`, Python 3 with `numpy`, `Pillow` and `opencv-python-he
 - **Graphics on every edit:** title card, progress bar and exercise name, lower third
   per exercise, a caption about every 5 to 6 s, a tracked callout on about every second
   clip, corner brackets, CAM tags, end card with the channel handle.
+- **Virtual multi-cam:** every clip after the first switches angle once or twice by hard
+  cutting to a punch-in of the same footage (`cams` in the recipe: `at`, `zoom`, `cx`, `cy`).
+  A CAM 1 / CAM 2 / CAM 3 badge shows at each switch (wide, medium, tight). Aim each
+  punch-in at the working muscle or the face, never at empty clothing or wall, and switch
+  outside any tracked callout.
 - **B-roll:** about one cutaway per exercise, 1.1 s, a punched-in close-up from the
   raw footage over the lift while its sound carries on.
 - **Transitions:** crossfade (0.3 s) between exercises, hard cut inside the same
