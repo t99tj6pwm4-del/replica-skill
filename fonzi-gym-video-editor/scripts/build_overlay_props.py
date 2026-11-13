@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import FPS, H, OUT, W, WORK, brand, die, load_json, save_json  # noqa: E402
+from common import FPS, H, OUT, W, WORK, brand, die, load_json, rel, save_json  # noqa: E402
 
 MAX_WORDS = 3      # words on screen at once
 MAX_CHARS = 18
