@@ -189,9 +189,12 @@ def main():
     pmin = float(pcfg.get("min_clip_seconds", 4))
     smin, smax = max(float(mc["min_shot_seconds"]), pmin), max(float(mc["max_shot_seconds"]), pmin + 1)
     min_between = 3.0
-    n_spans = int(mc["cuts"]) // 2
-    if flow:   # 4 angle shots, one Flow clip each (Flow clips are at most 8s)
-        smin, smax, min_between, n_spans = 3.0, float(pcfg.get("max_clip_seconds", 8)), 1.5, int(mc.get("shots", 4))
+    n_spans = int(mc.get("shots", 4))   # 4 library shots, every generator
+    if flow:   # Flow clips are at most 8s
+        smin, smax, min_between = 3.0, float(pcfg.get("max_clip_seconds", 8)), 1.5
+    elif pcfg.get("api") == "local":
+        lo, hi = mc.get("local_shot_seconds", [3.0, 8.0])
+        smin, smax, min_between = float(lo), float(hi), 1.5
     cut = OUT / "cut_version.mp4"
     if not cut.exists():
         die("output/cut_version.mp4 is missing: the Cuts Agent has to run first")

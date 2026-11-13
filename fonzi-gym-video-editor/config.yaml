@@ -1,15 +1,16 @@
 # fonzi-gym-video-editor settings. No secrets in this file: API keys live in .env only.
 
 generator:
-  # Multicam / B-roll generator order. The first one that is ready gets used:
-  #   1. google-flow     FREE, first choice for multicam (Alfonso runs it at flow.google.com, no key)
-  #   2. seedance-2.5    paid API, second
-  #   3. kling-multicam  paid API, third
-  #   4. ltx-2.5         backup, API only, never self-hosted
-  #   5. minimax-h3      backup only if needed, generated audio FULLY OFF
-  #   free-local         $0, no AI: virtual angles cropped from the real footage (always available)
-  order: [google-flow, seedance-2.5, kling-multicam, ltx-2.5, minimax-h3]
-  provider: google-flow          # multicam default
+  # Multicam generator order. FULLY AUTOMATIC: Alfonso uploads one video and nothing else.
+  #   1. free-local      DEFAULT. $0, instant, automatic: ffmpeg crops / punch-ins / reframes of his real
+  #                      footage, so face, room, clothes and light match by construction
+  #   2. seedance-2.5    real AI angles via the fal.ai API, ONLY after Alfonso says yes AND fal.ai credit is confirmed
+  #   3. google-flow     MANUAL web UI: optional later upgrade only, never required, never waited for
+  #   4. kling-multicam  model id blank until confirmed
+  #   5. ltx-2.5         API only, model id blank until confirmed
+  #   6. minimax-h3      audio off, model id blank until confirmed
+  order: [free-local, seedance-2.5, google-flow, kling-multicam, ltx-2.5, minimax-h3]
+  provider: free-local           # multicam default: automatic, no manual step
   extend_provider: free-local    # footage extension default ($0)
   blocked: [sora, openai-sora]   # Sora is shut down: never, anywhere
   # Money guard for the paid APIs: stop and ask if one job would generate more than this many seconds.
@@ -18,7 +19,8 @@ generator:
 
 providers:
   google-flow:
-    api: manual-web              # flow.google.com, signed in with Alfonso's Google account. No API key.
+    api: manual-web              # MANUAL, optional upgrade only: flow.google.com with Alfonso's account, no API.
+    optional_upgrade_only: true  # never a requirement; if he later sends Flow clips: multicam_generate.py --use-clips DIR
     site: https://flow.google.com
     plan: free                   # 50 credits a day, no subscription, credits do not roll over
     daily_credits: 50
@@ -35,6 +37,7 @@ providers:
     if_blocked_at_peak: wait and retry; never switch to a paid plan without asking Alfonso
   seedance-2.5:
     api: fal
+    needs: Alfonso's explicit yes + confirmed fal.ai credit (then --provider seedance-2.5 --yes-spend)
     model: bytedance/seedance-2.5/reference-to-video
     key_env: FAL_KEY
     task: editing
@@ -81,17 +84,17 @@ providers:
     cost_per_second_usd: 0
 
 multicam:
-  shots: 4                       # 4 shots per video from the 100-shot library (docs/multicam_shot_library.md),
-                                 # 4 different categories, fitted to the moment, logged in output/multicam_shots_log.md
+  shots: 4                       # 4 FRESH shots per video from the 100-shot library (docs/multicam_shot_library.md),
+                                 # 4 different categories, fitted to the moment, no repeats from the last video
+                                 # (output/multicam_shots_log.md), shot 100 closing only. NO default angles.
+  local_shot_seconds: [3.0, 8.0] # free-local angle shot length
   skip_shots: [42, 74]           # cannot be done safely / cleanly in Flow: fisheye, camera mounted on the bar
   flow_prompt: >-
     Hard cut to [SHOT]. Preserve identity and room exactly: same person, same face, same clothes, same gym,
     same lighting. Keep the original voice, speech and lip-sync exactly — do not rewrite, drop or add words.
     No music, no subtitles, no text on screen. Vertical 9:16, 8 seconds.
-  cuts: 4                        # other generators: 4 hard cuts = 2 angle shots
   min_shot_seconds: 4.0
   max_shot_seconds: 6.0
-  angles: [three-quarter, low]   # old fixed angles, no longer used (shots come from the library)
   broll_seconds: 6.0             # Veo 3.1 Lite clips are 4 / 6 / 8 s
 
 audio:

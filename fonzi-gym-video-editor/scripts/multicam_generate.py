@@ -14,7 +14,10 @@ Writes:
   output/multicam_version.mp4        the cut with the angles cut in (same length, same audio)
   output/work/multicam_map.json      what was inserted where, and by which generator
 
-    python3 scripts/multicam_generate.py --provider google-flow      # (default) Google Flow, free:
+    python3 scripts/multicam_generate.py                             # DEFAULT free-local: automatic, $0
+    python3 scripts/multicam_generate.py --use-clips DIR             # later upgrade: cut in angle_1..angle_4 clips
+                                                                     # Alfonso sent (e.g. from Google Flow)
+    python3 scripts/multicam_generate.py --provider google-flow      # manual Flow hand-off (optional only):
         1st run: makes the hand-off pack output/flow_pack/ and FREEZES multicam_prompt.txt
         2nd run, after Alfonso's Flow clips are in output/flow_pack/returned/: cuts them in
 
@@ -23,7 +26,6 @@ Never Sora. Omni only inside Google Flow, only for multicam reframes. API keys c
 from __future__ import annotations
 
 import argparse
-import hashlib
 import hashlib
 import os
 import shutil
@@ -34,7 +36,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import FPS, H, OUT, ROOT, W, WORK, check_generator, die, load_json, probe, rel, run, save_json  # noqa: E402
+from common import FPS, H, OUT, ROOT, W, WORK, check_generator, die, load_json, probe, rel, resolve, run, save_json  # noqa: E402
 from multicam_prompt import ANGLES, HEAD  # noqa: E402
 
 # stand-in "angles": perspective re-framing of the same pixels (source corner points as fractions of w,h)
@@ -196,6 +198,7 @@ def flow_handoff(cut: Path, plan: dict, pcfg: dict, shots: list) -> dict:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--provider")
+    ap.add_argument("--use-clips", help="folder with angle_1.mp4 .. angle_N.mp4 to cut in instead of generating")
     ap.add_argument("--stand-in", action="store_true", help="TEST ONLY: no AI generator, re-frame the original pixels")
     ap.add_argument("--yes-spend", action="store_true", help="allow more generated seconds than the config guard")
     ap.add_argument("--crop", action="append", default=[],
@@ -243,7 +246,7 @@ def main():
     if not shots:
         die("the plan has no shots to generate")
     # free-local can render any plan's shots (e.g. while Alfonso's Flow clips are still being made)
-    if plan.get("provider") != name and name not in ("free-local", "local-reframe"):
+    if plan.get("provider") != name and name not in ("free-local", "local-reframe") and not a.use_clips:
         die(f"multicam_prompt.txt was planned for {plan.get('provider')}, not {name}. Re-run multicam_prompt.py "
             f"--provider={name} (only before generation starts).")
     if hashlib.sha256(frozen.encode()).hexdigest() != plan.get("frozen_sha256"):
@@ -255,9 +258,19 @@ def main():
     plan["generation_started"] = True
     save_json(WORK / "multicam_plan.json", plan)
     returned = {}
-    if pcfg["api"] == "manual-web" and not a.stand_in:
+    if a.use_clips:   # optional upgrade: clips Alfonso sent later (Flow or anything else), any plan
+        src_dir = resolve(a.use_clips)
+        for s in shots:
+            hits = sorted(p for p in src_dir.glob(f"{s['id']}*") if p.suffix.lower() in (".mp4", ".mov", ".webm"))
+            if hits:
+                returned[s["id"]] = hits[0]
+            else:
+                print(f"note: no clip for {s['id']} in {rel(src_dir)}: that shot stays free-local")
+                s["flow"] = False
+        name = "google-flow" if returned else name
+    elif pcfg["api"] == "manual-web" and not a.stand_in:
         returned = flow_handoff(cut, plan, pcfg, shots)
-    simulated = pcfg["api"] == "local"
+    simulated = pcfg["api"] == "local" and not returned
     key = None
     if not simulated and not returned:
         if not pcfg.get("model"):
@@ -334,6 +347,8 @@ def main():
                         "model": ("free-local crop" if s.get("flow") is False or s["id"] not in returned else
                   (s.get("model") or pcfg.get("reframe_model"))) if returned else pcfg.get("model")})
 
+    for k, ins in enumerate([i for i in inserts if i["kind"] == "multicam"], 1):
+        shutil.copy2(ROOT / ins["clip"], OUT / f"angle_{k}.mp4")   # output/angle_1.mp4 .. angle_4.mp4
     # cut the angles in OVER the A-roll; audio is copied, never re-encoded
     cmd = ["ffmpeg", "-v", "error", "-y", "-i", cut]
     fc, last = [], "0:v"

@@ -14,8 +14,9 @@ Everything lives in `fonzi-gym-video-editor/`. Run every command from inside tha
 
 1. **Storyboard Agent** (`fonzi-storyboard`) plans it -> `output/storyboard.md` + `output/storyboard.json`
 2. **Cuts Agent** (`fonzi-cuts`) cuts it -> `output/cut_version.mp4`
-3. **Multicam/B-Roll Agent** (`fonzi-multicam`) -> `output/multicam_prompt.txt` (frozen, 4 timestamps),
-   then the Google Flow hand-off (below), then `output/multicam/*.mp4` + `output/multicam_version.mp4`
+3. **Multicam/B-Roll Agent** (`fonzi-multicam`) -> `output/multicam_prompt.txt` (frozen, 4 timestamps,
+   4 fresh library shots), then `output/angle_1.mp4`..`angle_4.mp4` + `output/multicam_version.mp4`
+   (free-local, automatic)
 4. **Text/Visuals Agent** (`fonzi-text-visuals`) adds captions + motion graphics -> `output/final_edit.mp4`
 5. **Final Approval Agent** (`fonzi-qa`) checks it -> `output/qa_report.md`, stages a pass in `output/staged/`
 6. **Alfonso** gives the final yes
@@ -30,16 +31,13 @@ Alfonso approved the cost (it then passes `--yes-spend`). After it, every step r
 as the raw video. His original clip in `input/` is never changed. QA reports how much is AI-made, and
 you tell Alfonso.
 
-## Google Flow hand-off (multicam default)
+## Fully automatic (standing rule)
 
-Flow is a website (flow.google.com, Alfonso's Google account, free 50 credits a day). After the Multicam
-Agent's first job (b) run reports "clips still needed":
-1. Send Alfonso `output/flow_pack/FLOW_STEPS.md`, the reference clips `<id>_reference.mp4` and the start
-   frames `<id>_start.jpg` (send the files so he can save them on his phone), and say in one line: make one
-   clip per shot in Flow with the exact prompt, download each as `<id>.mp4`, send them back.
-2. Set `job.py set multicam waiting --note "waiting for Flow clips"` and stop.
-3. When he uploads the clips, copy each into `output/flow_pack/returned/<id>.mp4` (match them by name or ask
-   him which is which), then send the Multicam Agent back in to cut them in. Missing one? Tell him which.
+Alfonso uploads ONE video and does nothing else until the finished file comes back for his yes. Never
+ask him to make, open, upload or wait for clips, and never pick a step that needs him to work by hand.
+Multicam angles are free-local ffmpeg crops of his real footage by default. Optional upgrades only when
+he asks: Flow clips he sends later (`multicam_generate.py --use-clips <folder>`, then Text/Visuals + QA
+again), or Seedance 2.5 via the fal.ai API after his explicit yes AND confirmed fal.ai credit.
 
 ## What you do yourself
 
@@ -71,7 +69,7 @@ Agent's first job (b) run reports "clips still needed":
 - Never post to Meta. Alfonso posts every video himself. `scripts/post_to_meta.py` stays in the project
   but is run only if he explicitly asks for an automatic post for a specific video.
 - Your Bash use is limited to: `scripts/job.py`, `scripts/approve.py`, `scripts/export_final.py`, `ls`, and
-  `cp` of Alfonso's uploaded Flow clips into `output/flow_pack/returned/`.
+  `cp` of clips Alfonso chose to send later into a folder for `--use-clips`.
 
 ## Safety rules (locked)
 
@@ -80,9 +78,9 @@ Agent's first job (b) run reports "clips still needed":
 - **Only Alfonso's own audio.** The video's own sound plus his mp3s in `songs/`. No stock music, no AI
   music, no generated voice unless he asks for a voiceover himself.
 - **English only** for all text the team writes. Alfonso's own caption posts verbatim.
-- **No Sora, ever. Omni only inside Google Flow, only for multicam reframes.** Multicam default is Google
-  Flow (free, Alfonso runs it). Paid APIs (Seedance 2.5, Kling, LTX-2.5, MiniMax H3) only when Alfonso picks
-  one and approves the cost; if Flow is blocked at peak hours, wait and retry, never buy a plan without asking.
+- **No Sora, ever. Omni only inside Google Flow, only for multicam reframes.** Multicam default is
+  free-local (automatic, $0). Paid APIs (Seedance 2.5, Kling, LTX-2.5, MiniMax H3) only when Alfonso picks
+  one, approves the cost and fal.ai credit is confirmed. Never buy a plan without asking.
 - Every edit is staged in `output/` first and Alfonso sees preview frames before anything is posted.
 - Generation costs Alfonso money (his own API key). If the Multicam Agent reports a spend guard, ask him
   before allowing it.
@@ -96,7 +94,7 @@ Agent's first job (b) run reports "clips still needed":
 - **The Final Approval Agent returns FAIL**: its report names which agent must fix what (`send_back` in
   `output/qa_report.json`). Tell Alfonso in one line, then send exactly that fix to exactly that agent:
   - bad cut -> Cuts Agent, then Multicam and Text/Visuals must redo their layer on the new cut, then QA
-  - wrong angle timing, lip sync off, B-roll does not match the moment -> Multicam/B-Roll Agent, then
+  - wrong angle timing, a crop that does not show its shot, B-roll does not match the moment -> Multicam/B-Roll Agent, then
     Text/Visuals re-renders, then QA
   - bad text / captions / graphics -> Text/Visuals Agent only, then QA
   - bad plan (wrong exercise, wrong timing) -> Storyboard Agent, then everything after it

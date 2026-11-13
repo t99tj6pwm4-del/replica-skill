@@ -55,23 +55,26 @@ Add B-roll and your own caption in the same message, for example:
 The Director reports after each step ("Storyboard done", "Cuts done", "Multicam done", "Text done",
 "Waiting for approval") and stops for your yes before anything is posted.
 
-### Multicam / B-roll generator
+### Multicam angles: fully automatic
 
-Order is set in `config.yaml`:
-1. **Google Flow**: free, the default for multicam. It has no API, so it's a hand-off. The Multicam Agent
-   picks 4 shots from the 100-shot library (`docs/multicam_shot_library.md`): 4 different categories,
-   fitted to the moment, no repeats from your last video, logged in `output/multicam_shots_log.md`.
-   It writes the 4 frozen "Hard cut to ..." prompts and builds `output/flow_pack/`. You
-   make the 4 clips at flow.google.com on the free tier (Omni Flash 1.2 reframes, Veo 3.1 Lite for B-roll,
-   never Veo 3.1 Quality) and send them back. The agent cuts them in over your footage.
-2. **Seedance 2.5**: paid API.
-3. **Kling Multi-Cam**: paid API.
-4. **LTX-2.5**: backup, B-roll only, API only.
-5. **MiniMax H3**: backup only, generated audio off.
+You upload one video and nothing else. For every video the Multicam Agent:
+1. Picks 4 fresh shots from the 100-shot library (`docs/multicam_shot_library.md`): 4 different
+   categories, fitted to the moment, never repeating your last video's shots
+   (`output/multicam_shots_log.md`). There are no default angles.
+2. Makes them itself with ffmpeg crops, punch-ins and reframes of your real footage, so your face,
+   room, clothes and light match exactly. That's $0 and instant.
+3. Saves them as `output/angle_1.mp4` to `angle_4.mp4` and cuts them in with hard cuts, keeping your
+   audio untouched.
 
-`free-local` ($0 crops of your real footage) always works as the last resort. There is no Sora anywhere,
-and Omni is used only inside Google Flow for multicam reframes. Paid APIs need your own key in `.env`
-(`FAL_KEY`) and your go-ahead on cost. Your original audio is always kept as the truth.
+Generator order in `config.yaml`:
+1. **free-local**: the default.
+2. **Seedance 2.5** via the fal.ai API: real AI angles, only after your yes and with fal.ai credit
+   confirmed.
+3. **Google Flow**: manual, optional later upgrade only.
+4. **Kling**, 5. **LTX-2.5**, 6. **MiniMax H3**: model ids left blank until confirmed.
+
+If you ever send angle clips yourself (e.g. from Flow), swapping them in is one command:
+`python3 scripts/multicam_generate.py --use-clips <folder>`. Then Text/Visuals and QA run again.
 
 ## What you get in `output/`
 
@@ -80,8 +83,7 @@ and Omni is used only inside Google Flow for multicam reframes. Paid APIs need y
 | `storyboard.md`, `storyboard.json` | Storyboard Agent |
 | `cut_version.mp4` | Cuts Agent (1080x1920, 30fps, H.264 + AAC, 60-90s) |
 | `multicam_prompt.txt` (+ `broll_prompt.txt`) | Multicam/B-Roll Agent, prompt-maker job |
-| `flow_pack/` (reference clips, start frames, `FLOW_STEPS.md`) | Multicam/B-Roll Agent, for you to run in Google Flow |
-| `multicam/*.mp4`, `multicam_version.mp4` | Multicam/B-Roll Agent, generator job |
+| `angle_1.mp4`..`angle_4.mp4`, `multicam_version.mp4` | Multicam/B-Roll Agent, generator job |
 | `final_edit.mp4` | Text/Visuals Agent |
 | `carousel/` | slide images + `carousel.json` (exercises + sets x reps) when the video has 2+ exercises |
 | `qa/frame_1.jpg` .. `frame_3.jpg`, `qa/compare_*.jpg`, `qa_report.md` | Final Approval Agent |
