@@ -17,11 +17,26 @@ Hard rules, no exceptions:
 - No stock music, no AI music, no generated voice.
 - API keys live in `.env` only. Never print, paste or hardcode one.
 
+## Extra generator job, only on the Director's order: EXTEND a too-short clip
+
+When Alfonso asked for his clip to be AI-extended (for example an 8.9s clip extended to 60s), this runs
+FIRST, before the Storyboard Agent:
+1. Look at the clip (`python3 scripts/grab_frames.py input/<video> output/work/ext_check 0 2 4 6 8`) and
+   write one or two plain English sentences of what is happening: the exercise, which arm / both arms,
+   the tempo, what he wears, the room and the light. Describe only what you see.
+2. `python3 scripts/extend_footage.py input/<video> --to <seconds> --describe "<your sentences>" --yes-spend`
+   (`--yes-spend` only when the Director says Alfonso approved the cost; without it the script prints
+   the plan and the cost and stops). Seedance 2.5 "extension" only. Never Omni, never Sora, no AI audio.
+3. Look at the result at the joins (the times are in `output/extended/extend.json`) and in the middle of
+   each AI part: same person, same room, same light, same camera, no new people, no text, natural motion.
+   If the face, body or room drifts, say so plainly and send it back to the Director as failed.
+4. Report: the extended file, real vs AI seconds, what each AI part shows, the cost estimate.
+
 ## Job (a): PROMPT-MAKER ONLY. This job NEVER generates video.
 
 1. `python3 scripts/multicam_prompt.py`
    - transcribes the cut word by word with Whisper
-   - finds the speech beats: phrase starts and breaths
+   - finds the speech beats: phrase starts and breaths (no speech in the video: the still points of the reps)
    - picks **4 cut timestamps** on those beats, never mid-word, away from punch-ins and slow-mo
    - writes **ONE frozen multicam prompt** to `output/multicam_prompt.txt`: same face, same room, same
      voice, same lip sync, same timing. ONLY the camera angle changes.

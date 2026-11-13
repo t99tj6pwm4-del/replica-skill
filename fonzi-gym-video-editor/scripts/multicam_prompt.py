@@ -95,6 +95,28 @@ def scene_cuts(path: Path) -> list[float]:
     return [round(float(i + 1) / FPS, 3) for i in np.where(d > thr)[0]]
 
 
+def rep_points(path: Path, lo: float, hi: float) -> list[dict]:
+    """Moments where the motion is at a local minimum (the top or bottom of a rep): clean places to cut."""
+    import subprocess
+    import numpy as np
+    w, h = 48, 86
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-vf", f"fps={FPS},scale={w}:{h},format=gray",
+                          "-f", "rawvideo", "-"], capture_output=True).stdout
+    a = np.frombuffer(raw, dtype=np.uint8)
+    n = len(a) // (w * h)
+    if n < 5:
+        return []
+    d = np.abs(np.diff(a[: n * w * h].reshape(n, h, w).astype(np.float32), axis=0)).mean(axis=(1, 2))
+    d = np.convolve(d, np.ones(5) / 5, mode="same")
+    out = []
+    for i in range(3, len(d) - 3):
+        t = snap((i + 1) / FPS)
+        if lo <= t <= hi and d[i] == d[i - 3:i + 4].min():
+            if not out or t - out[-1]["t"] >= 0.5:
+                out.append({"t": t, "gap": 0.3, "after": "rep", "before": "rep"})
+    return out
+
+
 def mid_word(t: float, words: list) -> bool:
     return any(w["start"] + 0.02 < t < w["end"] - 0.02 for w in words)
 
@@ -107,8 +129,10 @@ def main():
     cfg = yaml.safe_load((ROOT / "config.yaml").read_text())
     mc = cfg["multicam"]
     provider = cfg["generator"]["provider"]
-    pmin = float(cfg["providers"][provider].get("min_clip_seconds", 4))
+    pcfg = cfg["providers"][provider]
+    pmin = float(pcfg.get("min_clip_seconds", 4))
     smin, smax = max(float(mc["min_shot_seconds"]), pmin), max(float(mc["max_shot_seconds"]), pmin + 1)
+    min_between = 3.0
     cut = OUT / "cut_version.mp4"
     if not cut.exists():
         die("output/cut_version.mp4 is missing: the Cuts Agent has to run first")
@@ -121,10 +145,19 @@ def main():
     save_json(WORK / "transcript.json", tr)
     words = tr["words"]
 
+    # a short take goes to the generator WHOLE (see multicam_generate.py), so angle shots can be short
+    if pcfg.get("api") != "local" and dur <= float(pcfg.get("max_clip_seconds", 10)) \
+            and dur <= float(cfg["generator"].get("max_generated_seconds", 24)) and not job.get("broll"):
+        smin, smax, min_between = 1.2, 3.5, 1.0
     hook = next((s for s in cm["segments"] if s["type"] == "hook"), None)
-    lo = (hook["out_end"] if hook else 2.0) + 0.5
-    hi = cm["end_card"]["out_start"] - 1.0
-    cands = boundaries(words, lo, hi)
+    lo = (hook["out_end"] if hook else min(2.0, dur * 0.2)) + 0.3
+    hi = cm["end_card"]["out_start"] - 0.5
+    no_speech = len(words) < 3
+    if no_speech:
+        # nobody talks: cut on the movement instead, at the still points of the reps (top / bottom of a curl)
+        cands = rep_points(cut, lo, hi)
+    else:
+        cands = boundaries(words, lo, hi)
     busy = [(e["out_start"], e["out_end"]) for e in cm["events"]]          # punch-ins, slow-mo, ramps
     shots = scene_cuts(cut)
     seg_starts = [s["out_start"] for s in cm["segments"]]
@@ -136,7 +169,7 @@ def main():
         if not smin <= length <= smax:
             continue
         clash = sum(overlap(a["t"], b["t"], x, y) for x, y in busy)
-        speech = sum(overlap(a["t"], b["t"], w["start"], w["end"]) for w in words)
+        speech = sum(overlap(a["t"], b["t"], w["start"], w["end"]) for w in words) if not no_speech else length
         crosses = sum(1 for s in seg_starts if a["t"] < s < b["t"])       # do not straddle two exercises
         if any(a["t"] + 0.1 < c < b["t"] - 0.1 for c in shots):
             continue                                                       # never straddle two different shots
@@ -146,7 +179,7 @@ def main():
     best, best_score = None, -1e9
     for combo in itertools.combinations(sorted(spans, key=lambda s: -s[0])[:60], n_spans):
         combo = sorted(combo, key=lambda s: s[1]["t"])
-        if any(y[1]["t"] - x[2]["t"] < 3.0 for x, y in zip(combo, combo[1:])):
+        if any(y[1]["t"] - x[2]["t"] < min_between for x, y in zip(combo, combo[1:])):
             continue                                                       # at least 3s of original camera between angles
         spread = min([y[1]["t"] - x[2]["t"] for x, y in zip(combo, combo[1:])] or [dur])
         score = sum(c[0] for c in combo) + 0.15 * min(spread, 20)
@@ -165,9 +198,12 @@ def main():
         if angle not in ANGLES:
             die(f"config.yaml multicam.angles: unknown angle {angle!r} (use {', '.join(ANGLES)})")
         cuts += [a["t"], b["t"]]
+        where = ("still point of a rep", "still point of a rep") if no_speech else (
+            f"breath before \"{a['before']}\"", f"breath before \"{b['before']}\"")
         plan_spans.append({"id": f"angle_{i + 1}", "kind": "multicam", "from": a["t"], "to": b["t"], "angle": angle,
-                           "cut_in": f"breath before \"{a['before']}\"", "cut_out": f"breath before \"{b['before']}\""})
-        lines.append(f"* At [{a['t']:.2f}s]: hard cut to a {ANGLES[angle]}. Same moment, same motion, same lip sync.")
+                           "cut_in": where[0], "cut_out": where[1]})
+        lines.append(f"* At [{a['t']:.2f}s]: hard cut to a {ANGLES[angle]}. Same moment, same motion"
+                     + (", same lip sync." if not no_speech else "."))
         last = i == len(best) - 1
         lines.append(f"* At [{b['t']:.2f}s]: hard cut back to the original camera angle"
                      + (f" and hold until the end at [{dur:.2f}s]." if last else "."))
@@ -214,9 +250,11 @@ def main():
     save_json(WORK / "multicam_plan.json", {
         "source": "output/cut_version.mp4", "duration": round(dur, 3), "provider": provider, "cuts": cuts,
         "spans": plan_spans, "broll": broll, "prompt_file": "output/multicam_prompt.txt",
-        "phrase_starts_found": len(cands)})
+        "phrase_starts_found": len(cands), "cut_basis": "rep still points (no speech)" if no_speech else "speech beats"})
 
-    print(f"speech     {len(words)} words, {len(cands)} phrase starts / breaths usable as cut points")
+    print(f"speech     {len(words)} words, {len(cands)} "
+          + ("rep still points (no speech: cutting on the movement)" if no_speech else "phrase starts / breaths")
+          + " usable as cut points")
     print(f"4 cuts     {', '.join(f'{t:.2f}s' for t in cuts)}  (none mid-word)")
     for s in plan_spans:
         print(f"  {s['from']:6.2f}-{s['to']:6.2f}s  {s['angle']:<14} in on {s['cut_in']}, out on {s['cut_out']}")

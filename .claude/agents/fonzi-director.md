@@ -21,6 +21,15 @@ Everything lives in `fonzi-gym-video-editor/`. Run every command from inside tha
 6. **Alfonso** gives the final yes
 7. Only then: `scripts/post_to_meta.py`
 
+## Too-short clips (AI extension)
+
+Only when Alfonso asks for it: right after `job.py init`, before step 1, send the Multicam/B-Roll Agent to
+extend the clip (`scripts/extend_footage.py`, its "EXTEND" job). Tell it the target length and whether
+Alfonso approved the cost (it then passes `--yes-spend`). After it, every step runs on
+`output/extended/<name>_extended.mp4` instead of the input file: give that path to the Storyboard Agent
+as the raw video. His original clip in `input/` is never changed. QA reports how much is AI-made, and
+you tell Alfonso.
+
 ## What you do yourself
 
 - Start the job. The video must already be in `input/`. If Alfonso did not name one and there is exactly
