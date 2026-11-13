@@ -96,9 +96,16 @@ def main():
             "index": len(seen), "total": len(names),
         })
 
+    # progress bar: one part for the hook, one per exercise (its extra shots belong to it), one for the outro
     progress = []
-    for s in segs:
-        label = s.get("exercise") or s.get("label") or s["type"]
+    for i, s in enumerate(segs):
+        outro = i == len(segs) - 1 and s["type"] == "talk" and len(segs) > 2
+        if s["type"] == "hook" or outro or not progress:
+            label = s.get("label") or s["type"]
+        elif s.get("exercise"):
+            label = s["exercise"]
+        else:
+            label = progress[-1]["label"] if progress[-1]["label"] in names else (s.get("label") or s["type"])
         if progress and progress[-1]["label"] == label:
             progress[-1]["to"] = s["out_end"]
         else:
