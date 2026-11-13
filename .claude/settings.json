@@ -1,13 +1,20 @@
 {
+  "enabledPlugins": {
+    "replica-skill@replica-skill": true,
+    "ponytail@ponytail": true
+  },
   "extraKnownMarketplaces": {
     "replica-skill": {
       "source": {
         "source": "github",
         "repo": "Jakeschincariol/replica-skill"
       }
+    },
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      }
     }
-  },
-  "enabledPlugins": {
-    "replica-skill@replica-skill": true
   }
 }
