@@ -23,7 +23,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from common import OUT, die, load_json, rel, save_json, sha256  # noqa: E402
 
-AGENT = {"cuts": "Cuts Agent", "text_visuals": "Text/Visuals Agent", "storyboard": "Storyboard Agent",
+AGENT = {"multicam": "Multicam/B-Roll Agent", "cuts": "Cuts Agent", "text_visuals": "Text/Visuals Agent", "storyboard": "Storyboard Agent",
          "director": "Director (needs Alfonso)"}
 
 
@@ -31,8 +31,10 @@ def main():
     ap = argparse.ArgumentParser()
     for flag in ("captions", "zoom", "face-clear", "own-footage"):
         ap.add_argument(f"--{flag}", choices=["pass", "fail"], required=True)
+    for flag in ("lip-sync", "broll-match"):   # required when the video has multicam / B-roll shots
+        ap.add_argument(f"--{flag}", choices=["pass", "fail", "na"], default="na")
     ap.add_argument("--notes", default="")
-    ap.add_argument("--send-to", choices=["cuts", "text_visuals", "storyboard", "director"])
+    ap.add_argument("--send-to", choices=["cuts", "multicam", "text_visuals", "storyboard", "director"])
     ap.add_argument("--fix", default="")
     a = ap.parse_args()
 
@@ -45,14 +47,20 @@ def main():
         ("no text covering the face mid-lift", a.face_clear),
         ("looks like Alfonso's own footage (no other creator's watermark, logo or stock branding)", a.own_footage),
     ]
+    if tech.get("compares"):
+        if "na" in (a.lip_sync, a.broll_match):
+            die("this video has multicam / B-roll shots: --lip-sync and --broll-match must be pass or fail")
+        visual += [("lip sync matches in the new angles", a.lip_sync),
+                   ("multicam / B-roll shows the same moment as the original", a.broll_match)]
     vis_fail = [n for n, r in visual if r == "fail"]
     if vis_fail and not (a.send_to and a.fix):
         die("a visual check failed: --send-to and --fix (the exact fix needed) are required")
 
     # 'own footage not confirmed yet' is a question for Alfonso at approval, not a defect in the edit
     soft = "Alfonso confirmed it is his own footage"
-    tech_fail = [c for c in tech["checks"] if not c["pass"] and not (c["check"] == soft and "not confirmed yet" in c["detail"])]
-    ask_owner = any(c["check"] == soft and not c["pass"] and "not confirmed yet" in c["detail"] for c in tech["checks"])
+    tech_fail = [c for c in tech["checks"] if not c["pass"] and not c.get("soft")]
+    notes_for_alfonso = [c for c in tech["checks"] if not c["pass"] and c.get("soft")]
+    ask_owner = any(c["check"] == soft for c in notes_for_alfonso)
 
     send_back = []
     for c in tech_fail:
@@ -63,7 +71,9 @@ def main():
     report = {"verdict": "PASS" if passed else "FAIL", "checked": time.strftime("%Y-%m-%d %H:%M:%S"),
               "final": tech["final"], "sha256": tech["sha256"], "technical": tech["checks"],
               "visual": [{"check": n, "pass": r == "pass"} for n, r in visual], "frames": tech["frames"],
-              "notes": a.notes, "send_back": send_back, "needs_own_footage_confirmation": ask_owner}
+              "compares": tech.get("compares", []), "notes": a.notes, "send_back": send_back,
+              "needs_own_footage_confirmation": ask_owner,
+              "tell_alfonso": [f"{c['check']}: {c['detail']}" for c in notes_for_alfonso]}
 
     staged = OUT / "staged"
     shutil.rmtree(staged, ignore_errors=True)
@@ -74,7 +84,9 @@ def main():
         carousel = load_json(OUT / "carousel" / "carousel.json", default={})
         save_json(staged / "post.json", {
             "video": rel(staged / "final_edit.mp4"), "sha256": tech["sha256"], "source_sha256": tech.get("source_sha256"),
-            "title": sb.get("title", ""), "caption": sb.get("caption") or sb.get("title", ""),
+            "title": sb.get("title", ""),
+            # Alfonso's own caption is posted word for word; the storyboard's is only a fallback
+            "caption": load_json(OUT / "job.json", default={}).get("caption") or sb.get("caption") or sb.get("title", ""),
             "carousel": carousel or None, "facebook_page": "Fonzi.stays.fit", "instagram": "@fonzi.stays.fit"})
         report["staged"] = rel(staged / "final_edit.mp4")
     save_json(OUT / "qa_report.json", report)
@@ -86,18 +98,19 @@ def main():
          f"- **Checked:** {report['checked']}", "",
          "## Measured (ffprobe)", "", "| Check | Result | Detail |", "|---|---|---|"]
     for c in tech["checks"]:
-        res = "PASS" if c["pass"] else ("ASK ALFONSO" if c["check"] == soft and ask_owner else "FAIL")
+        res = "PASS" if c["pass"] else ("TELL ALFONSO" if c.get("soft") else "FAIL")
         L.append(f"| {c['check']} | {res} | {c['detail']} |")
     L += ["", "## Looked at (3 sampled frames)", "", "| Check | Result |", "|---|---|"]
     L += [f"| {n} | {'PASS' if r == 'pass' else 'FAIL'} |" for n, r in visual]
     L += [""] + [f"- `{f['file']}` at {f['time']}s: {f['shows']}" for f in tech["frames"]]
+    L += [f"- `{c['file']}` at {c['time']}s: original camera vs final, {c['kind']} {c['angle']}" for c in tech.get("compares", [])]
     if a.notes:
         L += ["", f"**What the agent saw:** {a.notes}"]
     L += ["", "## Decision", ""]
     if passed:
         L += [f"**PASS.** Staged at `{report['staged']}`. Waiting for Alfonso's final yes. Nothing has been posted."]
-        if ask_owner:
-            L += ["", "Alfonso: please also confirm this is 100% your own footage before it goes out."]
+        if notes_for_alfonso:
+            L += ["", "Alfonso, before you say yes:"] + [f"- {c['check']}: {c['detail']}" for c in notes_for_alfonso]
     else:
         L += ["**FAIL.** Not staged. Send back to:", ""]
         L += [f"- **{AGENT[s['to']]}:** {s['fix']}" for s in send_back]

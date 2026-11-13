@@ -4,8 +4,8 @@
     python3 scripts/render_final.py            # -> output/final_edit.mp4 (+ output/carousel/ if 2+ exercises)
     python3 scripts/render_final.py --preview 12.5 31   # just stills at those seconds, for a quick look
 
-The cut itself is never changed: Remotion renders a transparent graphics layer and ffmpeg
-composites it on top of output/cut_version.mp4. Audio is copied through untouched.
+The picture itself is never changed: Remotion renders a transparent graphics layer and ffmpeg
+composites it on top of output/multicam_version.mp4 (or output/cut_version.mp4 if there is no multicam pass). Audio is copied through untouched.
 """
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import FPS, H, OUT, REMOTION, W, WORK, brand, die, load_json, probe, rel, run, save_json  # noqa: E402
+from common import FPS, H, OUT, REMOTION, W, WORK, base_video, brand, die, load_json, probe, rel, run, save_json  # noqa: E402
 
 
 def browser_args() -> list[str]:
@@ -65,7 +65,7 @@ def render_carousel(sb: dict, cm: dict):
     shutil.rmtree(pub, ignore_errors=True)
     cdir.mkdir(parents=True)
     shutil.copytree(REMOTION / "public", pub)
-    cut = OUT / "cut_version.mp4"
+    cut = base_video()
 
     def still(name: str, t: float):
         run(["ffmpeg", "-v", "error", "-y", "-ss", f"{t:.2f}", "-i", cut, "-frames:v", "1", "-q:v", "2", pub / name])
@@ -97,9 +97,10 @@ def render_carousel(sb: dict, cm: dict):
 
 
 def main():
-    cut = OUT / "cut_version.mp4"
-    if not cut.exists():
+    if not (OUT / "cut_version.mp4").exists():
         die("output/cut_version.mp4 is missing: the Cuts Agent has to run first")
+    cut = base_video()   # multicam_version.mp4 when the Multicam/B-Roll Agent ran
+    print(f"laying graphics over {rel(cut)}")
     props_path = WORK / "overlay_props.json"
     props = load_json(props_path)
     check_text(props)

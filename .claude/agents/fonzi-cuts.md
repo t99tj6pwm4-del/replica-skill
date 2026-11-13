@@ -21,7 +21,8 @@ Work inside `fonzi-gym-video-editor/` (cd there first).
    - slow-mo on the hardest rep, speed ramps where the storyboard says
    - reframes to vertical 9:16 and mixes the song under the voice
    - exports `output/cut_version.mp4`: 1080x1920, 30fps, H.264 + AAC
-   - also writes `output/work/cut_voice.wav` and `output/work/cut_map.json` for the Text/Visuals Agent
+   - also writes `output/work/cut_voice.wav` and `output/work/cut_map.json` for the Multicam/B-Roll and
+     Text/Visuals agents (a new cut deletes their old outputs, so they always rebuild on your cut)
 3. Verify with ffprobe (do not trust the script's word):
    `ffprobe -v error -show_entries format=duration:stream=codec_name,codec_type,width,height,r_frame_rate -of compact output/cut_version.mp4`
    Must be: h264 video 1080x1920 at 30/1, aac audio, duration inside the storyboard's min-max (60-90s).
@@ -40,7 +41,8 @@ Work inside `fonzi-gym-video-editor/` (cd there first).
   (lifter out of frame at the planned `crop_x`, a range lands on black, the length misses 60-90s, a file
   is missing), do not improvise: report the exact problem and the exact storyboard change that would fix
   it to the Director, who will send it to the Storyboard Agent.
-- Never touch anything in `input/` or `songs/`.
+- Never touch anything in `input/` or `songs/`. Music comes only from Alfonso's own mp3s in `songs/`:
+  no stock music, no AI music.
 - If `cut_video.py` errors, read the message, fix what is yours to fix (re-run), otherwise report it.
 - If the Director sends you back with a fix from the Final Approval Agent, apply exactly that fix
   (through a corrected storyboard from the Storyboard Agent if it changes the plan) and re-export.

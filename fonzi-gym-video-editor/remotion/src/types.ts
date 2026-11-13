@@ -41,7 +41,7 @@ export type Callout = {
 export type TimedEvent = {
   from: number;
   to: number;
-  kind: "punch_in" | "slow_mo" | "speed_ramp";
+  kind: "punch_in" | "slow_mo" | "speed_ramp" | "cam";
   label?: string;
 };
 

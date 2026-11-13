@@ -45,13 +45,17 @@ Work inside `fonzi-gym-video-editor/` (cd there first). The Director gives you t
 - **Callout** (`callout`): a short form cue (max 3 words) pointing at a body part, at the moment he says it.
 - Landscape footage is cropped to 9:16: set `crop_x` (0 = left edge, 0.5 = centre, 1 = right) per segment
   so the lifter stays in frame. Check the contact sheets.
-- **Song:** if `songs/` has mp3s pick one, copy its `bpm` and `beat_offset` from the analysis, and set
-  `song_volume` 0.12-0.2 when he talks (0.6+ if nobody talks). No songs: set `"song": null`.
+- **Song:** only Alfonso's own mp3s in `songs/`. If there are any, pick one, copy its `bpm` and
+  `beat_offset` from the analysis, and set `song_volume` 0.12-0.2 when he talks (0.6+ if nobody talks).
+  No songs in the folder: set `"song": null`. Never stock music, never AI music, never a download.
 - `key_words`: 8-15 words from what he says that deserve the brand colour (exercise names, cues, numbers).
 - All on-screen text: **English only, no hashtags**, short, punchy.
 - **2 or more exercises:** fill `carousel` with every exercise, its sets x reps and one cue.
 - `caption`: the post caption, one or two lines.
-- Use only this video. Never add outside footage.
+- Use only this video from `input/`. Never download, fetch or add outside footage or another creator's video.
+- `caption` is only a suggestion: if Alfonso gave his own caption, his is posted word for word.
+- Keep punch-ins, slow-mo and speed ramps off at least two 4-6 second stretches where he is talking:
+  the Multicam/B-Roll Agent needs clean phrases for its camera-angle changes.
 
 ## storyboard.json schema
 

@@ -2,7 +2,9 @@
 """DIRECTOR tool. Job tracking only: it never touches video.
 
     python3 scripts/job.py init input/<video> --brief "Friday gym video, Form Fix Friday, 60 seconds" [--own-footage yes|no|unknown]
-    python3 scripts/job.py set <storyboard|cuts|text_visuals|qa|approval|posted> <working|done|failed|waiting> [--note "..."]
+        [--caption "Alfonso's own post caption, posted word for word"] [--broll "0:23 bench press lockout"]...
+    python3 scripts/job.py broll "0:23 bench press lockout"     # add a B-roll request later (time = cut-version time)
+    python3 scripts/job.py set <storyboard|cuts|multicam|text_visuals|qa|approval|posted> <working|done|failed|waiting> [--note "..."]
     python3 scripts/job.py show
 
 `init` moves the previous job's files into output/archive/<time>/ so jobs never mix.
@@ -18,8 +20,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from common import OUT, die, load_json, rel, resolve, save_json  # noqa: E402
 
-STEPS = ["storyboard", "cuts", "text_visuals", "qa", "approval", "posted"]
-NAMES = {"storyboard": "Storyboard", "cuts": "Cuts", "text_visuals": "Text/Visuals", "qa": "Final Approval (QA)",
+STEPS = ["storyboard", "cuts", "multicam", "text_visuals", "qa", "approval", "posted"]
+NAMES = {"storyboard": "Storyboard", "cuts": "Cuts", "multicam": "Multicam/B-Roll", "text_visuals": "Text/Visuals", "qa": "Final Approval (QA)",
          "approval": "Alfonso's approval", "posted": "Posted to Meta"}
 JOB = OUT / "job.json"
 
@@ -40,6 +42,10 @@ def main():
     i.add_argument("video")
     i.add_argument("--brief", required=True)
     i.add_argument("--own-footage", choices=["yes", "no", "unknown"], default="unknown")
+    i.add_argument("--caption", default="")
+    i.add_argument("--broll", action="append", default=[])
+    b = sub.add_parser("broll")
+    b.add_argument("request")
     s = sub.add_parser("set")
     s.add_argument("step", choices=STEPS)
     s.add_argument("status", choices=["working", "done", "failed", "waiting"])
@@ -63,6 +69,7 @@ def main():
                     shutil.move(str(p), dest / p.name)
             print(f"previous job archived to {rel(dest)}")
         job = {"video": rel(video), "brief": a.brief, "own_footage_confirmed": a.own_footage,
+               "caption": a.caption, "broll": a.broll,
                "created": time.strftime("%Y-%m-%d %H:%M:%S"),
                "steps": {s: {"status": "pending", "attempts": 0, "note": ""} for s in STEPS}}
         save_json(JOB, job)
@@ -70,6 +77,10 @@ def main():
         return
 
     job = load_json(JOB)
+    if a.cmd == "broll":
+        job.setdefault("broll", []).append(a.request)
+        save_json(JOB, job)
+        print(f"B-roll requests: {job['broll']}")
     if a.cmd == "set":
         st = job["steps"][a.step]
         if a.status == "working":

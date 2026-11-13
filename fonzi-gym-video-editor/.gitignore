@@ -9,3 +9,4 @@ songs/*
 !output/.gitkeep
 !songs/.gitkeep
 !songs/README.md
+vendor/

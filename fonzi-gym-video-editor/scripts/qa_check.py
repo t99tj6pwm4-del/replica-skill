@@ -23,8 +23,9 @@ def main():
     final = OUT / "final_edit.mp4"
     checks = []
 
-    def add(name: str, ok: bool, detail: str, owner: str):
-        checks.append({"check": name, "pass": bool(ok), "detail": detail, "owner": owner})
+    def add(name: str, ok: bool, detail: str, owner: str, soft: bool = False):
+        # soft = does not fail the video, but Alfonso is told about it at approval
+        checks.append({"check": name, "pass": bool(ok), "detail": detail, "owner": owner, "soft": soft})
 
     if not final.exists():
         add("final video exists", False, "output/final_edit.mp4 is missing", "text_visuals")
@@ -102,23 +103,75 @@ def main():
     confirmed = job.get("own_footage_confirmed", "unknown")
     add("Alfonso confirmed it is his own footage", confirmed == "yes",
         {"yes": "confirmed in the brief", "no": "brief says this is NOT his footage",
-         "unknown": "not confirmed yet: ask Alfonso at approval"}.get(confirmed, confirmed), "director")
+         "unknown": "not confirmed yet: ask Alfonso at approval"}.get(confirmed, confirmed), "director",
+        soft=confirmed == "unknown")
 
-    # 3 frames: a lower-third moment, a punch-in, a caption mid-lift
+    # multicam / B-roll: audio is the truth, cuts on the beat of the speech, never mid-word
+    mmap = load_json(WORK / "multicam_map.json", default={})
+    inserts = mmap.get("inserts", [])
+    mc_video = OUT / "multicam_version.mp4"
+    step = job.get("steps", {}).get("multicam", {}).get("status")
+    if step == "done" or inserts:
+        add("multicam prompt written", (OUT / "multicam_prompt.txt").exists(), "output/multicam_prompt.txt", "multicam")
+        add("multicam version exists", mc_video.exists() and bool(inserts), f"{len(inserts)} shots cut in", "multicam")
+    if inserts and mc_video.exists():
+        add("original audio untouched (audio is the truth)", mmap.get("audio_identical_to_cut") is True,
+            "audio identical to the cut" if mmap.get("audio_identical_to_cut") else "audio differs from the cut", "multicam")
+        words = load_json(WORK / "transcript.json", default={"words": []})["words"]
+        times = sorted({t for i in inserts for t in (i["from"], i["to"])})
+        mid = [t for t in times if any(w["start"] + 0.02 < t < w["end"] - 0.02 for w in words)]
+        add("angle cuts never mid-word", not mid, f"{len(times)} cuts checked against {len(words)} words"
+            if not mid else f"mid-word at {mid}", "multicam")
+        # where does the picture really change? measure it and compare with the plan
+        import subprocess
+        import numpy as np
+        worst, detail = 0.0, []
+        for t in times:
+            a0 = max(0.0, t - 0.5)
+            raw = subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{a0:.3f}", "-t", "1.0", "-i", str(mc_video), "-vf",
+                                  f"fps={FPS},scale=48:86,format=gray", "-f", "rawvideo", "-"], capture_output=True).stdout
+            fr = np.frombuffer(raw, dtype=np.uint8)
+            n = len(fr) // (48 * 86)
+            if n < 3:
+                continue
+            d = np.abs(np.diff(fr[: n * 48 * 86].reshape(n, 86, 48).astype(np.float32), axis=0)).mean(axis=(1, 2))
+            actual = a0 + (int(np.argmax(d)) + 1) / FPS
+            worst = max(worst, abs(actual - t))
+            detail.append(f"{t:.2f}s->{actual:.2f}s")
+        add("cut timing within 0.2s of the plan", worst <= 0.2, f"worst drift {worst:.2f}s ({', '.join(detail)})", "multicam")
+        slot = [i for i in inserts if abs(probe(resolve(i["clip"]))["duration"] - (i["to"] - i["from"])) > 0.05]
+        add("each generated clip fills its slot exactly (lip sync cannot drift)", not slot,
+            "all clips match their slot length" if not slot else f"wrong length: {[i['id'] for i in slot]}", "multicam")
+        add("angles made by the AI generator in config.yaml", not mmap.get("simulated"),
+            f"generator: {mmap.get('provider')}" if not mmap.get("simulated")
+            else "STAND-IN run (no API key): re-framed original pixels, not AI-generated angles", "multicam", soft=True)
+
+    # 3 frames: animated captions, a multicam angle change, a punch-in (or lower-third)
     dur = info["duration"]
     body_end = (props.get("endCard") or {}).get("from", dur)
     picks = []
-    lts = props.get("lowerThirds") or []
-    if lts:
-        picks.append(("lower-third on screen", lts[0]["from"] + 1.6))
+    allcaps = props.get("captions", [])
+
+    def cap_time(c):   # a moment when the page's last word has just popped in
+        return min(c["words"][-1]["start"] + 0.15, c["end"] - 0.05)
+
+    def inside(t, spans):
+        return any(s["from"] <= t <= s["to"] for s in spans)
+
+    caps = [c for c in allcaps if not inside(cap_time(c), inserts)]
+    if caps:
+        picks.append(("animated word-by-word captions", cap_time(caps[len(caps) // 2])))
+    if inserts:
+        ins = inserts[0]
+        hit = [cap_time(c) for c in allcaps if ins["from"] + 0.3 <= cap_time(c) <= ins["to"] - 0.1]
+        picks.append((f"multicam angle change ({ins['angle']})", hit[0] if hit else ins["from"] + (ins["to"] - ins["from"]) * 0.4))
     punches = [e for e in props.get("events", []) if e["kind"] == "punch_in"]
+    lts = props.get("lowerThirds") or []
     if punches:
         p = punches[len(punches) // 2]
         picks.append(("punch-in (zoomed)", (p["from"] + p["to"]) / 2))
-    caps = [c for c in props.get("captions", []) if c["start"] > dur * 0.35]
-    if caps:
-        c = caps[len(caps) // 2]
-        picks.append(("captions on screen", min(c["words"][-1]["start"] + 0.15, c["end"] - 0.05)))
+    elif lts:
+        picks.append(("lower-third on screen", lts[0]["from"] + 1.6))
     for frac in (0.3, 0.55, 0.8):
         if len(picks) < 3:
             picks.append(("mid-video", body_end * frac))
@@ -131,13 +184,32 @@ def main():
         run(["ffmpeg", "-v", "error", "-y", "-ss", f"{t:.3f}", "-i", final, "-frames:v", "1", "-q:v", "2", out])
         frames.append({"file": rel(out), "time": round(t, 2), "shows": what})
 
-    save_json(qdir / "tech.json", {"final": rel(final), "sha256": sha256(final), "source_sha256": src_sha,
+    # side by side: original camera | what is in the final, at the same instant (lip sync, B-roll match)
+    compares = []
+    for old in qdir.glob("compare_*.jpg"):
+        old.unlink()
+    for ins in inserts:
+        words_in = [w for w in load_json(WORK / "transcript.json", default={"words": []})["words"]
+                    if ins["from"] + 0.2 < (w["start"] + w["end"]) / 2 < ins["to"] - 0.2]
+        t = (words_in[len(words_in) // 2]["start"] + words_in[len(words_in) // 2]["end"]) / 2 if words_in else (ins["from"] + ins["to"]) / 2
+        out = qdir / f"compare_{ins['id']}.jpg"
+        run(["ffmpeg", "-v", "error", "-y", "-ss", f"{t:.3f}", "-i", cut, "-ss", f"{t:.3f}", "-i", final, "-filter_complex",
+             "[0:v]scale=540:960[a];[1:v]scale=540:960[b];[a][b]hstack", "-frames:v", "1", "-q:v", "3", out])
+        compares.append({"file": rel(out), "time": round(t, 2), "id": ins["id"], "kind": ins["kind"], "angle": ins["angle"],
+                         "note": ins.get("note", ""), "speaking": bool(words_in)})
+
+    save_json(qdir / "tech.json", {"compares": compares, "final": rel(final), "sha256": sha256(final), "source_sha256": src_sha,
                                    "probe": info, "checks": checks, "frames": frames})
     for c in checks:
-        print(f"{'PASS' if c['pass'] else 'FAIL'}  {c['check']:<52} {c['detail']}")
+        print(f"{'PASS' if c['pass'] else ('NOTE' if c['soft'] else 'FAIL')}  {c['check']:<58} {c['detail']}")
     print("\nNow LOOK at these 3 frames, then run scripts/qa_verdict.py:")
     for f in frames:
         print(f"  {f['file']}  ({f['time']}s, {f['shows']})")
+    if compares:
+        print("\nAnd these side-by-sides (LEFT = original camera, RIGHT = final, same instant):")
+        for c in compares:
+            print(f"  {c['file']}  ({c['time']}s, {c['kind']} {c['angle']}" + (f", asked for: {c['note']}" if c["note"] else "")
+                  + (", he is speaking here: compare the mouths" if c["speaking"] else "") + ")")
 
 
 if __name__ == "__main__":

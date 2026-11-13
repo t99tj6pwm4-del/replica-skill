@@ -2,8 +2,8 @@
 """TEXT / VISUALS AGENT tool. Turns storyboard + cut map + Whisper words into the data the
 Remotion motion-graphics layer animates.
 
-    python3 scripts/build_overlay_props.py            # transcribes output/work/cut_voice.wav first
-    python3 scripts/build_overlay_props.py --keep-transcript   # reuse output/work/transcript.json
+    python3 scripts/build_overlay_props.py            # uses the Multicam Agent's Whisper transcript if there is one
+    python3 scripts/build_overlay_props.py --retranscribe      # run Whisper again on output/work/cut_voice.wav
 
 Writes output/work/overlay_props.json (safe to hand-edit: fix a mis-heard word, move a callout,
 change which words are highlighted), then run scripts/render_final.py.
@@ -68,7 +68,7 @@ def main():
     cm = load_json(WORK / "cut_map.json")
     b = brand()
     tpath = WORK / "transcript.json"
-    if "--keep-transcript" not in sys.argv or not tpath.exists():
+    if "--retranscribe" in sys.argv or not tpath.exists():
         from transcribe import transcribe
         save_json(tpath, transcribe(WORK / "cut_voice.wav"))
     words = load_json(tpath)["words"]
@@ -105,6 +105,11 @@ def main():
             progress.append({"from": s["out_start"], "to": s["out_end"], "label": label})
 
     events = []
+    mmap = load_json(WORK / "multicam_map.json", default={})
+    for n, ins in enumerate(mmap.get("inserts", []), 2):
+        label = "B-ROLL" if ins["kind"] == "broll" else f"CAM {n}"
+        events.append({"from": ins["from"], "to": ins["to"], "kind": "cam",
+                       "label": label})
     for e in cm["events"]:
         ev = {"from": e["out_start"], "to": e["out_end"], "kind": e["kind"]}
         if e["kind"] == "slow_mo":

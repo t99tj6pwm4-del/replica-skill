@@ -150,5 +150,11 @@ def find_duplicate(final: Path | None, source_sha: str | None = None, threshold:
     return None
 
 
+def base_video() -> Path:
+    """The picture the Text/Visuals Agent works on: the multicam version when that step ran, else the cut."""
+    mc = OUT / "multicam_version.mp4"
+    return mc if mc.exists() and (WORK / "multicam_map.json").exists() else OUT / "cut_version.mp4"
+
+
 def brand() -> dict:
     return load_json(ROOT / "config" / "brand.json")

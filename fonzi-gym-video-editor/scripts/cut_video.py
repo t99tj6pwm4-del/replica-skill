@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import FPS, H, OUT, W, WORK, die, load_json, probe, rel, resolve, run, save_json  # noqa: E402
+from common import FPS, H, OUT, SONGS, W, WORK, die, load_json, probe, rel, resolve, run, save_json  # noqa: E402
 from storyboard_md import validate  # noqa: E402
 
 PAD = 0.12       # breath kept on each side of a removed pause
@@ -128,6 +128,11 @@ def main():
     errors, _, _ = validate(sb, info["duration"])
     if errors:
         die("storyboard.json is not valid, send it back to the Storyboard Agent:\n  - " + "\n  - ".join(errors))
+    if sb.get("song") and SONGS.resolve() not in resolve(sb["song"]).resolve().parents:
+        die("the song must be one of Alfonso's own mp3s in songs/ (no stock or AI music)")
+    for stale in ("multicam_version.mp4", "final_edit.mp4"):   # built on the old cut
+        (OUT / stale).unlink(missing_ok=True)
+    (WORK / "multicam_map.json").unlink(missing_ok=True)
     sw, sh, src_fps = info["video"]["width"], info["video"]["height"], info["video"]["fps"]
     has_audio = info["audio"] is not None
     dead = analysis.get("dead_ranges", []) if analysis.get("source") == rel(src) else []

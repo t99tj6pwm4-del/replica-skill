@@ -1,14 +1,13 @@
 import React from "react";
 import { AbsoluteFill, Img, staticFile } from "remotion";
-import { BODY, DISPLAY, loadFonts } from "./fonts";
+import { BODY, DISPLAY, useFonts } from "./fonts";
 import type { CarouselProps } from "./types";
-
-loadFonts();
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
 // One still per slide: a cover, then one slide per exercise with sets x reps.
 export const CarouselSlide: React.FC<CarouselProps> = ({ brand, slide }) => {
+  useFonts();
   const cover = slide.kind === "cover";
   const words = slide.title.split(/\s+/).filter(Boolean);
   const longest = Math.max(...words.map((w) => w.length), 1);

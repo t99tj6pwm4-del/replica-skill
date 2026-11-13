@@ -8,7 +8,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { BODY, DISPLAY, loadFonts } from "./fonts";
+import { BODY, DISPLAY, useFonts } from "./fonts";
 import type {
   Brand,
   Callout,
@@ -18,8 +18,6 @@ import type {
   ProgressSegment,
   TimedEvent,
 } from "./types";
-
-loadFonts();
 
 const clamp = {
   extrapolateLeft: "clamp" as const,
@@ -544,6 +542,38 @@ const EventAccent: React.FC<{ ev: TimedEvent; brand: Brand; frames: number }> = 
     );
   }
   const slow = ev.kind === "slow_mo";
+  if (ev.kind === "cam") {
+    // angle change: one-frame flash on the hard cut, then a small camera tag that fades after 1.6s
+    const tag = interpolate(frame, [0, 4, 44, 52], [0, 1, 1, 0], clamp);
+    return (
+      <AbsoluteFill>
+        <AbsoluteFill style={{ backgroundColor: "#fff", opacity: interpolate(frame, [0, 4], [0.35, 0], clamp) }} />
+        <div
+          style={{
+            position: "absolute",
+            top: 232,
+            left: 56,
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            padding: "10px 22px",
+            borderRadius: 10,
+            backgroundColor: "rgba(11,11,15,0.86)",
+            border: `4px solid ${brand.color}`,
+            color: brand.textColor,
+            fontFamily: BODY,
+            fontWeight: 800,
+            fontSize: 30,
+            letterSpacing: 3,
+            opacity: tag,
+          }}
+        >
+          <div style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: "#E11D2E" }} />
+          {ev.label ?? "CAM 2"}
+        </div>
+      </AbsoluteFill>
+    );
+  }
   const pop = spring({ frame, fps, config: { damping: 11, stiffness: 220, mass: 0.6 } });
   const out = interpolate(frame, [frames - 6, frames], [1, 0], clamp);
   const blink = Math.sin((frame / fps) * Math.PI * 4) > 0 ? 1 : 0.25;
@@ -725,6 +755,7 @@ const EndCard: React.FC<{
 
 /* ------------------------------------------------------------------ */
 export const Overlay: React.FC<OverlayProps> = (p) => {
+  useFonts();
   const { fps } = useVideoConfig();
   const fr = (s: number) => Math.max(0, Math.round(s * fps));
   const seq = (from: number, to: number) => ({
