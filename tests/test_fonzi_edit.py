@@ -72,5 +72,43 @@ class Plan(unittest.TestCase):
         self.assertIn("acrossfade", graph)
 
 
+class Recipe(unittest.TestCase):
+    def setUp(self):
+        import json, sys
+        d = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                         ".claude", "skills", "fonzi-edit")
+        if d not in sys.path:
+            sys.path.insert(0, d)
+        import fonzi_recipe
+        self.rc = fonzi_recipe
+        with open(os.path.join(d, "recipe.example.json")) as fh:
+            self.recipe = json.load(fh)
+
+    def test_timeline_is_ninety_seconds_with_eight_exercises(self):
+        total, groups = self.rc.timeline(self.recipe)
+        self.assertAlmostEqual(total, 90.0, delta=0.01)
+        self.assertEqual(len(groups), 8)
+        self.assertEqual([g["index"] for g in groups], list(range(1, 9)))
+
+    def test_slow_clip_counts_double(self):
+        self.assertEqual(self.rc.out_len({"start": 10, "end": 14, "speed": 0.5}), 8)
+
+    def test_join_graph_has_every_join_and_cutaway(self):
+        self.rc.timeline(self.recipe)
+        n = len(self.recipe["clips"])
+        g = self.rc.join_graph(self.recipe, n, True)
+        self.assertEqual(g.count("xfade="), n - 1)
+        self.assertEqual(g.count("overlay="), len(self.recipe["broll"]))
+        self.assertIn("loudnorm", g)
+
+    def test_overlay_plan_ties_callouts_to_clip_time(self):
+        total, groups = self.rc.timeline(self.recipe)
+        plan = self.rc.overlay_plan(self.recipe, total, groups)
+        self.assertEqual(len(plan["callouts"]), 4)
+        first = self.recipe["clips"][0]
+        self.assertAlmostEqual(plan["callouts"][0]["abs_at"], first["_start"] + first["callouts"][0]["at"])
+        self.assertTrue(all(0 <= c["anchor"][0] <= 1 and 0 <= c["anchor"][1] <= 1 for c in plan["callouts"]))
+
+
 if __name__ == "__main__":
     unittest.main()

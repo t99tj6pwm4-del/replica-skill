@@ -1,122 +1,88 @@
 ---
 name: fonzi-edit
 description: >-
-  Cuts raw gym footage into a short vertical edit: keeps every lift in its
-  original order, trims each to a stretch of reps, hard cuts, original sound
-  levelled, no music, no captions. Takes a video file or a Google Drive share
-  link and an optional length (default 90 seconds). Use when the user types
-  /fonzi-edit, pastes a Drive link to raw gym footage, or says "edit this
-  gym video", "cut this down", "make the reel", "90 sec", "60 second version".
+  Turns raw gym footage into a finished vertical reel in the house style: every
+  lift kept in order and trimmed, crossfades between exercises, b-roll
+  cutaways, slow-mo, a dark graded look, and motion graphics (title card,
+  progress bar, "EXERCISE 03 / 08" lower thirds, tracked callouts that follow
+  the muscle, kinetic captions, viewfinder corners, cam badges, save-this end
+  card). No music. Takes a video file or a Google Drive link and an optional
+  length (default 90 seconds). Use when the user types /fonzi-edit, pastes a
+  Drive link to raw gym footage, or says "edit this gym video", "cut this
+  down", "make the reel", "90 sec", "60 second version".
 ---
 
 # fonzi-edit
 
-One tool in this folder. It needs `ffmpeg` and `ffprobe` on the PATH and
-nothing else.
+The reference for the look is the user's own `final_edit.mp4` (a "HEAVY CURL DAY"
+reel): dark graded footage, yellow and white graphics, a title slam at the start,
+a thin progress bar across the top, an exercise lower third, a yellow tag on a
+ring that follows the muscle, big condensed captions with the key word in yellow,
+yellow corner brackets, little CAM / SLOW-MO badges, and a SAVE THIS end card.
+**Do this every time. Plain text labels are not acceptable.**
 
-```bash
-python3 .claude/skills/fonzi-edit/fonzi_edit.py SOURCE --out OUT.mp4
-python3 .claude/skills/fonzi-edit/fonzi_edit.py SOURCE --seconds 60 --out OUT.mp4
-python3 .claude/skills/fonzi-edit/fonzi_edit.py SOURCE --plan-only --out OUT.mp4
-python3 .claude/skills/fonzi-edit/fonzi_edit.py SOURCE --segments 4-12,30-36 --out OUT.mp4
-```
+Needs `ffmpeg`, `ffprobe`, Python 3 with `numpy`, `Pillow` and `opencv-python-headless`
+(`pip install opencv-python-headless` if missing). Fonts are in `fonts/`.
 
-`SOURCE` is a local video or a Google Drive share link. The Drive file must be
-shared as "anyone with the link"; the tool downloads it itself, so the Drive
-connector is not needed.
+## The house style (settled, do not ask)
 
-## The house style
+- **Length:** 90 seconds unless the user gives another number.
+- **No music.** The original sound of each clip, levelled.
+- **Every lift stays, in the order shot**, each trimmed to a stretch of reps. Camera
+  setup moments are dropped.
+- **Graphics on every edit:** title card, progress bar and exercise name, lower third
+  per exercise, a caption about every 5 to 6 s, a tracked callout on about every second
+  clip, corner brackets, CAM tags, end card with the channel handle.
+- **B-roll:** about one cutaway per exercise, 1.1 s, a punched-in close-up from the
+  raw footage over the lift while its sound carries on.
+- **Transitions:** crossfade (0.3 s) between exercises, hard cut inside the same
+  exercise. Slow-mo (0.5x) on one strong rep near the end.
+- **Look:** 1080x1920, 30 fps, slightly contrasty and desaturated with a vignette.
 
-These are settled. Do not ask about them and do not change them unless the
-user says so in this request.
+## Three agents do the design work. Run all three, every time
 
-- **Length:** 90 seconds unless the user gives another number. A bare number
-  in the request ("60", "45 sec") is the length.
-- **No music.** The original sound from each clip, levelled to one loudness.
-- **Text overlays on every lift:** the exercise name, white bold capitals
-  with a black outline, lower third, fading in at the start of each clip.
-  Always add them, every time. Pass `--labels 'NAME|NAME|...'` (one per clip,
-  empty for none). Name each lift from what the frames show and tell the
-  user the names so they can correct them.
-- **No captions of speech, no speed changes, no filters.**
-- **Every lift stays, in the order it was shot.** Each one is trimmed, none
-  is reordered.
-- **Transitions:** chosen per join by the `fonzi-transitions` agent (hard cut
-  inside the same exercise, 0.3 s crossfade between different ones). Always
-  run that agent before the final render and pass its answer as
-  `--transitions ... --transition-seconds ...`. One short fade out at the end.
-- **Camera setup is dropped:** the moments where the phone is being propped
-  up or adjusted between lifts.
-- **Output:** the source's size and frame rate (normally vertical 720x1280 at
-  30 fps), H.264 video with AAC sound, so it plays anywhere.
+1. **`fonzi-overlays`**: title, captions, callouts and tracking anchors.
+2. **`fonzi-broll`**: the cutaway list.
+3. **`fonzi-transitions`**: the transition for each join.
 
-## Step 1: make the edit
+They return pieces of the recipe. The recipe format is `recipe.example.json`
+(a complete, working example for a real edit).
 
-Write the output outside the repository, in the session scratchpad or a
-folder the user names. Video files are never committed here.
+## Steps
 
-```bash
-python3 .claude/skills/fonzi-edit/fonzi_edit.py "<link or path>" --out <dir>/fonzi-edit.mp4
-```
+1. **Find the clips.** Run the cutter's planner to get the clip boundaries and a contact sheet:
 
-How it chooses:
+   ```bash
+   python3 .claude/skills/fonzi-edit/fonzi_edit.py "<link or file>" --plan-only --out <dir>/plan.mp4
+   ```
 
-1. It finds every point where the picture changes completely. Raw footage is
-   a string of clips shot back to back, so each change is a new lift.
-2. A clip shorter than 5 seconds is treated as camera setup and dropped.
-3. The length is shared equally between the clips that are left. A clip too
-   short for its share gives all it has and the rest is shared again.
-4. From each clip it keeps one window, a little before the middle, and stays
-   half a second clear of both ends.
+   Raw footage is clips shot back to back; each scene change is a new lift. Drop clips
+   under 5 s (setup). Look at the sheet and choose a window per clip so the windows add
+   up to the target length (slow-mo clips count double: a 4 s source window at 0.5x is 8 s).
+   Name each lift from what the frames show.
+2. **Write the recipe** `<dir>/recipe.json` with the three agents' output.
+3. **Render the base first** to place callouts accurately:
 
-It prints the plan as JSON and writes three files next to the output:
-the video, `NAME.plan.json` (what was kept, in source seconds) and
-`NAME.sheet.jpg` (a contact sheet of the finished edit with timestamps).
+   ```bash
+   python3 .claude/skills/fonzi-edit/fonzi_recipe.py "<link or file>" <dir>/recipe.json --out <dir>/final.mp4 --stage base
+   ```
 
-## Step 2: check it
+   Extract a frame at each callout time with a 0.1 grid, look at it, and set each `anchor`.
+4. **Render everything:** same command without `--stage` (or `--stage graphics` to reuse the base).
+   About 4 minutes for 90 s.
+5. **Check it.** Pull frames from the title, a lower third, the middle of every callout
+   (the ring must sit on the named muscle), a caption, a b-roll insert, the slow-mo clip and the
+   end card. Fix and re-render the graphics stage only when something is off.
+6. **Hand it over:** send the video. Say the length, which lifts are in it, that exercise
+   names and coaching cues are read off the frames and may need correcting, and that the
+   sound was levelled but not listened to. Never commit the video.
 
-Open `NAME.sheet.jpg` and look at every row before sending anything.
+## Notes
 
-- Each lift should show the lifter mid-set, not walking in, racking the
-  weight or reaching for the phone.
-- No clip should be a face filling the frame while the camera is being set.
-- The last frames should be the last clip of the source.
-
-The tool cannot see reps. It picks windows by position, so one may start on a
-setup moment or split a rep badly. When a window is wrong, read the segment
-list in `NAME.plan.json`, move that one window inside its clip, and render
-again with every segment listed:
-
-```bash
-python3 .claude/skills/fonzi-edit/fonzi_edit.py "<link or path>" \
-  --segments 4-12,30-36,47-56,76-85 --out <dir>/fonzi-edit.mp4
-```
-
-`--plan-only` writes the plan and a contact sheet of the source without
-rendering, for when the footage needs a look first. A source that is one long
-unbroken take has no clip changes to find: look at the source sheet and pick
-the segments by hand.
-
-Keep the total at the length asked for. Take a second from a longer clip when
-another needs one more.
-
-## Step 3: hand it over
-
-Send the video file to the user. Then say, in a few lines:
-
-- the length, size and format
-- which lifts are in it and where each was taken from in the raw footage
-- what was dropped
-- that the cut is not timed to reps, if no window was adjusted by hand
-- whether the sound was listened to or only levelled (it is only levelled
-  unless you have a way to hear it)
-
-Do not commit the video, the plan or the sheet.
-
-## When it cannot run
-
-- **The Drive link will not download:** the file is private. Ask the user to
-  set sharing to "anyone with the link", or to upload the file.
-- **No ffmpeg:** say so. Do not try another route that changes the look.
-- **The source is shorter than the length asked for:** the tool keeps what
-  there is and says so. Pass that on.
+- Tracking is optical flow on the callout's anchor point. It holds on a muscle that stays in
+  frame; if the camera jumps (a cut) it holds still rather than flying off.
+- Rendering the whole source in one filter runs out of memory, which is why the base is cut
+  into small per-clip files first.
+- The simpler `fonzi_edit.py SOURCE --seconds 90 --out x.mp4` still exists for a quick plain
+  cut with `--labels` text and `--transitions`. It is not the house style.
+- A private Drive link will not download: ask the user to set it to "anyone with the link".

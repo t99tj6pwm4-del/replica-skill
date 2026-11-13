@@ -1,0 +1,322 @@
+{
+ "title": [
+  "FULL BODY",
+  "GYM",
+  "DAY"
+ ],
+ "subtitle": "EVERY REP. NO SHORTCUTS.",
+ "cta": "SAVE THIS",
+ "cta_sub": "FOR YOUR NEXT GYM DAY",
+ "handle": "@fonzi.stays.fit",
+ "transition_seconds": 0.3,
+ "transitions": [
+  "fade",
+  "cut",
+  "fade",
+  "fade",
+  "fade",
+  "fade",
+  "fade",
+  "cut",
+  "fade",
+  "fade",
+  "fadeblack"
+ ],
+ "clips": [
+  {
+   "start": 4,
+   "end": 12,
+   "group": "CABLE PUSHDOWN",
+   "cam": {
+    "label": "CAM 1",
+    "at": 0.3,
+    "dur": 2.5
+   },
+   "callouts": [
+    {
+     "at": 3.6,
+     "dur": 2.4,
+     "label": "ELBOW PINNED",
+     "anchor": [
+      0.28,
+      0.4
+     ]
+    }
+   ],
+   "captions": [
+    {
+     "at": 6.2,
+     "dur": 1.6,
+     "text": "SQUEEZE THE TRICEP",
+     "hi": [
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "start": 30,
+   "end": 36,
+   "group": "SQUAT",
+   "bracket": [
+    0.5,
+    4.0
+   ],
+   "captions": [
+    {
+     "at": 3.4,
+     "dur": 2.3,
+     "text": "BRACE YOUR CORE",
+     "hi": [
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "start": 47,
+   "end": 56,
+   "group": "SQUAT",
+   "cam": {
+    "label": "CAM 2",
+    "at": 0.3,
+    "dur": 2.5
+   },
+   "callouts": [
+    {
+     "at": 2.2,
+     "dur": 2.6,
+     "label": "KNEES OUT",
+     "anchor": [
+      0.3,
+      0.7
+     ]
+    }
+   ],
+   "captions": [
+    {
+     "at": 6.0,
+     "dur": 2.2,
+     "text": "DRIVE THROUGH THE FLOOR",
+     "hi": [
+      3
+     ]
+    }
+   ]
+  },
+  {
+   "start": 76,
+   "end": 85,
+   "group": "PREACHER CURL",
+   "bracket": [
+    3.4,
+    4.8
+   ],
+   "callouts": [
+    {
+     "at": 3.8,
+     "dur": 3.0,
+     "label": "SQUEEZE THE TOP",
+     "anchor": [
+      0.4,
+      0.28
+     ]
+    }
+   ],
+   "captions": [
+    {
+     "at": 7.4,
+     "dur": 1.5,
+     "text": "NO SWING",
+     "hi": [
+      1
+     ]
+    }
+   ]
+  },
+  {
+   "start": 105,
+   "end": 113,
+   "group": "BACK ROW",
+   "cam": {
+    "label": "CAM 2",
+    "at": 0.3,
+    "dur": 2.5
+   },
+   "captions": [
+    {
+     "at": 3.6,
+     "dur": 2.0,
+     "text": "PULL TO YOUR HIPS",
+     "hi": [
+      3
+     ]
+    }
+   ]
+  },
+  {
+   "start": 122,
+   "end": 131,
+   "group": "SEATED CABLE ROW",
+   "callouts": [
+    {
+     "at": 3.6,
+     "dur": 2.8,
+     "label": "CHEST UP",
+     "anchor": [
+      0.47,
+      0.43
+     ]
+    }
+   ],
+   "captions": [
+    {
+     "at": 6.8,
+     "dur": 2.0,
+     "text": "HOLD THE SQUEEZE",
+     "hi": [
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "start": 142,
+   "end": 151,
+   "group": "SHOULDER PRESS",
+   "bracket": [
+    3.4,
+    4.5
+   ],
+   "captions": [
+    {
+     "at": 3.6,
+     "dur": 2.2,
+     "text": "PRESS TO LOCKOUT",
+     "hi": [
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "start": 165,
+   "end": 173,
+   "group": "BENCH PRESS",
+   "cam": {
+    "label": "CAM 3",
+    "at": 0.3,
+    "dur": 2.5
+   },
+   "captions": [
+    {
+     "at": 3.6,
+     "dur": 2.0,
+     "text": "CONTROL THE BAR",
+     "hi": [
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "start": 188,
+   "end": 196,
+   "group": "BENCH PRESS",
+   "captions": [
+    {
+     "at": 3.0,
+     "dur": 2.2,
+     "text": "OWN EVERY REP",
+     "hi": [
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "start": 212,
+   "end": 216,
+   "speed": 0.5,
+   "group": "DUMBBELL PRESS",
+   "bracket": [
+    0.5,
+    7.0
+   ],
+   "captions": [
+    {
+     "at": 3.2,
+     "dur": 2.4,
+     "text": "KEEP IT STRICT",
+     "hi": [
+      2
+     ]
+    }
+   ]
+  },
+  {
+   "start": 224,
+   "end": 227
+  },
+  {
+   "start": 232,
+   "end": 237
+  }
+ ],
+ "broll": [
+  {
+   "clip": 0,
+   "at": 6.4,
+   "dur": 1.1,
+   "src": 17.0,
+   "zoom": 1.5,
+   "cx": 0.7,
+   "cy": 0.55
+  },
+  {
+   "clip": 2,
+   "at": 4.9,
+   "dur": 1.1,
+   "src": 60.0,
+   "zoom": 1.5,
+   "cx": 0.5,
+   "cy": 0.4
+  },
+  {
+   "clip": 3,
+   "at": 1.0,
+   "dur": 1.1,
+   "src": 94.0,
+   "zoom": 1.5,
+   "cx": 0.4,
+   "cy": 0.62
+  },
+  {
+   "clip": 4,
+   "at": 4.8,
+   "dur": 1.1,
+   "src": 110.0,
+   "zoom": 1.5,
+   "cx": 0.5,
+   "cy": 0.4
+  },
+  {
+   "clip": 5,
+   "at": 1.2,
+   "dur": 1.0,
+   "src": 130.0,
+   "zoom": 1.7,
+   "cx": 0.5,
+   "cy": 0.62
+  },
+  {
+   "clip": 7,
+   "at": 4.6,
+   "dur": 1.1,
+   "src": 170.0,
+   "zoom": 1.15,
+   "cx": 0.5,
+   "cy": 0.5
+  }
+ ]
+}
