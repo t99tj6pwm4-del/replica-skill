@@ -1,0 +1,11 @@
+.env
+node_modules/
+__pycache__/
+# media is big and personal: keep it out of git
+input/*
+output/*
+songs/*
+!input/.gitkeep
+!output/.gitkeep
+!songs/.gitkeep
+!songs/README.md
