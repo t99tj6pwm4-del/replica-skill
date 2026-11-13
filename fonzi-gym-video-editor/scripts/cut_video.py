@@ -295,7 +295,7 @@ def main():
         "pieces": [{k: round(p[k], 3) for k in ("src_a", "src_b", "out_a", "out_b", "speed", "zoom")} for p in all_pieces],
     })
     v = info["video"]
-    print(f"wrote  output/cut_version.mp4  {v['width']}x{v['height']} {v['fps']}fps {v['codec']}+"
+    print(f"wrote  {rel(final)}  {v['width']}x{v['height']} {v['fps']}fps {v['codec']}+"
           f"{info['audio']['codec'] if info['audio'] else 'NO AUDIO'}  {info['duration']:.2f}s")
     print(f"       {len(all_pieces)} pieces, {removed:.1f}s of pauses removed, "
           f"{sum(1 for e in events if e['kind'] == 'punch_in')} punch-ins"

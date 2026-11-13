@@ -150,7 +150,7 @@ def main():
           f"{len(props['callouts'])} callouts, {len(events)} edit accents, end card")
     if not words:
         print("note       Whisper heard no speech in the cut, so there are no captions to animate.")
-    print("wrote      output/work/overlay_props.json")
+    print(f"wrote      {rel(WORK / 'overlay_props.json')}")
 
 
 if __name__ == "__main__":

@@ -67,6 +67,8 @@ def main():
         send_back.append({"to": c["owner"], "fix": f"{c['check']}: got {c['detail']}"})
     if vis_fail:
         send_back.append({"to": a.send_to, "fix": a.fix})
+    elif a.send_to and a.fix and send_back:
+        send_back.append({"to": a.send_to, "fix": a.fix})   # the agent's own note on a measured fail
     passed = not send_back
     report = {"verdict": "PASS" if passed else "FAIL", "checked": time.strftime("%Y-%m-%d %H:%M:%S"),
               "final": tech["final"], "sha256": tech["sha256"], "technical": tech["checks"],
@@ -121,7 +123,7 @@ def main():
         print(f"staged {report['staged']} - waiting for Alfonso's yes" + (" (and his own-footage confirmation)" if ask_owner else ""))
     for s in send_back:
         print(f"SEND BACK to {AGENT[s['to']]}: {s['fix']}")
-    print("report: output/qa_report.md")
+    print(f"report: {rel(OUT / 'qa_report.md')}")
 
 
 if __name__ == "__main__":

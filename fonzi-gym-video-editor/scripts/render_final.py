@@ -146,7 +146,7 @@ def main():
     fx_base.unlink(missing_ok=True)
     out = probe(final)
     v = out["video"]
-    print(f"wrote  output/final_edit.mp4  {v['width']}x{v['height']} {v['fps']}fps {v['codec']}+"
+    print(f"wrote  {rel(final)}  {v['width']}x{v['height']} {v['fps']}fps {v['codec']}+"
           f"{out['audio']['codec'] if out['audio'] else 'NO AUDIO'}  {out['duration']:.2f}s")
 
     slides = render_carousel(load_json(OUT / "storyboard.json"), load_json(WORK / "cut_map.json"))
