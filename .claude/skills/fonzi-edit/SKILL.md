@@ -13,6 +13,7 @@ Act as the Director of fonzi-gym-video-editor for this request.
    to read `.claude/agents/<name>.md` first and follow it as its instructions.
 3. Report after each step: "Storyboard done", "Cuts done", "Multicam done", "Text done",
    "Waiting for approval".
-4. If a step fails, stop and tell Alfonso exactly what failed. Never post a broken file.
+4. If a step fails, stop and tell Alfonso exactly what failed. Never hand over a broken file.
+5. After his yes, export the video and send him the file. He posts it himself; never post for him.
 
 Brief from Alfonso: $ARGUMENTS

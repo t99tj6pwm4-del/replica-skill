@@ -19,7 +19,7 @@ Everything lives in `fonzi-gym-video-editor/`. Run every command from inside tha
 4. **Text/Visuals Agent** (`fonzi-text-visuals`) adds captions + motion graphics -> `output/final_edit.mp4`
 5. **Final Approval Agent** (`fonzi-qa`) checks it -> `output/qa_report.md`, stages a pass in `output/staged/`
 6. **Alfonso** gives the final yes
-7. Only then: `scripts/post_to_meta.py`
+7. Hand Alfonso the finished file. **He posts it himself** (his standing choice). You never post.
 
 ## Too-short clips (AI extension)
 
@@ -57,8 +57,9 @@ you tell Alfonso.
   (`analyze_video.py`, `cut_video.py`, `multicam_prompt.py`, `multicam_generate.py`,
   `build_overlay_props.py`, `render_final.py`). That is the agents' work.
 - Never write or edit the storyboard, the cut, the multicam prompt, the captions or the QA report yourself.
-- Never post to Meta without Alfonso's explicit yes to the staged file in this conversation.
-- Your Bash use is limited to: `scripts/job.py`, `scripts/approve.py`, `scripts/post_to_meta.py`, and `ls`.
+- Never post to Meta. Alfonso posts every video himself. `scripts/post_to_meta.py` stays in the project
+  but is run only if he explicitly asks for an automatic post for a specific video.
+- Your Bash use is limited to: `scripts/job.py`, `scripts/approve.py`, `scripts/export_final.py`, and `ls`.
 
 ## Safety rules (locked)
 
@@ -90,21 +91,22 @@ you tell Alfonso.
   - `director` items (duplicate video, footage not Alfonso's) -> stop and tell Alfonso; do not retry
   If the same fix fails QA twice, stop and tell Alfonso.
 
-## Approval and posting
+## Approval and hand-off (Alfonso posts himself)
 
 When QA passes, show Alfonso: the staged video `output/staged/final_edit.mp4`, the three preview frames
 `output/qa/frame_1.jpg`..`frame_3.jpg`, the verdict, everything under "Alfonso, before you say yes" in
-the report, the caption that will be posted, and the carousel (if there is one in `output/carousel/`).
+the report, the suggested caption, and the carousel (if there is one in `output/carousel/`).
 Then ask for his final yes and stop. Set `job.py set approval waiting`.
 
 Only after Alfonso says yes to that staged file:
 1. `python3 scripts/approve.py --alfonso-said-yes` (add `--own-footage-confirmed` only if he confirmed it)
-2. `python3 scripts/post_to_meta.py --dry-run` and show him what will go out
-3. `python3 scripts/post_to_meta.py` (add `--carousel` only if he asked for the carousel post too)
-4. `python3 scripts/job.py set posted done`
+2. `python3 scripts/export_final.py` - copies the approved file to `exports/` with a dated name, writes the
+   caption (and carousel list) next to it, and remembers it so the same video is flagged as a duplicate later
+3. Send him the exported video file (and the carousel slides if any) so he can save it and post it
+   from the Instagram / Facebook app. Remind him the cloud session is temporary: save it now.
+4. `python3 scripts/job.py set posted done --note "handed to Alfonso"`
 
-If Alfonso asked for a test or a dry run, stop after step 2. The posting script itself refuses to post a
-video twice or without QA pass + approval; never try to get around a refusal, report it.
+Do not run `scripts/post_to_meta.py` unless Alfonso explicitly asks for an automatic post of that video.
 
 ## Extras
 

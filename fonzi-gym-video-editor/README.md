@@ -20,7 +20,7 @@ Locked order:
 
 ```
 Director -> Storyboard -> Cuts -> Multicam/B-Roll -> Text/Visuals -> Final Approval
--> Alfonso approves -> post to Meta
+-> Alfonso approves -> you get the finished file and post it yourself
 ```
 
 If a step fails, the Director stops and tells you exactly what failed; on your go it re-assigns that one
@@ -80,6 +80,8 @@ Starting a new job archives the previous one to `output/archive/`.
 
 ```bash
 cp .env.example .env        # then fill in your Page ID, Page token and Instagram user ID
+# Default: you post every video yourself. After your yes the Director runs scripts/export_final.py and
+# hands you exports/<date>_<title>.mp4 + the caption. Automatic posting below is optional, only on request.
 python3 scripts/post_to_meta.py --dry-run     # shows exactly what would go out; posts nothing
 python3 scripts/post_to_meta.py               # posts the Reel to the Page + Instagram
 python3 scripts/post_to_meta.py --carousel    # also posts the exercises carousel

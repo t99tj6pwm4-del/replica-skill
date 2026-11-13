@@ -1,0 +1,30 @@
+{
+  "posted": [
+    {
+      "sha256": "339f524ff4eda810de080d9469279e9e00612fec8ce6c5f3987960dca4a664a4",
+      "source_sha256": "12ffdb805632857a5b042382fb3055adb1c704b9ac6b10d6bd61b902acbe43c8",
+      "fingerprint": [
+        "dc6e7c1c3b3f3030",
+        "fc746414e0503030",
+        "fee4842c60c04060",
+        "ff76640460603030",
+        "7f7b230a50123230",
+        "fff60613b5c0b030",
+        "fe7e6404f0203030",
+        "fe7e640ce6183030",
+        "fffe6614b6e06030",
+        "ffe6e40c2f8ae020",
+        "7feff266163b2030",
+        "7ffff44416e0c030",
+        "ef766406dab8b030",
+        "7f776c0cee703030",
+        "fb764616e0c0e030",
+        "fc6c4c179200c080"
+      ],
+      "title": "Heavy Curl Day",
+      "posted_at": "2026-11-13 13:16:36",
+      "reel": {},
+      "handed_to_alfonso": "exports/2026-11-13_heavy-curl-day.mp4"
+    }
+  ]
+}

@@ -10,3 +10,5 @@ songs/*
 !songs/.gitkeep
 !songs/README.md
 vendor/
+exports/*
+!exports/.gitkeep
