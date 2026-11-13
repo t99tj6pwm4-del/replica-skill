@@ -403,7 +403,7 @@ const Captions: React.FC<{ pages: CaptionPage[]; brand: Brand; y: number }> = ({
         justifyContent: "center",
         alignItems: "center",
         flexWrap: "wrap",
-        columnGap: size * 0.24,
+        columnGap: size * 0.34,
       }}
     >
       {page.words.map((w, i) => {
@@ -415,7 +415,8 @@ const Captions: React.FC<{ pages: CaptionPage[]; brand: Brand; y: number }> = ({
         });
         const said = frame >= startFrame;
         const active = t >= w.start && t < w.end + 0.06;
-        const scale = interpolate(s, [0, 1], [0.55, 1]) * (active ? 1.07 : 1);
+        // pop from the word's own centre and never past full size, so a word never reaches its neighbour
+        const scale = Math.min(1, interpolate(s, [0, 1], [0.55, 1])) * (active ? 1.03 : 1);
         return (
           <span
             key={i}
@@ -806,11 +807,7 @@ export const Overlay: React.FC<OverlayProps> = (p) => {
           </Sequence>
         );
       })}
-      {p.lowerThirds.map((lt, i) => (
-        <Sequence key={`w${i}`} from={Math.max(0, fr(lt.from) - 8)} durationInFrames={14}>
-          <SegmentWipe brand={p.brand} />
-        </Sequence>
-      ))}
+      {/* no built-in wipe: transitions come only from the effects library (effects_plan.json) */}
       {p.callouts.map((c, i) => {
         const s = seq(c.from, c.to);
         return (
