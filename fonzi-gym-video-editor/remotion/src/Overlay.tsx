@@ -146,7 +146,11 @@ const TitleCard: React.FC<{
               style={{
                 marginTop: 34,
                 marginLeft: Math.min(words.length * TITLE_INDENT, 120),
-                whiteSpace: "nowrap",
+                // wraps inside the face-safe width instead of being clipped mid-word
+                maxWidth: titleW - Math.min(words.length * TITLE_INDENT, 120),
+                boxSizing: "border-box",
+                whiteSpace: "normal",
+                lineHeight: 1.15,
                 padding: "14px 30px",
                 backgroundColor: brand.color,
                 color: brand.darkColor,
