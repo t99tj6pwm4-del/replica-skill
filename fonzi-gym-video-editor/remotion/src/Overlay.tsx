@@ -368,7 +368,9 @@ const ProgressBar: React.FC<{ segments: ProgressSegment[]; brand: Brand }> = ({
           letterSpacing: 3,
           color: brand.textColor,
           textTransform: "uppercase",
-          textShadow: "0 2px 10px rgba(0,0,0,0.8)",
+          textShadow:
+            "0 0 2px rgba(0,0,0,0.95), 0 0 6px rgba(0,0,0,0.9), 0 2px 12px rgba(0,0,0,0.85)",
+          WebkitTextStroke: "1px rgba(0,0,0,0.6)",
         }}
       >
         {current.label}
@@ -845,9 +847,6 @@ export const Overlay: React.FC<OverlayProps> = (p) => {
           y={p.layout.captionY}
         />
       </Sequence>
-      <Sequence from={0} durationInFrames={Math.max(1, fr(end))}>
-        <ProgressBar segments={p.progress} brand={p.brand} />
-      </Sequence>
       {p.title ? (
         <Sequence {...seq(p.title.from, p.title.to)}>
           <TitleCard
@@ -859,6 +858,9 @@ export const Overlay: React.FC<OverlayProps> = (p) => {
           />
         </Sequence>
       ) : null}
+      <Sequence from={0} durationInFrames={Math.max(1, fr(end))}>
+        <ProgressBar segments={p.progress} brand={p.brand} />
+      </Sequence>
       {p.endCard ? (
         <Sequence {...seq(p.endCard.from, p.endCard.to)}>
           <EndCard text={p.endCard.text} subtitle={p.endCard.subtitle} brand={p.brand} />
