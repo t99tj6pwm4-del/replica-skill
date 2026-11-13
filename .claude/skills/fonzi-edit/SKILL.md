@@ -41,7 +41,10 @@ user says so in this request.
 - **No captions of speech, no speed changes, no filters.**
 - **Every lift stays, in the order it was shot.** Each one is trimmed, none
   is reordered.
-- **Hard cuts** between lifts, one short fade out at the very end.
+- **Transitions:** chosen per join by the `fonzi-transitions` agent (hard cut
+  inside the same exercise, 0.3 s crossfade between different ones). Always
+  run that agent before the final render and pass its answer as
+  `--transitions ... --transition-seconds ...`. One short fade out at the end.
 - **Camera setup is dropped:** the moments where the phone is being propped
   up or adjusted between lifts.
 - **Output:** the source's size and frame rate (normally vertical 720x1280 at

@@ -59,6 +59,18 @@ class Plan(unittest.TestCase):
         self.assertIn("loudnorm", graph)
         self.assertIn("drawtext", fe.filtergraph(segs, labels=["BENCH", ""]))
 
+    def test_transitions(self):
+        joins = fe.join_plan(4, ["fade", "cut", "dissolve"], 0.3)
+        self.assertEqual([j[0] for j in joins], ["fade", "fade", "dissolve"])
+        self.assertAlmostEqual(joins[1][1], 1 / 30.0)
+        self.assertEqual(len(fe.join_plan(4, ["fade"], 0.3)), 3)
+        with self.assertRaises(ValueError):
+            fe.join_plan(3, ["spin"], 0.3)
+        graph = fe.filtergraph_joined([(0, 8), (10, 16), (20, 29)], fe.join_plan(3, ["fade"], 0.3))
+        self.assertIn("xfade=transition=fade:duration=0.300:offset=8.000", graph)
+        self.assertIn("offset=14.000", graph)
+        self.assertIn("acrossfade", graph)
+
 
 if __name__ == "__main__":
     unittest.main()

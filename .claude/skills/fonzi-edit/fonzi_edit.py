@@ -134,6 +134,56 @@ def label_filters(segs, labels, hold=3.0, fontsize=44):
     return out
 
 
+XFADES = {"fade", "fadeblack", "fadewhite", "dissolve", "slideleft", "slideright", "wipeleft",
+          "wiperight", "zoomin", "circleopen", "smoothleft", "smoothright", "pixelize"}
+ONE_FRAME = 1 / 30.0
+
+
+def join_plan(count, transitions, seconds):
+    """One (type, seconds) per join between clips. 'cut' is a one frame fade."""
+    kinds = list(transitions) if isinstance(transitions, (list, tuple)) else [transitions or "cut"]
+    if len(kinds) == 1:
+        kinds = kinds * (count - 1)
+    kinds = (kinds + ["cut"] * (count - 1))[:count - 1]
+    out = []
+    for k in kinds:
+        k = (k or "cut").strip()
+        if k not in XFADES | {"cut"}:
+            raise ValueError("unknown transition %r (use cut or one of %s)" % (k, sorted(XFADES)))
+        out.append(("fade", ONE_FRAME) if k == "cut" else (k, seconds))
+    return out
+
+
+def filtergraph_joined(segs, joins, fade=0.6, labels=None, audio=True):
+    """Like filtergraph, but clips overlap at each join. Every clip but the last is
+    read `td` seconds longer so the overlap eats the extra and the length is unchanged."""
+    parts = []
+    n = len(segs)
+    for i, (a, b) in enumerate(segs):
+        end = b + (joins[i][1] if i < n - 1 else 0)
+        parts.append("[0:v]trim=%s:%.3f,setpts=PTS-STARTPTS[v%d]" % (a, end, i))
+        if audio:
+            parts.append("[0:a]atrim=%s:%.3f,asetpts=PTS-STARTPTS[a%d]" % (a, end, i))
+    vl, al, at = "v0", "a0", 0.0
+    for k in range(n - 1):
+        kind, td = joins[k]
+        at += segs[k][1] - segs[k][0]
+        parts.append("[%s][v%d]xfade=transition=%s:duration=%.3f:offset=%.3f[x%d]"
+                     % (vl, k + 1, kind, td, at, k))
+        vl = "x%d" % k
+        if audio:
+            parts.append("[%s][a%d]acrossfade=d=%.3f[y%d]" % (al, k + 1, td, k))
+            al = "y%d" % k
+    total = sum(b - a for a, b in segs)
+    chain = label_filters(segs, labels or []) + [
+        "fade=t=out:st=%.3f:d=%s" % (max(0.0, total - fade), fade)]
+    parts.append("[%s]%s[v]" % (vl, ",".join(chain)))
+    if audio:
+        parts.append("[%s]afade=t=out:st=%.3f:d=%s,loudnorm=I=-14:TP=-1.5:LRA=11[a]"
+                     % (al, max(0.0, total - fade - 0.2), fade + 0.2))
+    return ";".join(parts)
+
+
 def filtergraph(segs, fade=0.6, labels=None):
     """The ffmpeg filter that trims each segment, joins them and levels the sound."""
     parts, labels = [], ""
@@ -221,10 +271,13 @@ def sheet(path, out, duration):
     return None
 
 
-def render(path, segs, out, fps, has_audio, labels=None):
+def render(path, segs, out, fps, has_audio, labels=None, joins=None):
     graph = filtergraph(segs, labels=labels)
     maps = ["-map", "[v]", "-map", "[a]"]
-    if not has_audio:
+    if joins:
+        graph = filtergraph_joined(segs, joins, labels=labels, audio=has_audio)
+        maps = maps if has_audio else ["-map", "[v]"]
+    elif not has_audio:
         graph = ";".join(p for p in graph.split(";") if "[0:a]" not in p and "[ac]" not in p)
         graph = re.sub(r"\[a\d+\]", "", graph).replace(":a=1[vc][ac]", ":a=0[vc]")
         maps = ["-map", "[v]"]
@@ -242,6 +295,10 @@ def main(argv=None):
     ap.add_argument("--segments", help="keep exactly these, e.g. 4-12,30-36 (source seconds)")
     ap.add_argument("--labels", help="text overlay per clip, in order, separated by |, e.g. "
                     "'BENCH PRESS|SQUATS||ROWS' (empty = no text on that clip)")
+    ap.add_argument("--transitions", help="how clips join: 'cut' (default), one type for all joins "
+                    "(fade, fadeblack, dissolve, slideleft, wipeleft, zoomin...), or one per join "
+                    "separated by commas, e.g. fade,cut,fade")
+    ap.add_argument("--transition-seconds", type=float, default=0.3)
     ap.add_argument("--plan-only", action="store_true", help="plan and source sheet, no render")
     args = ap.parse_args(argv)
 
@@ -268,7 +325,10 @@ def main(argv=None):
         report["sheet"] = sheet(src, base + ".source-sheet.jpg", duration)
     else:
         labels = args.labels.split("|") if args.labels else None
-        render(src, segs, out, fps, has_audio, labels)
+        joins = None
+        if args.transitions and args.transitions != "cut":
+            joins = join_plan(len(segs), args.transitions.split(","), args.transition_seconds)
+        render(src, segs, out, fps, has_audio, labels, joins)
         report["sheet"] = sheet(out, base + ".sheet.jpg", total)
     json.dump(report, sys.stdout, indent=2)
     print()
