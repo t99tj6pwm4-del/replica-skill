@@ -293,6 +293,10 @@ def main():
         if not pcfg.get("model") and not pcfg.get("space"):
             die(f"config.yaml providers.{name}.model is empty. Set the model id for {name} first.")
         key = env_key(pcfg["key_env"])
+        if not key and pcfg["api"] == "hf-space":
+            # the free HF token may be saved as a network secret on the cloud environment: the proxy adds it.
+            # If it is not there either, each shot simply falls back to a free-local crop.
+            key = "hf_from_environment"
         if not key:
             die(f"no API key: {pcfg['key_env']} is not set in .env, so {name} cannot generate anything.\n"
                 f"Nothing was generated. Add {pcfg['key_env']}=... to .env (your own key) and run this again.", code=3)
