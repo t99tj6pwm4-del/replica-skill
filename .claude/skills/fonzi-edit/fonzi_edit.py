@@ -114,7 +114,27 @@ def parse_segments(text):
     return segs
 
 
-def filtergraph(segs, fade=0.6):
+FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+
+
+def label_filters(segs, labels, hold=3.0, fontsize=44):
+    """drawtext filters: each label fades in near the start of its clip, lower third."""
+    out, t = [], 0.0
+    for (a, b), label in zip(segs, labels):
+        if label:
+            text = re.sub(r"[^A-Za-z0-9 \-+&!?.,]", "", label.upper())
+            s0 = t + 0.4
+            e0 = min(s0 + hold, t + (b - a))
+            alpha = ("if(lt(t,%.2f),0,if(lt(t,%.2f),(t-%.2f)/0.3,if(lt(t,%.2f),1,"
+                     "if(lt(t,%.2f),(%.2f-t)/0.3,0))))" % (s0, s0 + 0.3, s0, e0 - 0.3, e0, e0))
+            out.append("drawtext=fontfile=%s:text='%s':fontsize=%d:fontcolor=white:alpha='%s':"
+                       "borderw=3:bordercolor=black@0.85:x=(w-text_w)/2:y=h*0.80"
+                       % (FONT, text, fontsize, alpha))
+        t += b - a
+    return out
+
+
+def filtergraph(segs, fade=0.6, labels=None):
     """The ffmpeg filter that trims each segment, joins them and levels the sound."""
     parts, labels = [], ""
     for i, (a, b) in enumerate(segs):
@@ -125,7 +145,9 @@ def filtergraph(segs, fade=0.6):
         labels += "[v%d][a%d]" % (i, i)
     total = sum(b - a for a, b in segs)
     parts.append("%sconcat=n=%d:v=1:a=1[vc][ac]" % (labels, len(segs)))
-    parts.append("[vc]fade=t=out:st=%.3f:d=%s[v]" % (max(0.0, total - fade), fade))
+    chain = label_filters(segs, labels or []) + [
+        "fade=t=out:st=%.3f:d=%s" % (max(0.0, total - fade), fade)]
+    parts.append("[vc]%s[v]" % ",".join(chain))
     parts.append("[ac]afade=t=out:st=%.3f:d=%s,loudnorm=I=-14:TP=-1.5:LRA=11[a]"
                  % (max(0.0, total - fade - 0.2), fade + 0.2))
     return ";".join(parts)
@@ -199,8 +221,8 @@ def sheet(path, out, duration):
     return None
 
 
-def render(path, segs, out, fps, has_audio):
-    graph = filtergraph(segs)
+def render(path, segs, out, fps, has_audio, labels=None):
+    graph = filtergraph(segs, labels=labels)
     maps = ["-map", "[v]", "-map", "[a]"]
     if not has_audio:
         graph = ";".join(p for p in graph.split(";") if "[0:a]" not in p and "[ac]" not in p)
@@ -218,6 +240,8 @@ def main(argv=None):
     ap.add_argument("--seconds", type=float, default=90.0, help="length of the edit (default 90)")
     ap.add_argument("--out", default="fonzi-edit.mp4")
     ap.add_argument("--segments", help="keep exactly these, e.g. 4-12,30-36 (source seconds)")
+    ap.add_argument("--labels", help="text overlay per clip, in order, separated by |, e.g. "
+                    "'BENCH PRESS|SQUATS||ROWS' (empty = no text on that clip)")
     ap.add_argument("--plan-only", action="store_true", help="plan and source sheet, no render")
     args = ap.parse_args(argv)
 
@@ -243,7 +267,8 @@ def main(argv=None):
     if args.plan_only:
         report["sheet"] = sheet(src, base + ".source-sheet.jpg", duration)
     else:
-        render(src, segs, out, fps, has_audio)
+        labels = args.labels.split("|") if args.labels else None
+        render(src, segs, out, fps, has_audio, labels)
         report["sheet"] = sheet(out, base + ".sheet.jpg", total)
     json.dump(report, sys.stdout, indent=2)
     print()

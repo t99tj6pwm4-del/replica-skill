@@ -33,7 +33,12 @@ user says so in this request.
 - **Length:** 90 seconds unless the user gives another number. A bare number
   in the request ("60", "45 sec") is the length.
 - **No music.** The original sound from each clip, levelled to one loudness.
-- **No captions, no text, no speed changes, no filters.**
+- **Text overlays on every lift:** the exercise name, white bold capitals
+  with a black outline, lower third, fading in at the start of each clip.
+  Always add them, every time. Pass `--labels 'NAME|NAME|...'` (one per clip,
+  empty for none). Name each lift from what the frames show and tell the
+  user the names so they can correct them.
+- **No captions of speech, no speed changes, no filters.**
 - **Every lift stays, in the order it was shot.** Each one is trimmed, none
   is reordered.
 - **Hard cuts** between lifts, one short fade out at the very end.

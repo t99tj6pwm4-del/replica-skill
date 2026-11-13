@@ -57,6 +57,7 @@ class Plan(unittest.TestCase):
         graph = fe.filtergraph(segs)
         self.assertIn("concat=n=2:v=1:a=1", graph)
         self.assertIn("loudnorm", graph)
+        self.assertIn("drawtext", fe.filtergraph(segs, labels=["BENCH", ""]))
 
 
 if __name__ == "__main__":
