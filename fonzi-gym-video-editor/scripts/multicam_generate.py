@@ -95,6 +95,17 @@ CATEGORY_LOOK = {"Camera height": "low", "Direction around you": "three-quarter"
 CLOSE_UP = {"Shot size", "Body detail close-ups"}
 
 
+def lerp_expr(track: list, k: int) -> str:
+    """ffmpeg expression that moves linearly between keyframes [[t, x, y], ...] (holds at both ends)."""
+    pts = sorted(track)
+    expr = str(pts[-1][k])
+    for (t0, *a), (t1, *b) in reversed(list(zip(pts, pts[1:]))):
+        v0, v1 = a[k - 1], b[k - 1]
+        seg = f"({v0}+({v1}-{v0})*(t-{t0})/{max(t1 - t0, 1e-3)})"
+        expr = f"if(lt(t,{t1}),{seg},{expr})"
+    return f"if(lt(t,{pts[0][0]}),{pts[0][k]},{expr})"
+
+
 def stand_in_generate(clip: Path, angle: str, out: Path, shot: dict | None = None):
     """free-local: a virtual camera made from the real pixels. A shot may carry its own crop
     {"zoom": 1.6, "x": 0.4, "y": 0.5} (x/y = what to centre on, 0-1), set by the Multicam Agent."""
@@ -102,8 +113,13 @@ def stand_in_generate(clip: Path, angle: str, out: Path, shot: dict | None = Non
     cat = (shot or {}).get("category")
     if crop or cat in CLOSE_UP:
         z = float((crop or {}).get("zoom", 1.6))
-        fx, fy = float((crop or {}).get("x", 0.5)), float((crop or {}).get("y", 0.45))
-        vf = (f"crop=iw/{z}:ih/{z}:'max(0,min(iw-ow,iw*{fx}-ow/2))':'max(0,min(ih-oh,ih*{fy}-oh/2))',"
+        track = (crop or {}).get("track")   # [[t, x, y], ...] keyframes (t in seconds from the shot start)
+        if track:
+            fx, fy = lerp_expr(track, 1), lerp_expr(track, 2)
+        else:
+            fx, fy = str(float((crop or {}).get("x", 0.5))), str(float((crop or {}).get("y", 0.45)))
+        vf = (f"setpts=PTS-STARTPTS,crop=iw/{z}:ih/{z}:'max(0,min(iw-ow,iw*({fx})-ow/2))':"
+              f"'max(0,min(ih-oh,ih*({fy})-oh/2))',"
               f"scale={W}:{H}:flags=lanczos,unsharp=5:5:0.8")
     else:
         c = STAND_IN.get(CATEGORY_LOOK.get(cat, angle), STAND_IN["three-quarter"])
@@ -183,6 +199,9 @@ def main():
     ap.add_argument("--yes-spend", action="store_true", help="allow more generated seconds than the config guard")
     ap.add_argument("--crop", action="append", default=[],
                     help="free-local close-up framing per shot: angle_3=1.6,0.35,0.5 (zoom, centre x, centre y)")
+    ap.add_argument("--track", action="append", default=[],
+                    help="free-local crop that follows a moving target: angle_4=2.5:0,0.45,0.7;1.2,0.8,0.45;... "
+                         "(zoom : t,x,y keyframes, t in seconds from the shot start)")
     a = ap.parse_args()
 
     cfg = yaml.safe_load((ROOT / "config.yaml").read_text())
@@ -212,6 +231,13 @@ def main():
         if not hit:
             die(f"--crop: no shot called {sid}")
         hit["crop"] = {"zoom": z, "x": cx, "y": cy}
+    for c in a.track:
+        sid, rest = c.split("=", 1)
+        z, keys = rest.split(":", 1)
+        hit = next((s for s in plan["spans"] + plan.get("broll", []) if s["id"] == sid), None)
+        if not hit:
+            die(f"--track: no shot called {sid}")
+        hit["crop"] = {"zoom": float(z), "track": [[float(v) for v in k.split(",")] for k in keys.split(";") if k]}
     shots = plan["spans"] + plan.get("broll", [])
     if not shots:
         die("the plan has no shots to generate")
