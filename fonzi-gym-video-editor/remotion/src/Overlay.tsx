@@ -37,8 +37,22 @@ const TitleCard: React.FC<{
   const frame = useCurrentFrame();
   const { fps, width } = useVideoConfig();
   const words = text.split(/\s+/).filter(Boolean);
-  const longest = Math.max(...words.map((w) => w.length), 1);
-  const size = Math.min(250, Math.floor((width - 140) / (longest * 0.47)));
+  // Keep the whole hook block in the left part of the frame so it never
+  // covers the lifter's face (usually centre/right of a 9:16 gym shot).
+  const TITLE_LEFT = 70;
+  const TITLE_INDENT = 36;
+  const TITLE_SAFE_RIGHT = Math.min(580, width - 70); // no letter right of this x
+  const STRIPE_SAFE_RIGHT = Math.min(560, width - 70); // stripes end here
+  const titleW = TITLE_SAFE_RIGHT - TITLE_LEFT;
+  const size = Math.max(
+    60,
+    Math.min(
+      250,
+      ...words.map((w, i) =>
+        Math.floor((titleW - i * TITLE_INDENT) / (Math.max(w.length, 1) * 0.47))
+      )
+    )
+  );
   const exit = interpolate(frame, [frames - 7, frames], [0, 1], {
     ...clamp,
     easing: Easing.in(Easing.cubic),
@@ -66,7 +80,7 @@ const TitleCard: React.FC<{
             style={{
               position: "absolute",
               left: -200,
-              width: width + 400,
+              width: STRIPE_SAFE_RIGHT + 200,
               top: 560 + i * 46,
               height: i === 0 ? 22 : 8,
               backgroundColor: brand.color,
@@ -79,8 +93,8 @@ const TitleCard: React.FC<{
           style={{
             position: "absolute",
             top: 640,
-            left: 70,
-            right: 70,
+            left: TITLE_LEFT,
+            width: titleW,
             display: "flex",
             flexDirection: "column",
             alignItems: "flex-start",
@@ -108,7 +122,8 @@ const TitleCard: React.FC<{
                   opacity: interpolate(s, [0, 0.3], [0, 1], clamp),
                   transform: `scale(${interpolate(s, [0, 1], [2.3, 1])})`,
                   transformOrigin: "left center",
-                  marginLeft: i * 36,
+                  marginLeft: i * TITLE_INDENT,
+                  whiteSpace: "nowrap",
                 }}
               >
                 {w}
@@ -119,7 +134,8 @@ const TitleCard: React.FC<{
             <div
               style={{
                 marginTop: 34,
-                marginLeft: words.length * 36,
+                marginLeft: Math.min(words.length * TITLE_INDENT, 120),
+                whiteSpace: "nowrap",
                 padding: "14px 30px",
                 backgroundColor: brand.color,
                 color: brand.darkColor,
