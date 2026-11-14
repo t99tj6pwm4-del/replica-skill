@@ -220,7 +220,7 @@ def main():
     no_speech = len(words) < 3
     if no_speech:
         # nobody talks: cut on the movement instead, at the still points of the reps (top / bottom of a curl)
-        cands = rep_points(cut, lo, hi)
+        cands = [c for c in rep_points(cut, lo, hi) if not mid_word(c["t"], words)]  # skip stray grunts
     else:
         cands = boundaries(words, lo, hi)
     busy = [(e["out_start"], e["out_end"]) for e in cm["events"]]          # punch-ins, slow-mo, ramps
