@@ -91,8 +91,8 @@ Never on fast gym reels, song videos, quick cuts, or anywhere it would clutter t
 lift. When in doubt, leave it out: Alfonso will ask for it when he wants it.
 
 What it is: ONE giant two-line title after the short cold open, held still for the intro line only
-(~3-4s), then gone. "ALFONSO" BEHIND him (his head and shoulders cover part of the letters),
-"MARTINEZ" IN FRONT across his chest, his one-line intro (from the storyboard, e.g. "i'm a content
+(~3-4s), then gone. "FONZI" BEHIND him (his head and shoulders cover part of the letters),
+"STAYS FIT" IN FRONT across his chest, his one-line intro (from the storyboard, e.g. "i'm a content
 creator") small, in front, on his chest between them. Huge serif, mustard gold, 90% width, centred, no
 box / shadow / outline, no animation. When it is used there are NO subtitles, captions, lower-thirds,
 title card or end card anywhere in the video.
@@ -101,6 +101,6 @@ How: the storyboard carries "title_style": "layered-gold" and "layered_title": {
 clean standing shot>, "dur": 3.5, "intro_line": "..."} (ask the Director to have the Storyboard Agent add
 it if Alfonso asked and it is missing). Then `python3 scripts/render_final.py --title-style layered-gold`.
 It cuts him out of every frame of that window (rembg human segmentation) and stacks: background ->
-first name -> him -> last name -> intro line. Check `output/work/layered_title_frame.png`: clean edges (no
-halo, no chopped hair or arms), first name partly hidden by his head/shoulders, last name over his chest.
+"FONZI" -> him -> "STAYS FIT" -> intro line. Check `output/work/layered_title_frame.png`: clean edges (no
+halo, no chopped hair or arms), "FONZI" partly hidden by his head/shoulders, "STAYS FIT" over his chest.
 If the cutout is bad, pick a cleaner shot. Say in your reply that you used it and why it fits this video.

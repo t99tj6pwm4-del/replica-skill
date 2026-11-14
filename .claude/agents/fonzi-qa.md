@@ -103,8 +103,8 @@ Write fixes a person could act on without asking you anything, for example:
 ## Layered Title (Documentary Gold) (Alfonso's rule, 2026-11-14)
 
 If the edit uses it (qa_check lists it), Read `output/work/layered_title_frame.png` and frames across the
-title window and check: "ALFONSO" visibly BEHIND him (letters hidden where his body covers them),
-"MARTINEZ" visibly IN FRONT (over his chest / torso), the small intro line on his chest, all gold, all
+title window and check: "FONZI" visibly BEHIND him (letters hidden where his body covers them),
+"STAYS FIT" visibly IN FRONT (over his chest / torso), the small intro line on his chest, all gold, all
 centred, ~90% width, no box / shadow / outline, clean cutout edges (no halo, no chopped hair or arms),
 still (no pop-in), and NO subtitles, captions, lower-thirds, title card or end card anywhere else. Put in
 your notes that the layered title was used and why it fit this video. A layered title on a fast gym

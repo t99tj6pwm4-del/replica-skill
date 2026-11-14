@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """TEXT / VISUALS AGENT tool. Layered Title (Documentary Gold): ONE giant two-line gold title with the
-person sandwiched in the middle: first name BEHIND him, last name and the small intro line IN FRONT.
+person sandwiched in the middle: "FONZI" BEHIND him, "STAYS FIT" and the small intro line IN FRONT
+(lines set in config/brand.json: layered_title_top / layered_title_bottom).
 
 Only when it seems right (story / intro / documentary video, Alfonso introducing himself or a big idea,
 a clean standing shot). Never on fast gym reels, song videos or quick cuts. Used through
@@ -166,8 +167,8 @@ def plan_from_storyboard() -> dict | None:
         return None
     b = brand()
     return {"at": float(lt["at"]), "dur": float(lt.get("dur", 3.5)),
-            "first": lt.get("first") or b.get("first_name", "ALFONSO"),
-            "last": lt.get("last") or b.get("last_name", "MARTINEZ"),
+            "first": lt.get("first") or b.get("layered_title_top", "FONZI"),
+            "last": lt.get("last") or b.get("layered_title_bottom", "STAYS FIT"),
             "intro": lt.get("intro_line", "")}
 
 
