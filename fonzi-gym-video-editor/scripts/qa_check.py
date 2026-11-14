@@ -197,9 +197,10 @@ def main():
                 "logged" if logged else "the last log row does not list these shots", "multicam")
         add("no dropped or rewritten words (original audio kept bit for bit)",
             mmap.get("audio_identical_to_cut") is True, "audio identical to the cut", "multicam")
-        add("angles made by the AI generator in config.yaml", not mmap.get("simulated"),
-            f"generator: {mmap.get('provider')}" if not mmap.get("simulated")
-            else "free-local: virtual camera angles cropped from the real footage ($0), not AI re-filmed angles",
+        n_ai = sum(1 for i in inserts if not i.get("simulated"))
+        add("angles made by the AI generator", n_ai == len(inserts),
+            f"{n_ai} of {len(inserts)} shots are AI-generated ({mmap.get('provider')}); the rest are free-local crops "
+            "of the real footage" if n_ai < len(inserts) else f"all {n_ai} shots AI-generated ({mmap.get('provider')})",
             "multicam", soft=True)
 
     # CapCut-library effects: list every one with its duration, re-check the rules

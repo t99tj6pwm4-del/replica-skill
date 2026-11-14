@@ -284,7 +284,7 @@ def main():
             else:
                 print(f"note: no clip for {s['id']} in {rel(src_dir)}: that shot stays free-local")
                 s["flow"] = False
-        name = "google-flow" if returned else name
+        name = "supplied-clips" if returned else name
     elif pcfg["api"] == "manual-web" and not a.stand_in:
         returned = flow_handoff(cut, plan, pcfg, shots)
     simulated = pcfg["api"] == "local" and not returned
@@ -336,8 +336,9 @@ def main():
         if returned and s["id"] in returned:
             raw, offset = returned[s["id"]], 0.0
         elif simulated or (returned and s.get("flow") is False):
-            # free-local: either the whole run, or a shot too short for Flow
+            # free-local: either the whole run, or a shot too short for Flow / not supplied
             stand_in_generate(ref, s["angle"], raw, s)
+            s["ai"] = False
             offset = 0.0
         elif pcfg["api"] == "hf-space":
             # free AI angle from the REAL frame at this timestamp; any failure -> free-local crop for this shot
@@ -407,7 +408,9 @@ def main():
     o = probe(out)
     same_audio = audio_md5(out) == audio_md5(cut)
     save_json(WORK / "multicam_map.json", {
-        "base": "output/cut_version.mp4", "output": rel(out), "provider": name, "simulated": simulated,
+        "base": "output/cut_version.mp4", "output": rel(out), "provider": name,
+        "simulated": all(i["simulated"] for i in inserts),
+        "ai_shots": sum(1 for i in inserts if not i["simulated"]),
         "mode": "whole take" if whole else "per shot", "cuts": plan["cuts"], "inserts": inserts,
         "audio_identical_to_cut": same_audio, "duration": round(o["duration"], 3)})
     print(f"wrote  output/multicam_version.mp4  {o['video']['width']}x{o['video']['height']} {o['video']['fps']}fps  "
