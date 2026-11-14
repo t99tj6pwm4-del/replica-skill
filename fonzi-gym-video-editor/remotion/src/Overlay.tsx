@@ -88,7 +88,7 @@ const TitleCard: React.FC<{
               position: "absolute",
               left: -200,
               width: STRIPE_SAFE_RIGHT + 200,
-              top: 560 + i * 46,
+              top: 590 + i * 46,
               height: i === 0 ? 22 : 8,
               backgroundColor: brand.color,
               opacity: i === 0 ? 1 : 0.55,
@@ -597,8 +597,8 @@ const EventAccent: React.FC<{ ev: TimedEvent; brand: Brand; frames: number }> = 
         <div
           style={{
             position: "absolute",
-            top: 232,
-            left: 56,
+            top: ev.y ?? 232,
+            left: ev.x ?? 56,
             display: "flex",
             alignItems: "center",
             gap: 14,

@@ -46,6 +46,9 @@ export type TimedEvent = {
   to: number;
   kind: "punch_in" | "slow_mo" | "speed_ramp" | "cam";
   label?: string;
+  /** optional tag position in px (cam events only); default left 56, top 232 */
+  x?: number;
+  y?: number;
 };
 
 export type OverlayProps = {
