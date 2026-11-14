@@ -55,7 +55,7 @@ const TitleCard: React.FC<{
     Math.min(
       250,
       ...words.map((w, i) =>
-        Math.floor((titleW - i * TITLE_INDENT) / (Math.max(w.length, 1) * 0.47))
+        Math.floor((titleW - i * TITLE_INDENT) / (Math.max(w.length, 1) * 0.56))
       )
     )
   );
@@ -259,7 +259,9 @@ const LowerThirdCard: React.FC<{
               letterSpacing: 1.5,
               transform: `translateX(${name}px)`,
               opacity: interpolate(frame, [7, 13], [0, 1], clamp),
-              whiteSpace: "nowrap",
+              // long exercise names wrap onto two lines instead of running off the frame
+              whiteSpace: item.title.length > 22 ? "normal" : "nowrap",
+              maxWidth: 820,
             }}
           >
             {item.title}
