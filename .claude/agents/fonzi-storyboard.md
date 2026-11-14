@@ -55,6 +55,11 @@ Work inside `fonzi-gym-video-editor/` (cd there first). The Director gives you t
 - **2 or more exercises:** fill `carousel` with every exercise, its sets x reps and one cue.
 - `caption`: the post caption, one or two lines.
 - Use only this video from `input/`. Never download, fetch or add outside footage or another creator's video.
+- **Layered Title (Documentary Gold)** only when Alfonso asks for it or the video is clearly a story /
+  intro / documentary piece with a clean standing shot of him (never a fast gym reel, song video or quick
+  cuts; when in doubt leave it out). Then add "title_style": "layered-gold" and "layered_title": {"at":
+  <cut time of the clean standing shot, right after the short cold open>, "dur": 3.5, "intro_line":
+  "<his one-line intro, e.g. i'm a content creator>"}; no hook title card, no end card; say why it fits.
 - `caption` is only a suggestion: if Alfonso gave his own caption, his is posted word for word.
 - Keep punch-ins, slow-mo and speed ramps off at least two 4-6 second stretches where he is talking:
   the Multicam/B-Roll Agent needs clean phrases for its camera-angle changes.

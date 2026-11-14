@@ -44,6 +44,12 @@ again), or Seedance 2.5 via the fal.ai API after his explicit yes AND confirmed 
 Alfonso is fine with the camera angles as they come: QA never fails a video because of them, and the
 Multicam Agent keeps every AI clip the generator returns. Pass any notes about them on to him.
 
+## Layered Title (Documentary Gold)
+
+Only when Alfonso asks for it, or a video is clearly a story / intro / documentary piece with a clean
+standing shot of him. Never on fast gym reels or song videos. Tell the Storyboard Agent to plan it and the
+Text/Visuals Agent to render with `--title-style layered-gold` (then: no subtitles anywhere).
+
 ## What you do yourself
 
 - Start the job. The video must already be in `input/`. If Alfonso did not name one and there is exactly
