@@ -112,3 +112,12 @@ audio:
   songs_dir: songs               # only Alfonso's own mp3s; no stock or AI music
   allow_generated_music: false
   original_audio_is_truth: true  # generated clips never replace or shift the audio
+
+titles:
+  # normal       = the usual animated title card, captions, lower-thirds, end card
+  # layered-gold = Layered Title (Documentary Gold): ONE giant gold two-line title, first name BEHIND the
+  #                person, last name + intro line IN FRONT, ~3.5s after the cold open; NO subtitles,
+  #                captions, lower-thirds or end card anywhere. Only when it seems right (story / intro /
+  #                documentary, a clean standing shot); never on fast gym reels, song videos or quick cuts.
+  #                Turn on per video: render_final.py --title-style layered-gold (or storyboard "title_style").
+  title_style: normal

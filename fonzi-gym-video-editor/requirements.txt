@@ -4,3 +4,4 @@ requests
 pyyaml
 fal-client
 gradio_client
+rembg[cpu]

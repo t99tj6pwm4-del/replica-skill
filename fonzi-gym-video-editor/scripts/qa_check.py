@@ -97,18 +97,33 @@ def main():
     bad = [t for t in texts if "#" in t or re.search(r"[^\x20-\x7E]", t)]
     add("English only, no hashtags on screen", not bad and bool(props), f"{len(texts)} text items checked" if not bad else f"bad: {bad[:5]}",
         "text_visuals")
-    need = {"title card": props.get("title"), "lower-thirds": props.get("lowerThirds"),
-            "progress bar": props.get("progress"), "end card": props.get("endCard")}
-    missing = [k for k, x in need.items() if not x]
-    add("title card, lower-thirds, progress bar, end card present", not missing,
-        "all present" if not missing else f"missing: {', '.join(missing)}", "text_visuals")
-    n_words = sum(len(p["words"]) for p in props.get("captions", []))
-    spoken = len(load_json(WORK / "transcript.json", default={"words": []})["words"])
-    if spoken >= 3:
-        add("word-by-word captions present", n_words > 0, f"{n_words} caption words for {spoken} spoken", "text_visuals")
+    lt = load_json(WORK / "layered_title.json", default=None)
+    if props.get("title_style") == "layered-gold" and lt:
+        # Layered Title (Documentary Gold): ONLY that title, nothing else on screen
+        extra = [k for k in ("title", "captions", "lowerThirds", "callouts", "endCard", "progress") if props.get(k)]
+        add("layered title only: no subtitles, captions, lower-thirds, title card or end card", not extra,
+            "none present" if not extra else f"still present: {', '.join(extra)}", "text_visuals")
+        cov = lt.get("first_name_covered_by_person")
+        add(f"{lt['first']} sits BEHIND him (part of the letters hidden by his body)", bool(cov and cov > 0.02),
+            f"{(cov or 0) * 100:.0f}% of the first name is covered by him", "text_visuals")
+        add(f"layered title {lt['first']} / {lt['intro_line']} / {lt['last']}", True,
+            f"{lt['at']:.2f}-{lt['at'] + lt['dur']:.2f}s, gold {lt['gold']}, 90% width; frame {lt['frame']}", "text_visuals")
+        logf = OUT / "effects_log.md"
+        add("title style logged in output/effects_log.md", logf.exists() and "Layered Title" in logf.read_text(),
+            "logged" if logf.exists() else "missing", "text_visuals")
     else:
-        add("word-by-word captions present", n_words > 0, "no speech in the video, so there is nothing to caption",
-            "text_visuals", soft=True)
+        need = {"title card": props.get("title"), "lower-thirds": props.get("lowerThirds"),
+                "progress bar": props.get("progress"), "end card": props.get("endCard")}
+        missing = [k for k, x in need.items() if not x]
+        add("title card, lower-thirds, progress bar, end card present", not missing,
+            "all present" if not missing else f"missing: {', '.join(missing)}", "text_visuals")
+        n_words = sum(len(p["words"]) for p in props.get("captions", []))
+        spoken = len(load_json(WORK / "transcript.json", default={"words": []})["words"])
+        if spoken >= 3:
+            add("word-by-word captions present", n_words > 0, f"{n_words} caption words for {spoken} spoken", "text_visuals")
+        else:
+            add("word-by-word captions present", n_words > 0, "no speech in the video, so there is nothing to caption",
+                "text_visuals", soft=True)
 
     # duplicate + footage origin
     src = resolve(sb["source"]) if sb.get("source") else None

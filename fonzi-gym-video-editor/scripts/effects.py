@@ -278,6 +278,20 @@ def log(video: str, plan: dict, items: list) -> None:
     LOG.write_text("\n".join(lines) + "\n")
 
 
+def log_title_style(video: str, lt: dict) -> None:
+    """Add the title style to this video's row in output/effects_log.md."""
+    note = f"title style: {lt['style']} at {lt['at']:.2f}s for {lt['dur']:.2f}s"
+    if not LOG.exists():
+        log(video, {}, [])
+    lines = LOG.read_text().rstrip("\n").split("\n")
+    if lines[-1].startswith("| 20") and lines[-1].split("|")[2].strip() == video:
+        if note not in lines[-1]:
+            lines[-1] = lines[-1].rstrip(" |") + f"; {note} |"
+    else:
+        lines.append(f"| {time.strftime('%Y-%m-%d %H:%M')} | {video} | - | - | - | {note} |")
+    LOG.write_text("\n".join(lines) + "\n")
+
+
 def apply(base: Path, out: Path, video: str) -> dict | None:
     """Render the plan onto `base` (picture only, audio copied). Returns a summary, or None if no plan."""
     if not PLAN.exists():

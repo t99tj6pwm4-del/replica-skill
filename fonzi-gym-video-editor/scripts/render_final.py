@@ -3,6 +3,7 @@
 
     python3 scripts/render_final.py            # -> output/final_edit.mp4 (+ output/carousel/ if 2+ exercises)
     python3 scripts/render_final.py --preview 12.5 31   # just stills at those seconds, for a quick look
+    python3 scripts/render_final.py --title-style layered-gold   # Layered Title (Documentary Gold) only, no subtitles
 
 The picture itself is never changed: Remotion renders a transparent graphics layer and ffmpeg
 composites it on top of output/multicam_version.mp4 (or output/cut_version.mp4 if there is no multicam pass). Audio is copied through untouched.
@@ -132,6 +133,36 @@ def main():
     if fx and fx.get("title_animation") and props.get("title"):
         props["title"]["animation"] = fx["title_animation"]
         save_json(props_path, props)
+
+    # Layered Title (Documentary Gold): only when asked (--title-style layered-gold, or the storyboard says so).
+    # Then the video gets ONLY that title: no subtitles / captions, no lower-thirds, no title or end card.
+    style = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--title-style=")), None)
+    if "--title-style" in sys.argv:
+        style = sys.argv[sys.argv.index("--title-style") + 1]
+    style = style or load_json(OUT / "storyboard.json", default={}).get("title_style") or "normal"
+    if style == "layered-gold":
+        import layered_title
+        plan = layered_title.plan_from_storyboard()
+        if not plan:
+            die('--title-style layered-gold needs "layered_title": {"at", "dur", "intro_line"} in storyboard.json')
+        lt_base = WORK / "layered_base.mp4"
+        lt = layered_title.build(cut, lt_base, plan["at"], plan["dur"], plan["first"], plan["last"], plan["intro"])
+        print(f"layered title: {lt['first']} (behind) / {lt['intro_line']} / {lt['last']} (in front) "
+              f"at {lt['at']:.2f}s for {lt['dur']:.2f}s")
+        effects.log_title_style(video_name, lt)
+        final = OUT / "final_edit.mp4"
+        run(["ffmpeg", "-v", "error", "-y", "-i", lt_base, "-map", "0:v", "-map", "0:a?", "-c:v", "libx264",
+             "-preset", "medium", "-crf", "18", "-profile:v", "high", "-pix_fmt", "yuv420p", "-r", str(FPS),
+             "-c:a", "copy", "-movflags", "+faststart", final])
+        lt_base.unlink(missing_ok=True)
+        fx_base.unlink(missing_ok=True)
+        props.update({"title": None, "captions": [], "lowerThirds": [], "callouts": [], "endCard": None,
+                      "progress": [], "title_style": "layered-gold"})
+        save_json(props_path, props)
+        out = probe(final)
+        print(f"wrote  {rel(final)}  {out['video']['width']}x{out['video']['height']}  {out['duration']:.2f}s "
+              "(layered title only, no subtitles)")
+        return
     overlay = WORK / "overlay.mov"
     print(f"rendering {props['duration']:.1f}s of motion graphics with Remotion (a few minutes) ...")
     remotion(["render", "src/index.ts", "Overlay", str(overlay), f"--props={props_path}",
