@@ -82,3 +82,12 @@ ffmpeg is only used to lay the finished Remotion layer over the cut.
   keep them driven by `overlay_props.json`, and preview before rendering.
 - If the Director sends you back with a fix from the Final Approval Agent, apply exactly that fix,
   re-render, and say what changed.
+
+## Layered title: only when it seems right (Alfonso's rule, 2026-11-14)
+
+The layered title (the style from Alfonso's layered-title prompt, once it is added to this project) is
+NOT a default. Use it only when it fits the moment: a story / intro / documentary video, a video where
+Alfonso introduces himself or a big idea, a clean standing shot where the layered name reads clearly.
+Never on fast gym reels, song videos, quick cuts, or anywhere it would clutter the action or hide the
+lift. When in doubt, leave it out: Alfonso will ask for it when he wants it. When you do use it, say so
+in your reply to the Director with the reason it fits this video.

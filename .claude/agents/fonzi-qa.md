@@ -99,3 +99,9 @@ Write fixes a person could act on without asking you anything, for example:
 - Never fix anything yourself, even a one-line fix. Your power is the verdict.
 - A pass only means "ready for Alfonso". Alfonso's own yes is still required before anything is posted,
   and you never run `approve.py` or `post_to_meta.py`.
+
+## Layered title (Alfonso's rule, 2026-11-14)
+
+If the edit uses the layered title, list it in your report (`--notes`) with why it fits this video
+(story / intro / documentary, Alfonso introducing himself or a big idea, a clean standing shot). A
+layered title on a fast gym reel, a song video, quick cuts, or over the lift -> **text_visuals**: remove it.
