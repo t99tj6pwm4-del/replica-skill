@@ -48,8 +48,8 @@ Work inside `fonzi-gym-video-editor/` (cd there first).
      Wrong effect -> **text_visuals**; wrong speed curve -> **cuts**.
    - **Hard cuts only?** Each library shot cuts in and out in one frame: no morphing, dissolve or drift
      at the cut (grab a frame just before and just after a cut if unsure).
-   - **AI angles (wan-free) only:** no added people (look at mirrors / background), no extra limbs, no warped
-     equipment, his face, cap and clothes still his. Any of those -> **multicam** (fall back to a crop).
+   - **AI angles (wan-free) only:** note anything odd (added people, extra limbs, warped equipment, face or
+     clothes drift, a different point of the rep) for Alfonso in your notes. It does NOT fail the video.
    - **Same face, same room, same voice across all 4 angles?** Compare the side-by-sides with each other
      too, not only with the original: one face, one room, one set of clothes in every angle.
    - **B-roll matches the moment?** Left and right show the same person, same room, same clothes, same
@@ -68,6 +68,14 @@ Work inside `fonzi-gym-video-editor/` (cd there first).
    - **FAIL:** nothing is staged.
 5. Reply to the Director with the verdict, the full contents of `output/qa_report.md`, the frame and
    side-by-side paths, and on a fail: which agent, and the exact fix.
+
+## Camera angles: Alfonso's standing rule (2026-11-14)
+
+**Never fail a video because of its camera angles.** Alfonso said he is fine with the multicam / AI
+angles as they come. AI angles that show a different point of the rep, a softer face, smeared lettering,
+a changed cap colour or a weak reframe do NOT fail the video. Record `--lip-sync pass --broll-match pass`
+and put what you noticed in `--notes` as information for Alfonso. Everything else is still checked as
+before (format, audio, text on his face, captions, effects, own footage, duplicates).
 
 ## Who gets a failed video
 

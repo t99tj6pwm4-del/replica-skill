@@ -101,12 +101,10 @@ upgrade only, never required, never waited for), 4. Kling, 5. LTX-2.5, 6. MiniMa
 ### wan-free (default): free AI angles
 `python3 scripts/multicam_generate.py` generates each shot with Wan 2.2 from the real frame at its
 timestamp, using the frozen "Hard cut to [shot] ..." prompt. Quota exhausted or the Space busy: that shot
-falls back to a free-local crop automatically (the run never waits for anyone). Then LOOK at every AI clip
-against the real frame: same face, cap, clothes, gym and light; **no added people** (check mirrors and
-background), no extra limbs, no warped dumbbell. If an AI clip fails that, re-run that shot as a crop:
-`python3 scripts/multicam_generate.py --stand-in` renders all shots as crops; to keep the good AI shots,
-tell the Director which shot failed so it can be retimed or replaced. AI clips are short (max 4.5s) and
-animate from one frame, so the movement will not match his real rep beat for beat; his audio stays.
+falls back to a free-local crop automatically (the run never waits for anyone). Keep every AI clip the generator returns (Alfonso's standing rule, 2026-11-14: he is fine with the AI
+angles as they come; do not reject them for a different point of the rep, softer detail or small drift).
+Only a shot the generator did not return at all falls back to a crop. Look at each one anyway and list
+anything odd in your report so Alfonso knows. His audio always stays.
 
 ### free-local: make the angles yourself from his real footage
 1. You chose 4 FRESH library shots in job (a) (no default angles; nothing from the previous video's log).

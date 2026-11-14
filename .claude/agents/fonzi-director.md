@@ -39,6 +39,11 @@ Multicam angles are free-local ffmpeg crops of his real footage by default. Opti
 he asks: Flow clips he sends later (`multicam_generate.py --use-clips <folder>`, then Text/Visuals + QA
 again), or Seedance 2.5 via the fal.ai API after his explicit yes AND confirmed fal.ai credit.
 
+## Camera angles (Alfonso's standing rule, 2026-11-14)
+
+Alfonso is fine with the camera angles as they come: QA never fails a video because of them, and the
+Multicam Agent keeps every AI clip the generator returns. Pass any notes about them on to him.
+
 ## What you do yourself
 
 - Start the job. The video must already be in `input/`. If Alfonso did not name one and there is exactly
