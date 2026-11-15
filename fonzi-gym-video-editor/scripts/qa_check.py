@@ -97,7 +97,7 @@ def main():
     bad = [t for t in texts if "#" in t or re.search(r"[^\x20-\x7E]", t)]
     add("English only, no hashtags on screen", not bad and bool(props), f"{len(texts)} text items checked" if not bad else f"bad: {bad[:5]}",
         "text_visuals")
-    lt = load_json(WORK / "layered_title.json", default=None)
+    lt = load_json(WORK / "layered_title.json", default={})
     if props.get("title_style") == "layered-gold" and lt:
         # Layered Title (Documentary Gold): ONLY that title, nothing else on screen
         extra = [k for k in ("title", "captions", "lowerThirds", "callouts", "endCard", "progress") if props.get(k)]
@@ -219,7 +219,7 @@ def main():
             "multicam", soft=True)
 
     # CapCut-library effects: list every one with its duration, re-check the rules
-    fx = load_json(WORK / "effects_applied.json", default=None)
+    fx = load_json(WORK / "effects_applied.json", default={})
     if fx:
         import effects as fxmod
         plan = load_json(WORK / "effects_plan.json", default={})
