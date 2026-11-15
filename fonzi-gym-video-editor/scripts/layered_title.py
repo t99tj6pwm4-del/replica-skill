@@ -10,6 +10,8 @@ a clean standing shot). Never on fast gym reels, song videos or quick cuts. Used
 storyboard.json:
   "title_style": "layered-gold",
   "layered_title": {"at": 3.2, "dur": 3.5, "intro_line": "i'm a content creator"}   # times in the cut
+  optional: "first_y" / "intro_y" / "last_y" (pixels from the top of 1920) to place the lines by hand,
+  e.g. for a chest-up shot where the automatic layout lands on his face
 
 The window is rebuilt frame by frame (bottom to top): the shot's background, the first name, the
 person cut out of the same frame (rembg human segmentation), the last name, the intro line.
@@ -81,7 +83,8 @@ def layout(mask: Image.Image) -> tuple[int, int, int]:
     return max(y1, int(0.16 * H)), min(y2, int(0.72 * H)), yi
 
 
-def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, intro: str) -> dict:
+def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, intro: str,
+          ys: dict | None = None) -> dict:
     try:
         from rembg import new_session
     except ImportError:
@@ -104,6 +107,8 @@ def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, i
     session = new_session("u2net_human_seg")
     first_mask = person_mask(session, Image.open(frames[0]).convert("RGB"))
     y1, y2, yi = layout(first_mask)
+    ys = ys or {}   # optional fixed line positions (pixels from the top), e.g. for a chest-up shot
+    y1, yi, y2 = int(ys.get("first_y") or y1), int(ys.get("intro_y") or yi), int(ys.get("last_y") or y2)
     big1 = fit_font(SERIF, first.upper(), int(W * WIDTH_FRAC))
     big2 = fit_font(SERIF, last.upper(), int(W * WIDTH_FRAC))
     small = ImageFont.truetype(str(SANS), max(34, int(big2.size * 0.16)))
@@ -169,7 +174,8 @@ def plan_from_storyboard() -> dict | None:
     return {"at": float(lt["at"]), "dur": float(lt.get("dur", 3.5)),
             "first": lt.get("first") or b.get("layered_title_top", "FONZI"),
             "last": lt.get("last") or b.get("layered_title_bottom", "STAYS FIT"),
-            "intro": lt.get("intro_line", "")}
+            "intro": lt.get("intro_line", ""),
+            "ys": {k: lt[k] for k in ("first_y", "intro_y", "last_y") if lt.get(k)}}
 
 
 if __name__ == "__main__":

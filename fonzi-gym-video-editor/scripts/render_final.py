@@ -148,7 +148,8 @@ def main():
         if not plan:
             die('--title-style layered-gold-plus needs "layered_title": {"at", "dur", "intro_line"} in storyboard.json')
         lt_base = WORK / "layered_base.mp4"
-        lt = layered_title.build(cut, lt_base, plan["at"], plan["dur"], plan["first"], plan["last"], plan["intro"])
+        lt = layered_title.build(cut, lt_base, plan["at"], plan["dur"], plan["first"], plan["last"], plan["intro"],
+                                 plan.get("ys"))
         print(f"layered title (plus the usual graphics): {lt['first']} (behind) / {lt['intro_line']} / "
               f"{lt['last']} (in front) at {lt['at']:.2f}s for {lt['dur']:.2f}s")
         effects.log_title_style(video_name, lt)
@@ -161,7 +162,8 @@ def main():
         if not plan:
             die('--title-style layered-gold needs "layered_title": {"at", "dur", "intro_line"} in storyboard.json')
         lt_base = WORK / "layered_base.mp4"
-        lt = layered_title.build(cut, lt_base, plan["at"], plan["dur"], plan["first"], plan["last"], plan["intro"])
+        lt = layered_title.build(cut, lt_base, plan["at"], plan["dur"], plan["first"], plan["last"], plan["intro"],
+                                 plan.get("ys"))
         print(f"layered title: {lt['first']} (behind) / {lt['intro_line']} / {lt['last']} (in front) "
               f"at {lt['at']:.2f}s for {lt['dur']:.2f}s")
         effects.log_title_style(video_name, lt)
