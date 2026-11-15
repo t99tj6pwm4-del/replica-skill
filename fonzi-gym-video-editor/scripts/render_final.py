@@ -4,6 +4,7 @@
     python3 scripts/render_final.py            # -> output/final_edit.mp4 (+ output/carousel/ if 2+ exercises)
     python3 scripts/render_final.py --preview 12.5 31   # just stills at those seconds, for a quick look
     python3 scripts/render_final.py --title-style layered-gold   # Layered Title (Documentary Gold) only, no subtitles
+    python3 scripts/render_final.py --title-style layered-gold-plus   # layered title + the usual graphics (Alfonso asks)
 
 The picture itself is never changed: Remotion renders a transparent graphics layer and ffmpeg
 composites it on top of output/multicam_version.mp4 (or output/cut_version.mp4 if there is no multicam pass). Audio is copied through untouched.
@@ -140,7 +141,21 @@ def main():
     if "--title-style" in sys.argv:
         style = sys.argv[sys.argv.index("--title-style") + 1]
     style = style or load_json(OUT / "storyboard.json", default={}).get("title_style") or "normal"
-    if style == "layered-gold":
+    if style == "layered-gold-plus":
+        # Alfonso's exception: the layered title baked into the picture, then the usual graphics on top
+        import layered_title
+        plan = layered_title.plan_from_storyboard()
+        if not plan:
+            die('--title-style layered-gold-plus needs "layered_title": {"at", "dur", "intro_line"} in storyboard.json')
+        lt_base = WORK / "layered_base.mp4"
+        lt = layered_title.build(cut, lt_base, plan["at"], plan["dur"], plan["first"], plan["last"], plan["intro"])
+        print(f"layered title (plus the usual graphics): {lt['first']} (behind) / {lt['intro_line']} / "
+              f"{lt['last']} (in front) at {lt['at']:.2f}s for {lt['dur']:.2f}s")
+        effects.log_title_style(video_name, lt)
+        cut = lt_base
+        props["title_style"] = "layered-gold-plus"
+        save_json(props_path, props)
+    elif style == "layered-gold":
         import layered_title
         plan = layered_title.plan_from_storyboard()
         if not plan:
@@ -175,6 +190,7 @@ def main():
          "-pix_fmt", "yuv420p", "-r", str(FPS), "-c:a", "copy", "-movflags", "+faststart", final])
     overlay.unlink(missing_ok=True)
     fx_base.unlink(missing_ok=True)
+    (WORK / "layered_base.mp4").unlink(missing_ok=True)
     out = probe(final)
     v = out["video"]
     print(f"wrote  {rel(final)}  {v['width']}x{v['height']} {v['fps']}fps {v['codec']}+"

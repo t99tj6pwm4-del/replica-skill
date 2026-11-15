@@ -109,3 +109,7 @@ centred, ~90% width, no box / shadow / outline, clean cutout edges (no halo, no 
 still (no pop-in), and NO subtitles, captions, lower-thirds, title card or end card anywhere else. Put in
 your notes that the layered title was used and why it fit this video. A layered title on a fast gym
 reel, a song video, quick cuts, or over the lift -> **text_visuals**: remove it.
+
+With "title_style": "layered-gold-plus" (Alfonso asked to keep the other graphics too) the "no other text"
+rule does not apply: check the layered title as above, check the normal graphics as usual, and check that no
+other graphic sits on the gold letters inside the layered-title window.

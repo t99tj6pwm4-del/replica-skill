@@ -104,3 +104,9 @@ It cuts him out of every frame of that window (rembg human segmentation) and sta
 "FONZI" -> him -> "STAYS FIT" -> intro line. Check `output/work/layered_title_frame.png`: clean edges (no
 halo, no chopped hair or arms), "FONZI" partly hidden by his head/shoulders, "STAYS FIT" over his chest.
 If the cutout is bad, pick a cleaner shot. Say in your reply that you used it and why it fits this video.
+
+Exception (Alfonso, 2026-11-15): when he asks for the layered title AND to keep the other graphics, the
+storyboard says "title_style": "layered-gold-plus". Render with `python3 scripts/render_final.py --title-style
+layered-gold-plus`: the layered title is baked into the picture first, then the usual Remotion graphics go on
+top. Keep every other graphic (lower-thirds, CAM tags, lists, progress label) out of the layered-title window
+and off the gold letters, so the title reads cleanly on its own for those seconds.

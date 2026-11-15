@@ -105,3 +105,7 @@ Effects must sit inside their segment's `src_in`-`src_out`.
 
 If the Director sends you back with a fix, change only what was asked, re-run `storyboard_md.py`, and say
 exactly what changed.
+
+Layered title + the usual graphics (only when Alfonso asks for both): "title_style": "layered-gold-plus", with
+the same "layered_title": {"at", "dur", "intro_line"}. Pick a clean shot of him standing, face and upper body
+in frame, his real footage (not an AI angle slot), no speed ramp, punch-in or transition inside the window.
