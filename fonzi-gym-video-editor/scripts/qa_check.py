@@ -172,15 +172,27 @@ def main():
         import subprocess
         import numpy as np
         worst, detail = 0.0, []
-        for t in times:
-            a0 = max(0.0, t - 0.5)
-            raw = subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{a0:.3f}", "-t", "1.0", "-i", str(mc_video), "-vf",
+        base_cut = OUT / "cut_version.mp4"
+
+        def frame_diffs(video, a0):
+            raw = subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{a0:.3f}", "-t", "1.0", "-i", str(video), "-vf",
                                   f"fps={FPS},scale=48:86,format=gray", "-f", "rawvideo", "-"], capture_output=True).stdout
             fr = np.frombuffer(raw, dtype=np.uint8)
             n = len(fr) // (48 * 86)
             if n < 3:
+                return None
+            return np.abs(np.diff(fr[: n * 48 * 86].reshape(n, 86, 48).astype(np.float32), axis=0)).mean(axis=(1, 2))
+
+        for t in times:
+            a0 = max(0.0, t - 0.5)
+            d = frame_diffs(mc_video, a0)
+            if d is None:
                 continue
-            d = np.abs(np.diff(fr[: n * 48 * 86].reshape(n, 86, 48).astype(np.float32), axis=0)).mean(axis=(1, 2))
+            # ignore picture changes that are already in the cut (its own jump cuts), so only the angle cut counts
+            b = frame_diffs(base_cut, a0) if base_cut.exists() else None
+            if b is not None:
+                k = min(len(d), len(b))
+                d = np.clip(d[:k] - b[:k], 0, None)
             actual = a0 + (int(np.argmax(d)) + 1) / FPS
             worst = max(worst, abs(actual - t))
             detail.append(f"{t:.2f}s->{actual:.2f}s")
