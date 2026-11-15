@@ -64,7 +64,10 @@ def text_layer(text: str, font: ImageFont.FreeTypeFont, cy: int, color=GOLD) -> 
 def person_mask(session, frame: Image.Image) -> Image.Image:
     from rembg import remove
     m = remove(frame, session=session, only_mask=True)        # L image, 255 = person
-    m = m.filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(1.2))   # no halo, soft edge
+    # hard matte: rembg leaves half-transparent areas on dark clothes in low light, which shows the back word
+    # through his body as a gold ghost. Binarise first, then only a ~1px soft edge.
+    m = m.point(lambda v: 255 if v >= 128 else 0)
+    m = m.filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(0.8))   # no halo, thin soft edge
     return m
 
 
