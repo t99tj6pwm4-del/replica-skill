@@ -113,3 +113,9 @@ reel, a song video, quick cuts, or over the lift -> **text_visuals**: remove it.
 With "title_style": "layered-gold-plus" (Alfonso asked to keep the other graphics too) the "no other text"
 rule does not apply: check the layered title as above, check the normal graphics as usual, and check that no
 other graphic sits on the gold letters inside the layered-title window.
+
+Per-exercise layered titles (exercise_titles, Alfonso's 2026-11-15 request): Read every
+output/work/layered_title_exN_frame.png and a frame in each window: back word partly behind him and readable
+(qa_check wants 2-45% covered), front word on his torso, nothing on his face, no other graphic on the letters.
+Alfonso asked for these on his gym reels, so the "no layered title on a fast reel / over the lift" rule does
+not apply to them. A bad one -> text_visuals (or storyboard for the at/dur/y).

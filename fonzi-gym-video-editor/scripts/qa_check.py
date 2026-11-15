@@ -114,7 +114,16 @@ def main():
         add("title style logged in output/effects_log.md", logf.exists() and "Layered Title" in logf.read_text(),
             "logged" if logf.exists() else "missing", "text_visuals")
     if props.get("title_style") != "layered-gold" or not lt:
-        need = {"title card": props.get("title"), "lower-thirds": props.get("lowerThirds"),
+        ex_titles = load_json(WORK / "exercise_titles.json", default=[]) if props.get("exercise_titles") else []
+        if ex_titles:
+            behind = [t for t in ex_titles if 0.02 < (t.get("first_name_covered_by_person") or 0) <= 0.45]
+            add("exercise names as gold layered titles (back word partly behind him, still readable)",
+                len(behind) == len(ex_titles),
+                f"{len(behind)}/{len(ex_titles)} have the back word 2-45% covered by him; "
+                + "; ".join(f"{t['first']} {t['last']} {(t.get('first_name_covered_by_person') or 0) * 100:.0f}%"
+                            for t in ex_titles) + "; frames: "
+                + ", ".join(t["frame"] for t in ex_titles), "text_visuals")
+        need = {"title card": props.get("title"), "lower-thirds": props.get("lowerThirds") or ex_titles,
                 "progress bar": props.get("progress"), "end card": props.get("endCard")}
         missing = [k for k, x in need.items() if not x]
         add("title card, lower-thirds, progress bar, end card present", not missing,

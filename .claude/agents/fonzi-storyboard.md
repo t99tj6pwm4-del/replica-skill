@@ -109,3 +109,11 @@ exactly what changed.
 Layered title + the usual graphics (only when Alfonso asks for both): "title_style": "layered-gold-plus", with
 the same "layered_title": {"at", "dur", "intro_line"}. Pick a clean shot of him standing, face and upper body
 in frame, his real footage (not an AI angle slot), no speed ramp, punch-in or transition inside the window.
+
+Per-exercise layered titles (Alfonso, 2026-11-15: "the same font in the back of me and in front of me for each
+exercise"): add "exercise_titles": [{"at", "dur", "first", "last", "intro_line", "first_y", "intro_y", "last_y"}]
+to storyboard.json, one per exercise, early in that exercise's segment (in the cut timeline). "first" = word
+BEHIND him (e.g. "DUMBBELL"), "last" = the rest IN FRONT (e.g. "ROW"), "intro_line" = sets x reps when known,
+else "". Pick a 1-2s stretch where he is in frame and holds roughly still; grab frames and set the y's by hand:
+the back word must peek out around him (partly hidden, still readable), the front word across his torso, never
+on his face. Windows must not overlap each other or the FONZI layered title. These replace the lower-thirds.

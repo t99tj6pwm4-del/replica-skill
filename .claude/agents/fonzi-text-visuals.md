@@ -110,3 +110,9 @@ storyboard says "title_style": "layered-gold-plus". Render with `python3 scripts
 layered-gold-plus`: the layered title is baked into the picture first, then the usual Remotion graphics go on
 top. Keep every other graphic (lower-thirds, CAM tags, lists, progress label) out of the layered-title window
 and off the gold letters, so the title reads cleanly on its own for those seconds.
+
+Per-exercise layered titles: when storyboard.json has "exercise_titles", render_final.py bakes each one into the
+picture (scripts/layered_title.py build_exercise_titles) and drops the lower-thirds automatically. Check every
+output/work/layered_title_exN_frame.png: back word partly hidden behind him but readable, front word on his
+torso, nothing on his face, no other graphic on the gold letters during each window (move CAM tags / badges /
+lists out of those windows). If one is wrong, tell the Director the exact at/dur/y that works.

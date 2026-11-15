@@ -180,6 +180,18 @@ def main():
         print(f"wrote  {rel(final)}  {out['video']['width']}x{out['video']['height']}  {out['duration']:.2f}s "
               "(layered title only, no subtitles)")
         return
+    # Per-exercise layered titles (Alfonso, 2026-11-15): replace the lower-thirds when the storyboard has them
+    import layered_title as _lt
+    if _lt.exercise_plans():
+        ex_base = WORK / "exercise_base.mp4"
+        infos = _lt.build_exercise_titles(cut, ex_base)
+        for i in infos:
+            print(f"exercise title: {i['first']} (behind) / {i['last']} (in front) at {i['at']:.2f}s for {i['dur']:.2f}s")
+        cut = ex_base
+        props["lowerThirds"] = []
+        props["exercise_titles"] = [{"at": i["at"], "dur": i["dur"], "text": f"{i['first']} {i['last']}".strip()}
+                                    for i in infos]
+        save_json(props_path, props)
     overlay = WORK / "overlay.mov"
     print(f"rendering {props['duration']:.1f}s of motion graphics with Remotion (a few minutes) ...")
     remotion(["render", "src/index.ts", "Overlay", str(overlay), f"--props={props_path}",
@@ -193,6 +205,7 @@ def main():
     overlay.unlink(missing_ok=True)
     fx_base.unlink(missing_ok=True)
     (WORK / "layered_base.mp4").unlink(missing_ok=True)
+    (WORK / "exercise_base.mp4").unlink(missing_ok=True)
     out = probe(final)
     v = out["video"]
     print(f"wrote  {rel(final)}  {v['width']}x{v['height']} {v['fps']}fps {v['codec']}+"

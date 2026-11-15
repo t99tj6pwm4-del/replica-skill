@@ -84,7 +84,7 @@ def layout(mask: Image.Image) -> tuple[int, int, int]:
 
 
 def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, intro: str,
-          ys: dict | None = None) -> dict:
+          ys: dict | None = None, tag: str = "") -> dict:
     try:
         from rembg import new_session
     except ImportError:
@@ -118,7 +118,7 @@ def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, i
         pass
     behind = text_layer(first.upper(), big1, y1)
     front = text_layer(last.upper(), big2, y2)
-    line = text_layer(intro, small, yi)
+    line = text_layer(intro, small, yi) if intro.strip() else Image.new("RGBA", (W, H), (0, 0, 0, 0))
     covered = []
     for k, f in enumerate(frames):
         img = Image.open(f).convert("RGBA")
@@ -152,7 +152,8 @@ def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, i
     run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", tmp / "list.txt", "-c", "copy", pic])
     run(["ffmpeg", "-v", "error", "-y", "-i", pic, "-i", base, "-map", "0:v", "-map", "1:a", "-c", "copy",
          "-t", f"{total:.3f}", out])
-    shutil.copy(tmp / "out" / frames[len(frames) // 2].name, WORK / "layered_title_frame.png")
+    frame_png = WORK / f"layered_title{tag}_frame.png"
+    shutil.copy(tmp / "out" / frames[len(frames) // 2].name, frame_png)
     shutil.rmtree(tmp, ignore_errors=True)
     if abs(probe(out)["duration"] - total) > 0.1:
         die("layered title changed the video length: not passing it on")
@@ -160,9 +161,44 @@ def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, i
             "first": first.upper(), "last": last.upper(), "intro_line": intro, "gold": "#CDA220",
             "first_line_y": y1, "last_line_y": y2, "intro_y": yi,
             "first_name_covered_by_person": covered[0] if covered else None,
-            "frame": rel(WORK / "layered_title_frame.png")}
-    save_json(WORK / "layered_title.json", info)
+            "frame": rel(frame_png)}
+    save_json(WORK / f"layered_title{tag}.json", info)
     return info
+
+
+def exercise_plans() -> list[dict]:
+    """Per-exercise layered titles (Alfonso, 2026-11-15): each exercise name in the same gold layered style,
+    first word BEHIND him, the rest IN FRONT. storyboard.json:
+      "exercise_titles": [{"at": 2.2, "dur": 1.8, "first": "DUMBBELL", "last": "CURL", "intro_line": "",
+                           "first_y": 307, "intro_y": 1010, "last_y": 1130}, ...]   # *_y optional"""
+    sb = load_json(OUT / "storyboard.json", default={})
+    out = []
+    for it in sb.get("exercise_titles") or []:
+        out.append({"at": float(it["at"]), "dur": float(it.get("dur", 1.8)), "first": it["first"],
+                    "last": it.get("last", ""), "intro": it.get("intro_line", ""),
+                    "ys": {k: it[k] for k in ("first_y", "intro_y", "last_y") if it.get(k)}})
+    return sorted(out, key=lambda x: x["at"])
+
+
+def build_exercise_titles(base: Path, out: Path) -> list[dict]:
+    """Bake every per-exercise layered title into the picture, one after the other. Audio untouched."""
+    plans = exercise_plans()
+    if not plans:
+        return []
+    for a, b in zip(plans, plans[1:]):
+        if a["at"] + a["dur"] > b["at"]:
+            die(f"exercise titles overlap: {a['first']} {a['last']} and {b['first']} {b['last']}")
+    infos, cur = [], base
+    for n, p in enumerate(plans, 1):
+        nxt = WORK / f"exercise_title_{n}.mp4"
+        info = build(cur, nxt, p["at"], p["dur"], p["first"], p["last"], p["intro"], p["ys"], tag=f"_ex{n}")
+        infos.append(info)
+        if cur != base:
+            cur.unlink(missing_ok=True)
+        cur = nxt
+    shutil.move(str(cur), str(out))
+    save_json(WORK / "exercise_titles.json", infos)
+    return infos
 
 
 def plan_from_storyboard() -> dict | None:
