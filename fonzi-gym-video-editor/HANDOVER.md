@@ -4,16 +4,18 @@
 - 6-agent editor built and pushed (Director, Storyboard, Cuts, Multicam/B-Roll, Text/Visuals, QA) + `/fonzi-edit` skill.
 - Free AI angles (wan-free on Hugging Face) with free-local crop fallback; Seedance only on Alfonso's yes.
 - CapCut effects library, 100-shot multicam library, Layered Title (Documentary Gold) reading "FONZI" / "STAYS FIT".
-- "A Week of Work" (input/drive_1f6cZwaA.mp4): QA PASS, staged at output/staged/final_edit.mp4.
+- "A Week of Work" (input/drive_1f6cZwaA.mp4): QA PASS earlier; job archived in output/archive/20261115-160314/.
+- "Locked In / Bulking season" (input/drive_1E3BsV75.mp4, brief "1:30 second clip"): 91.9s, QA PASS, staged at output/staged/final_edit.mp4.
+- QA tooling fixes: optional layered_title/effects files no longer crash qa_check; angle timing ignores base-cut jump cuts. Remotion ListCard (compact) + layout.titleOffsetY added.
 - Claude Code mods: auto-compact 500k + this handover hook (.claude/settings.json).
 
 ## Left to do
-- "A Week of Work" waits on Alfonso: (1) confirm all footage is his (esp. squat clip at 0:17, NY cap); (2) sets/reps per lift or "skip"; (3) caption (suggested: "A week of work in one minute. Which lift are you hitting today?") or his own; then "approved".
-- Optional: add HF_TOKEN env var in the environment settings so new sessions get AI angles.
-- Layered title not yet tried on a real video.
+- "Locked In" waits on Alfonso: own footage (and who filmed the graded part), baked-in music licence (~raw 2:00 on; mute if not his), exercise names (seated machine shrug vs calf raise), sets x reps or skip, caption (suggested: "Bulking season: lifting heavy, whole food, creatine, sleep. Comment LOCKED IN if you're in."), optional redo of AI close-up angle 3 (55.2-59.1s, distorted shouting face).
+- "A Week of Work" (archived) still waits on his yes + answers if he wants it.
+- Optional: HF_TOKEN env var in environment settings.
 
 ## Next step
-- On Alfonso's "approved": run scripts/approve.py then scripts/export_final.py and send him the file + caption from exports/. He posts it himself.
+- On Alfonso's "approved" for Locked In: scripts/approve.py --alfonso-said-yes (+ --own-footage-confirmed if he confirms), scripts/export_final.py, send him the file + caption. He posts himself.
 
 ## Key files
 - .claude/agents/fonzi-*.md, .claude/skills/fonzi-edit/SKILL.md, .claude/settings.json
