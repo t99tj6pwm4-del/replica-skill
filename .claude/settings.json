@@ -9,5 +9,29 @@
   },
   "enabledPlugins": {
     "replica-skill@replica-skill": true
+  },
+  "autoCompactWindow": 500000,
+  "hooks": {
+    "PreCompact": [
+      {
+        "matcher": "auto",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/handover.sh precompact"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/handover.sh sessionstart"
+          }
+        ]
+      }
+    ]
   }
 }
