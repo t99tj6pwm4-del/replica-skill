@@ -168,5 +168,10 @@ def base_video() -> Path:
     return mc if mc.exists() and (WORK / "multicam_map.json").exists() else OUT / "cut_version.mp4"
 
 
+def load_config() -> dict:
+    import yaml
+    return yaml.safe_load((ROOT / "config.yaml").read_text()) or {}
+
+
 def brand() -> dict:
     return load_json(ROOT / "config" / "brand.json")

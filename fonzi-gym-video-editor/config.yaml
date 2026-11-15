@@ -100,6 +100,9 @@ multicam:
                                  # (output/multicam_shots_log.md), shot 100 closing only. NO default angles.
   local_shot_seconds: [3.0, 8.0] # free-local angle shot length
   skip_shots: [42, 74]           # cannot be done safely / cleanly in Flow: fisheye, camera mounted on the bar
+  require_top_down: true         # Alfonso (2026-11-15): at least ONE top-down shot in every video
+  top_down_shots: [13, 14, 24]   # bird's eye, extreme high angle, high ceiling corner (13 preferred); exempt
+                                 # from the no-repeat rule so every video can have one
   flow_prompt: >-
     Hard cut to [SHOT]. Preserve identity and room exactly: same person, same face, same clothes, same gym,
     same lighting. Keep the original voice, speech and lip-sync exactly — do not rewrite, drop or add words.
@@ -112,6 +115,9 @@ audio:
   songs_dir: songs               # only Alfonso's own mp3s; no stock or AI music
   allow_generated_music: false
   original_audio_is_truth: true  # generated clips never replace or shift the audio
+  mute_baked_music: true         # Alfonso (2026-11-15): "always mute" music baked into his uploads. With no
+                                 # speech in the cut the final video's sound is muted (he adds a sound in the app,
+                                 # or we mix one of his own mp3s from songs/). His own voice is never muted.
 
 titles:
   # normal       = the usual animated title card, captions, lower-thirds, end card

@@ -211,11 +211,37 @@ def main():
     print(f"wrote  {rel(final)}  {v['width']}x{v['height']} {v['fps']}fps {v['codec']}+"
           f"{out['audio']['codec'] if out['audio'] else 'NO AUDIO'}  {out['duration']:.2f}s")
 
+    mute_if_rule(final)
     slides = render_carousel(load_json(OUT / "storyboard.json"), load_json(WORK / "cut_map.json"))
     if slides:
         print(f"wrote  output/carousel/ ({len(slides)} slides + carousel.json)")
     if (W, H) != (v["width"], v["height"]):
         die(f"final is {v['width']}x{v['height']}, expected {W}x{H}")
+
+
+def mute_if_rule(final: Path) -> bool:
+    """Alfonso (2026-11-15): always mute music baked into his uploads. If the cut has no speech, the final's
+    sound is replaced by silence (same length, AAC). If he talks, his voice is kept (we cannot strip music
+    from under it cleanly) and QA tells him. A song he picks from songs/ is never muted."""
+    from common import load_config
+    cfg = load_config().get("audio", {})
+    if not cfg.get("mute_baked_music"):
+        return False
+    sb = load_json(OUT / "storyboard.json", default={})
+    if sb.get("song"):
+        return False
+    words = load_json(WORK / "transcript.json", default={"words": []}).get("words", [])
+    if len(words) >= 3:
+        save_json(WORK / "audio_rule.json", {"muted": False, "reason": "he speaks in the video: voice kept"})
+        return False
+    tmp = final.with_name("final_muted.mp4")
+    run(["ffmpeg", "-v", "error", "-y", "-i", final, "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo",
+         "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "128k", "-shortest",
+         "-movflags", "+faststart", tmp])
+    tmp.replace(final)
+    save_json(WORK / "audio_rule.json", {"muted": True, "reason": "no speech: baked-in music muted (Alfonso's rule)"})
+    print("audio: muted (no speech; Alfonso's rule: always mute baked-in music)")
+    return True
 
 
 if __name__ == "__main__":

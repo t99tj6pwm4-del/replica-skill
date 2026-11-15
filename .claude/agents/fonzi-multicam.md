@@ -138,3 +138,10 @@ anything odd in your report so Alfonso knows. His audio always stays.
 
 If the Director sends you back with a fix from the Final Approval Agent, redo only what the fix names
 (job (a) if a timestamp is wrong, job (b) if a clip is wrong) and say what changed.
+
+## Top-down rule (Alfonso, 2026-11-15)
+
+Every video gets at least ONE top-down shot from the library (#13 straight down from the ceiling preferred,
+else #14 extreme high angle or #24 high ceiling corner), placed on a moment where seeing him from above reads
+well (a still point of a rep, a setup, a pose). multicam_prompt.py / shot_library.py enforce it and refuse a
+`--shots` list without one. Top-down shots are exempt from the no-repeat rule.

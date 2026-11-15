@@ -41,7 +41,7 @@ def main():
     i = sub.add_parser("init")
     i.add_argument("video")
     i.add_argument("--brief", required=True)
-    i.add_argument("--own-footage", choices=["yes", "no", "unknown"], default="unknown")
+    i.add_argument("--own-footage", choices=["yes", "no", "unknown"], default="yes")   # Alfonso: all footage he gives is his
     i.add_argument("--caption", default="")
     i.add_argument("--broll", action="append", default=[])
     b = sub.add_parser("broll")

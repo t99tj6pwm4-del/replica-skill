@@ -66,7 +66,13 @@ def main():
                       "-f", "null", "-"], check=False).stderr
             sm = re.search(r"mean_volume: ([-\d.]+) dB", sv)
             src_level = float(sm.group(1)) if sm else None
-        if mean > -50:
+        rule = load_json(WORK / "audio_rule.json", default={})
+        if rule.get("muted"):
+            add("audio muted by Alfonso's rule (always mute baked-in music)", True,
+                f"mean {mean:.1f} dB; {rule.get('reason', '')}", "cuts")
+            add("sound muted: add a sound in the Instagram/Facebook app or one of your songs", False,
+                "the video has no sound", "cuts", soft=True)
+        elif mean > -50:
             add("audio is not silent", True, f"mean {mean:.1f} dB", "cuts")
         elif src_level is not None and src_level <= -45:
             add("audio is not silent", False, f"mean {mean:.1f} dB; the raw video is quiet too ({src_level:.1f} dB). "

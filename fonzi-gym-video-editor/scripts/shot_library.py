@@ -59,11 +59,40 @@ def last_video_shots(video: str = "") -> set[int]:
     return {int(n) for n in re.findall(r"#(\d+)", rows[-1])} if rows else set()
 
 
+def top_down_rule() -> tuple[bool, list[int]]:
+    from common import load_config
+    mc = load_config().get("multicam", {})
+    return bool(mc.get("require_top_down", False)), list(mc.get("top_down_shots", [13, 14, 24]))
+
+
 def pick(moments: list[str], skip: set[int], chosen: list[int] | None, allow_repeat: bool,
-         video: str = "") -> list[dict]:
-    """moments: one of hard_rep / talking / setup per shot, in time order."""
+         video: str = "", top_down: bool | None = None) -> list[dict]:
+    """moments: one of hard_rep / talking / setup per shot, in time order.
+    Alfonso's rule (2026-11-15): at least one top-down shot (config multicam.top_down_shots) in every video."""
+    out = _pick(moments, skip, chosen, allow_repeat, video)
+    need, td = top_down_rule()
+    if top_down is not None:
+        need = top_down
+    if need and not any(s["num"] in td for s in out):
+        if chosen:
+            die(f"Alfonso wants at least one top-down shot in every video: include one of {td} in --shots")
+        lib = load()
+        # put it in the slot that already uses the same category, else a setup moment, else the 2nd slot
+        cat = lib[td[0]]["category"]
+        idx = next((i for i, s in enumerate(out) if s["category"] == cat), None)
+        if idx is None:
+            idx = next((i for i, m in enumerate(moments) if m == "setup"), min(1, len(out) - 1))
+        num = next((n for n in td if n in lib and n not in skip), None)
+        if num is None:
+            die("no top-down shot available in the library")
+        out[idx] = lib[num]
+    return out
+
+
+def _pick(moments: list[str], skip: set[int], chosen: list[int] | None, allow_repeat: bool,
+          video: str = "") -> list[dict]:
     lib = load()
-    banned = set(skip) | (set() if allow_repeat else last_video_shots(video))
+    banned = set(skip) | (set() if allow_repeat else last_video_shots(video) - set(top_down_rule()[1]))
     if chosen:
         if len(chosen) != len(moments):
             die(f"--shots needs exactly {len(moments)} shot numbers, got {len(chosen)}")

@@ -135,3 +135,18 @@ Optional tools Alfonso listed (OpenMontage, Open Generative AI, VoiceStudio, mem
 add-ons, the free OpenCode setup) are described in `fonzi-gym-video-editor/docs/TOOLS.md` and installed
 one at a time with `scripts/install_extras.sh`. Install one only when Alfonso asks for it. The free
 OpenCode + DeepSeek run is used only when he asks for "a free run"; it never replaces Claude Code.
+
+## Alfonso's standing answers (2026-11-15, apply to every video, do not ask again)
+
+1. **Footage:** every video he gives is his own. Start jobs with `--own-footage yes` and approve with
+   `--own-footage-confirmed`.
+2. **Music baked into his uploads: always mute.** render_final.py does it (config audio.mute_baked_music).
+   With no speech the final has no sound; tell him to add a sound in the app (or put his own mp3 in songs/).
+   His own voice is never muted.
+3. **Exercise names:** if unsure what a machine/lift is, keep the best guess; don't ask.
+4. **Sets x reps:** if he gives none, make up realistic ones (e.g. 3 x 10, 4 x 12) and show them.
+5. **Caption:** if he gives none, choose one yourself (English, no hashtags on screen).
+6. **Multicam:** at least ONE top-down shot in every video (library #13 bird's eye preferred, else #14 / #24).
+   shot_library.py enforces it; top-down shots are exempt from the no-repeat rule.
+7. **Exercise titles:** every exercise name is a gold layered title (word behind him, word in front), the
+   same style as FONZI / STAYS FIT, instead of the old lower-third box.

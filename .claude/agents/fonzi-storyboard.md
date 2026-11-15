@@ -117,3 +117,11 @@ BEHIND him (e.g. "DUMBBELL"), "last" = the rest IN FRONT (e.g. "ROW"), "intro_li
 else "". Pick a 1-2s stretch where he is in frame and holds roughly still; grab frames and set the y's by hand:
 the back word must peek out around him (partly hidden, still readable), the front word across his torso, never
 on his face. Windows must not overlap each other or the FONZI layered title. These replace the lower-thirds.
+
+## Alfonso's standing answers (2026-11-15)
+
+- Sets x reps: if he gives none, make up realistic numbers (e.g. "3 x 10", "4 x 12") for every exercise, put
+  them in each exercise's "sets_reps" and as the exercise title's "intro_line".
+- Every exercise name is a gold layered title ("exercise_titles"), not a lower-third.
+- Exercise name guesses are fine; do not stop to ask.
+- Caption: if he gives none, write one ("caption" in the storyboard).

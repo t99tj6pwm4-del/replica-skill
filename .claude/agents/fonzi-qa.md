@@ -119,3 +119,10 @@ output/work/layered_title_exN_frame.png and a frame in each window: back word pa
 (qa_check wants 2-45% covered), front word on his torso, nothing on his face, no other graphic on the letters.
 Alfonso asked for these on his gym reels, so the "no layered title on a fast reel / over the lift" rule does
 not apply to them. A bad one -> text_visuals (or storyboard for the at/dur/y).
+
+## Alfonso's standing answers (2026-11-15)
+
+- All footage he gives is his own: do not raise own-footage as a question.
+- Baked-in music is always muted: a final with no sound because of that rule is correct (qa_check marks it).
+- Made-up sets x reps and a chosen caption are his instruction, not a problem.
+- At least one top-down multicam shot (#13 / #14 / #24) must be in every video: missing one -> multicam.
