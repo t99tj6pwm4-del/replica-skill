@@ -9,5 +9,33 @@
   },
   "enabledPlugins": {
     "replica-skill@replica-skill": true
+  },
+  "autoCompactWindow": 500000,
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "autoCompactWindow": 500000
+    }
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf '%s' \"{\\\"hookSpecificOutput\\\": {\\\"hookEventName\\\": \\\"SessionStart\\\", \\\"additionalContext\\\": \\\"AUTO-COMPACT HANDOVER RULE: the chat was just compacted. Before doing anything else: (1) write or refresh fonzi-gym-video-editor/HANDOVER.md from the summary with exactly these sections: ## Done, ## Left to do, ## Next step, ## Key files, ## Key decisions (no secrets or tokens in it); (2) then Read HANDOVER.md and work only from it, not from the old chat; (3) do not change any project code while doing this.\\\"}}\""
+          }
+        ]
+      },
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -f \"$CLAUDE_PROJECT_DIR/fonzi-gym-video-editor/HANDOVER.md\" ] && printf '%s' \"{\\\"hookSpecificOutput\\\": {\\\"hookEventName\\\": \\\"SessionStart\\\", \\\"additionalContext\\\": \\\"HANDOVER RULE: fonzi-gym-video-editor/HANDOVER.md exists. Read it first, before doing anything else, and continue from its Next step.\\\"}}\" || true"
+          }
+        ]
+      }
+    ]
   }
 }
