@@ -51,6 +51,14 @@ export type TimedEvent = {
   y?: number;
 };
 
+export type ListCardItem = {
+  from: number;
+  to: number;
+  title: string;
+  items: string[];
+  y: number; // px from the top of the 1920 frame
+};
+
 export type OverlayProps = {
   fps: number;
   width: number;
@@ -65,6 +73,7 @@ export type OverlayProps = {
   callouts: Callout[];
   events: TimedEvent[];
   endCard: { from: number; to: number; text: string; subtitle?: string } | null;
+  lists?: ListCardItem[];
 };
 
 export type CarouselProps = {

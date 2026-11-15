@@ -13,6 +13,7 @@ import type {
   Brand,
   Callout,
   CaptionPage,
+  ListCardItem,
   LowerThird,
   OverlayProps,
   ProgressSegment,
@@ -800,6 +801,100 @@ const EndCard: React.FC<{
 };
 
 /* ------------------------------------------------------------------ */
+/* List card: header slides in, then each item ticks in one by one     */
+/* ------------------------------------------------------------------ */
+const ListCard: React.FC<{ item: ListCardItem; brand: Brand; frames: number }> = ({ item, brand, frames }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const out = interpolate(frame, [frames - 8, frames], [0, 1], { ...clamp, easing: Easing.in(Easing.cubic) });
+  const head = interpolate(frame, [0, 9], [0, 1], { ...clamp, easing: Easing.out(Easing.cubic) });
+  const n = item.items.length;
+  // spread the items over the first ~45% of the card so they are all up for most of it
+  const step = Math.max(6, Math.floor((frames * 0.45) / Math.max(1, n)));
+  return (
+    <div style={{ position: "absolute", left: 56, top: item.y, opacity: 1 - out, transform: `translateX(${-out * 600}px)` }}>
+      <div
+        style={{
+          display: "inline-block",
+          fontFamily: DISPLAY,
+          fontSize: 66,
+          lineHeight: 1.05,
+          letterSpacing: 2,
+          color: brand.darkColor,
+          backgroundColor: brand.color,
+          padding: "6px 24px 2px",
+          borderRadius: 10,
+          clipPath: `inset(0 ${100 - head * 100}% 0 0)`,
+        }}
+      >
+        {item.title}
+      </div>
+      <div style={{ marginTop: 10 }}>
+        {item.items.map((t, i) => {
+          const start = 8 + i * step;
+          const s = spring({ frame: frame - start, fps, config: { damping: 11, stiffness: 210, mass: 0.6 } });
+          const tick = interpolate(frame, [start + 3, start + 9], [0, 1], clamp);
+          return (
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 18,
+                marginTop: 5,
+                opacity: Math.min(1, s * 1.4),
+                transform: `translateX(${(1 - s) * -80}px)`,
+              }}
+            >
+              <div
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 8,
+                  border: `5px solid ${brand.color}`,
+                  backgroundColor: `rgba(11,11,15,0.7)`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <svg width="26" height="26" viewBox="0 0 30 30">
+                  <path
+                    d="M5 16 L12 23 L26 7"
+                    fill="none"
+                    stroke={brand.color}
+                    strokeWidth="5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeDasharray="34"
+                    strokeDashoffset={34 * (1 - tick)}
+                  />
+                </svg>
+              </div>
+              <div
+                style={{
+                  fontFamily: DISPLAY,
+                  fontSize: 54,
+                  lineHeight: 1.05,
+                  letterSpacing: 1.5,
+                  color: brand.textColor,
+                  backgroundColor: "rgba(11,11,15,0.78)",
+                  padding: "2px 18px 0",
+                  borderRadius: 8,
+                  textShadow: SHADOW,
+                }}
+              >
+                {t}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+/* ------------------------------------------------------------------ */
 export const Overlay: React.FC<OverlayProps> = (p) => {
   useFonts();
   const { fps } = useVideoConfig();
@@ -835,6 +930,14 @@ export const Overlay: React.FC<OverlayProps> = (p) => {
         return (
           <Sequence key={`l${i}`} {...s}>
             <LowerThirdCard item={lt} brand={p.brand} frames={s.durationInFrames} y={p.layout.lowerThirdY} />
+          </Sequence>
+        );
+      })}
+      {(p.lists ?? []).map((li, i) => {
+        const s = seq(li.from, li.to);
+        return (
+          <Sequence key={`li${i}`} {...s}>
+            <ListCard item={li} brand={p.brand} frames={s.durationInFrames} />
           </Sequence>
         );
       })}
