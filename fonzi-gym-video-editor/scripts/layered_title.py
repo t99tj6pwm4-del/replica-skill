@@ -67,8 +67,23 @@ def person_mask(session, frame: Image.Image) -> Image.Image:
     # hard matte: rembg leaves half-transparent areas on dark clothes in low light, which shows the back word
     # through his body as a gold ghost. Binarise first, then only a ~1px soft edge.
     m = m.point(lambda v: 255 if v >= 128 else 0)
-    m = m.filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(0.8))   # no halo, thin soft edge
-    return m
+    return m.filter(ImageFilter.MinFilter(3))   # no halo; the soft edge is added after temporal smoothing
+
+
+def smooth_masks(masks: list, radius: int = 3, hold: bool = False) -> list:
+    """Temporal median over 2*radius+1 frames so mask edges (e.g. where gym equipment meets his body) cannot
+    blink a letter on and off from one frame to the next. Then a thin soft edge."""
+    arr = np.stack([np.array(m) > 128 for m in masks])
+    if hold:   # he barely moves: one steady mask (median of the whole window) for every frame
+        med = (arr.sum(axis=0) * 2 > len(arr)).astype(np.uint8) * 255
+        one = Image.fromarray(med, "L").filter(ImageFilter.GaussianBlur(0.8))
+        return [one] * len(arr)
+    out = []
+    for k in range(len(arr)):
+        win = arr[max(0, k - radius): k + radius + 1]
+        med = (win.sum(axis=0) * 2 > len(win)).astype(np.uint8) * 255
+        out.append(Image.fromarray(med, "L").filter(ImageFilter.GaussianBlur(0.8)))
+    return out
 
 
 def layout(mask: Image.Image) -> tuple[int, int, int]:
@@ -87,7 +102,7 @@ def layout(mask: Image.Image) -> tuple[int, int, int]:
 
 
 def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, intro: str,
-          ys: dict | None = None, tag: str = "") -> dict:
+          ys: dict | None = None, tag: str = "", hold_mask: bool = False) -> dict:
     try:
         from rembg import new_session
     except ImportError:
@@ -123,9 +138,11 @@ def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, i
     front = text_layer(last.upper(), big2, y2)
     line = text_layer(intro, small, yi) if intro.strip() else Image.new("RGBA", (W, H), (0, 0, 0, 0))
     covered = []
+    masks = smooth_masks([first_mask] + [person_mask(session, Image.open(f).convert("RGB")) for f in frames[1:]],
+                         hold=hold_mask)
     for k, f in enumerate(frames):
         img = Image.open(f).convert("RGBA")
-        mask = first_mask if k == 0 else person_mask(session, img.convert("RGB"))
+        mask = masks[k]
         person = img.copy()
         person.putalpha(mask)
         comp = Image.alpha_composite(img, behind)        # 1 background + 2 first name (behind)
@@ -173,13 +190,15 @@ def exercise_plans() -> list[dict]:
     """Per-exercise layered titles (Alfonso, 2026-11-15): each exercise name in the same gold layered style,
     first word BEHIND him, the rest IN FRONT. storyboard.json:
       "exercise_titles": [{"at": 2.2, "dur": 1.8, "first": "DUMBBELL", "last": "CURL", "intro_line": "",
-                           "first_y": 307, "intro_y": 1010, "last_y": 1130}, ...]   # *_y optional"""
+                           "first_y": 307, "intro_y": 1010, "last_y": 1130}, ...]   # *_y optional
+    "hold_mask": true = one steady cut-out for the whole window (use when he is still and equipment edges flicker)"""
     sb = load_json(OUT / "storyboard.json", default={})
     out = []
     for it in sb.get("exercise_titles") or []:
         out.append({"at": float(it["at"]), "dur": float(it.get("dur", 1.8)), "first": it["first"],
                     "last": it.get("last", ""), "intro": it.get("intro_line", ""),
-                    "ys": {k: it[k] for k in ("first_y", "intro_y", "last_y") if it.get(k)}})
+                    "ys": {k: it[k] for k in ("first_y", "intro_y", "last_y") if it.get(k)},
+                    "hold_mask": bool(it.get("hold_mask"))})
     return sorted(out, key=lambda x: x["at"])
 
 
@@ -194,7 +213,8 @@ def build_exercise_titles(base: Path, out: Path) -> list[dict]:
     infos, cur = [], base
     for n, p in enumerate(plans, 1):
         nxt = WORK / f"exercise_title_{n}.mp4"
-        info = build(cur, nxt, p["at"], p["dur"], p["first"], p["last"], p["intro"], p["ys"], tag=f"_ex{n}")
+        info = build(cur, nxt, p["at"], p["dur"], p["first"], p["last"], p["intro"], p["ys"], tag=f"_ex{n}",
+                     hold_mask=p["hold_mask"])
         infos.append(info)
         if cur != base:
             cur.unlink(missing_ok=True)
