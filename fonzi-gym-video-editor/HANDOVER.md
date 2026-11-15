@@ -5,7 +5,7 @@
 - Free AI angles (wan-free on Hugging Face) with free-local crop fallback; Seedance only on Alfonso's yes.
 - CapCut effects library, 100-shot multicam library, Layered Title (Documentary Gold) reading "FONZI" / "STAYS FIT".
 - "A Week of Work" (input/drive_1f6cZwaA.mp4): QA PASS earlier; job archived in output/archive/20261115-160314/.
-- "Locked In / Bulking season" (input/drive_1E3BsV75.mp4, brief "1:30 second clip"): 91.9s, QA PASS, staged at output/staged/final_edit.mp4, with layered title FONZI/STAYS FIT at 53.6-54.6 (Alfonso asked; title_style layered-gold-plus keeps other graphics; line positions first_y/intro_y/last_y).
+- "Locked In / Bulking season" (input/drive_1E3BsV75.mp4, brief "1:30 second clip"): 91.9s, QA PASS, staged at output/staged/final_edit.mp4, with layered title FONZI/STAYS FIT at 53.6-54.6 (Alfonso asked; title_style layered-gold-plus keeps other graphics; line positions first_y/intro_y/last_y). Exercise lower-thirds replaced by 7 gold layered exercise titles (storyboard exercise_titles; tool: hard matte, temporal smoothing, hold_mask). QA PASS, staged again.
 - QA tooling fixes: optional layered_title/effects files no longer crash qa_check; angle timing ignores base-cut jump cuts. Remotion ListCard (compact) + layout.titleOffsetY added.
 - Claude Code mods: auto-compact 500k + this handover hook (.claude/settings.json).
 
