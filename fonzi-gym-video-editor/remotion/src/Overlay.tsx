@@ -35,7 +35,8 @@ const TitleCard: React.FC<{
   brand: Brand;
   frames: number;
   animation?: string;
-}> = ({ text, subtitle, brand, frames, animation }) => {
+  offsetY?: number;
+}> = ({ text, subtitle, brand, frames, animation, offsetY = 0 }) => {
   const frame = useCurrentFrame();
   // CapCut library Animation > In for the hook: Flash In / Fade In / Zoom 1 / Focus
   const inFlash = animation === "Flash In" ? interpolate(frame, [0, 2, 6], [0, 0.9, 0], clamp) : 0;
@@ -89,7 +90,7 @@ const TitleCard: React.FC<{
               position: "absolute",
               left: -200,
               width: STRIPE_SAFE_RIGHT + 200,
-              top: 590 + i * 46,
+              top: 590 + offsetY + i * 46,
               height: i === 0 ? 22 : 8,
               backgroundColor: brand.color,
               opacity: i === 0 ? 1 : 0.55,
@@ -100,7 +101,7 @@ const TitleCard: React.FC<{
         <div
           style={{
             position: "absolute",
-            top: 640,
+            top: 640 + offsetY,
             left: TITLE_LEFT,
             width: titleW,
             display: "flex",
@@ -811,6 +812,59 @@ const ListCard: React.FC<{ item: ListCardItem; brand: Brand; frames: number }> =
   const n = item.items.length;
   // spread the items over the first ~45% of the card so they are all up for most of it
   const step = Math.max(6, Math.floor((frames * 0.45) / Math.max(1, n)));
+  if (item.compact) {
+    // two-line strip: header pill, then all items in one row (fits below a close-up face)
+    return (
+      <div style={{ position: "absolute", left: 56, right: 56, top: item.y, opacity: 1 - out, transform: `translateX(${-out * 600}px)` }}>
+        <div
+          style={{
+            display: "inline-block",
+            fontFamily: DISPLAY,
+            fontSize: 50,
+            lineHeight: 1.05,
+            letterSpacing: 2,
+            color: brand.darkColor,
+            backgroundColor: brand.color,
+            padding: "4px 18px 0",
+            borderRadius: 8,
+            clipPath: `inset(0 ${100 - head * 100}% 0 0)`,
+          }}
+        >
+          {item.title}
+        </div>
+        <div style={{ display: "flex", flexWrap: "nowrap", gap: 10, marginTop: 8 }}>
+          {item.items.map((t, i) => {
+            const start = 8 + i * step;
+            const s = spring({ frame: frame - start, fps, config: { damping: 11, stiffness: 210, mass: 0.6 } });
+            const tick = interpolate(frame, [start + 3, start + 9], [0, 1], clamp);
+            return (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "4px 12px 2px 6px",
+                  borderRadius: 8,
+                  backgroundColor: "rgba(11,11,15,0.8)",
+                  opacity: Math.min(1, s * 1.4),
+                  transform: `translateY(${(1 - s) * 30}px)`,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <svg width="28" height="28" viewBox="0 0 30 30">
+                  <rect x="2" y="2" width="26" height="26" rx="5" fill="none" stroke={brand.color} strokeWidth="4" />
+                  <path d="M8 16 L13 21 L23 9" fill="none" stroke={brand.color} strokeWidth="4" strokeLinecap="round"
+                    strokeLinejoin="round" strokeDasharray="28" strokeDashoffset={28 * (1 - tick)} />
+                </svg>
+                <div style={{ fontFamily: DISPLAY, fontSize: 38, lineHeight: 1.05, letterSpacing: 1, color: brand.textColor }}>{t}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
   return (
     <div style={{ position: "absolute", left: 56, top: item.y, opacity: 1 - out, transform: `translateX(${-out * 600}px)` }}>
       <div
@@ -960,6 +1014,7 @@ export const Overlay: React.FC<OverlayProps> = (p) => {
             brand={p.brand}
             frames={seq(p.title.from, p.title.to).durationInFrames}
             animation={p.title.animation}
+            offsetY={p.layout.titleOffsetY ?? 0}
           />
         </Sequence>
       ) : null}

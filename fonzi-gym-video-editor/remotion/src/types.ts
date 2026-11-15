@@ -57,6 +57,7 @@ export type ListCardItem = {
   title: string;
   items: string[];
   y: number; // px from the top of the 1920 frame
+  compact?: boolean; // header + one row of items (~112px tall)
 };
 
 export type OverlayProps = {
@@ -65,7 +66,7 @@ export type OverlayProps = {
   height: number;
   duration: number; // seconds
   brand: Brand;
-  layout: { captionY: number; lowerThirdY: number };
+  layout: { captionY: number; lowerThirdY: number; titleOffsetY?: number };
   title: { from: number; to: number; text: string; subtitle?: string; animation?: string } | null;
   lowerThirds: LowerThird[];
   progress: ProgressSegment[];
