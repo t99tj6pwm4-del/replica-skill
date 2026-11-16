@@ -250,6 +250,21 @@ def main():
         score = sum(c[0] for c in combo) + 0.15 * min(spread, 20)
         if score > best_score:
             best, best_score = combo, score
+    forced = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--times=")), None)
+    if forced:   # the Multicam Agent sets the 4 slots itself (e.g. to stay out of no-text / title windows)
+        best = []
+        for rng in forced.split(","):
+            a, b = (snap(float(x)) for x in rng.split("-"))
+            if not lo - 0.3 <= a < b <= hi + 0.5:
+                die(f"--times: {a}-{b}s is outside the usable body {lo:.2f}-{hi:.2f}s (hook / end card)")
+            if any(a + 0.1 < c < b - 0.1 for c in shots):
+                die(f"--times: {a}-{b}s straddles a shot change in the cut")
+            if mid_word(a, words) or mid_word(b, words):
+                die(f"--times: a cut at {a} or {b}s lands mid-word")
+            best.append((0.0, {"t": a, "gap": 0.3, "before": "rep"}, {"t": b, "gap": 0.3, "before": "rep"}))
+        best.sort(key=lambda s: s[1]["t"])
+        if len(best) != n_spans:
+            die(f"--times needs exactly {n_spans} ranges FROM-TO, comma separated")
     if not best:
         die(f"could not find {n_spans} angle shots on speech beats inside single continuous shots "
             f"({len(cands)} phrase starts, {len(shots)} shot changes between {lo:.1f}s and {hi:.1f}s). "
