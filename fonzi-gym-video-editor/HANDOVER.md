@@ -9,11 +9,11 @@
 - Montserrat everywhere (Alfonso 2026-11-16): remotion/src/fonts.ts DISPLAY = Montserrat Black; scripts/layered_title.py titles in Montserrat Black, small sets x reps line bigger (SemiBold). Committed b399eec.
 
 ## Left to do
-- Locked In: Alfonso (2026-11-16) said no need to re-render. Montserrat re-render dropped; output/final_edit.mp4 (00:14 UTC, old fonts) and output/staged/ left as they are. Not approved, not exported.
-- "A Week of Work" (archived) still waits on his yes if he wants it.
+- "No Days Off" (input/drive_1pnZDifS.mp4, brief "Random clicks some will always have font don't add any to those lets really make it cinematic and punchy"): 47.8s, QA PASS, staged at output/staged/final_edit.mp4 + post.json. Waiting for Alfonso's yes. No-text windows (his baked titles) 9.6-16.733, 25.867-30.367 kept clean. 3 gold titles (EZ BAR front_only). 4 wan-free AI angles kept by his choice (fake shirt text angle_1, no real top-down). Muted.
+- Locked In: dropped re-render, not approved.
 
 ## Next step
-- New video tomorrow: run /fonzi-edit on it. Montserrat everywhere, the gold layered exercise titles, mute rule and top-down rule all apply automatically. Check the graph first (graphify query) before reading code.
+- On Alfonso's yes: scripts/approve.py --alfonso-said-yes --own-footage-confirmed; scripts/export_final.py; send file + caption "Random clips, same mission. Which lift are you stealing for your next session?" (+ carousel slides); job.py set posted done. He posts himself; remind him the video is silent.
 
 ## Key files
 - .claude/agents/fonzi-*.md, .claude/skills/fonzi-edit/SKILL.md, .claude/settings.json
