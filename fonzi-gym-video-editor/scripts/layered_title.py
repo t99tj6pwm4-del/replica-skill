@@ -113,7 +113,7 @@ def layout(mask: Image.Image) -> tuple[int, int, int]:
 
 
 def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, intro: str,
-          ys: dict | None = None, tag: str = "", hold_mask: bool = False) -> dict:
+          ys: dict | None = None, tag: str = "", hold_mask: bool = False, front_only: bool = False) -> dict:
     try:
         from rembg import new_session
     except ImportError:
@@ -156,12 +156,15 @@ def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, i
         mask = masks[k]
         person = img.copy()
         person.putalpha(mask)
-        comp = Image.alpha_composite(img, behind)        # 1 background + 2 first name (behind)
-        comp = Image.alpha_composite(comp, person)       # 3 the person, cut out of the same frame
+        if front_only:   # no word behind him: the first word is drawn in front too, same gold look
+            comp = Image.alpha_composite(img, behind)
+        else:
+            comp = Image.alpha_composite(img, behind)    # 1 background + 2 first name (behind)
+            comp = Image.alpha_composite(comp, person)   # 3 the person, cut out of the same frame
         comp = Image.alpha_composite(comp, front)        # 4 last name in front
         comp = Image.alpha_composite(comp, line)         # 5 intro line in front
         comp.convert("RGB").save(tmp / "out" / f.name)
-        if k == len(frames) // 2:
+        if k == len(frames) // 2 and not front_only:
             ma, ba = np.array(mask) > 128, np.array(behind)[:, :, 3] > 0
             covered.append(round(float((ma & ba).sum()) / max(1, ba.sum()), 3))
     seg = tmp / "seg.mp4"
@@ -191,7 +194,7 @@ def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, i
     info = {"style": "Layered Title (Documentary Gold)", "at": round(at, 3), "dur": round(seg_len, 3),
             "first": first.upper(), "last": last.upper(), "intro_line": intro, "gold": "#CDA220",
             "first_line_y": y1, "last_line_y": y2, "intro_y": yi,
-            "first_name_covered_by_person": covered[0] if covered else None,
+            "first_name_covered_by_person": covered[0] if covered else None, "front_only": front_only,
             "frame": rel(frame_png)}
     save_json(WORK / f"layered_title{tag}.json", info)
     return info
@@ -202,6 +205,7 @@ def exercise_plans() -> list[dict]:
     first word BEHIND him, the rest IN FRONT. storyboard.json:
       "exercise_titles": [{"at": 2.2, "dur": 1.8, "first": "DUMBBELL", "last": "CURL", "intro_line": "",
                            "first_y": 307, "intro_y": 1010, "last_y": 1130}, ...]   # *_y optional
+    "front_only": true = no word behind him: the first word is drawn in front as well (busy / torso-filling shots)
     "hold_mask": true = one steady cut-out for the whole window (use when he is still and equipment edges flicker)"""
     sb = load_json(OUT / "storyboard.json", default={})
     out = []
@@ -209,7 +213,7 @@ def exercise_plans() -> list[dict]:
         out.append({"at": float(it["at"]), "dur": float(it.get("dur", 1.8)), "first": it["first"],
                     "last": it.get("last", ""), "intro": it.get("intro_line", ""),
                     "ys": {k: it[k] for k in ("first_y", "intro_y", "last_y") if it.get(k)},
-                    "hold_mask": bool(it.get("hold_mask"))})
+                    "hold_mask": bool(it.get("hold_mask")), "front_only": bool(it.get("front_only"))})
     return sorted(out, key=lambda x: x["at"])
 
 
@@ -225,7 +229,7 @@ def build_exercise_titles(base: Path, out: Path) -> list[dict]:
     for n, p in enumerate(plans, 1):
         nxt = WORK / f"exercise_title_{n}.mp4"
         info = build(cur, nxt, p["at"], p["dur"], p["first"], p["last"], p["intro"], p["ys"], tag=f"_ex{n}",
-                     hold_mask=p["hold_mask"])
+                     hold_mask=p["hold_mask"], front_only=p.get("front_only", False))
         infos.append(info)
         if cur != base:
             cur.unlink(missing_ok=True)
