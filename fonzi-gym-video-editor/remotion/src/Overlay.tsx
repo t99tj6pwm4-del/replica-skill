@@ -57,7 +57,7 @@ const TitleCard: React.FC<{
     Math.min(
       250,
       ...words.map((w, i) =>
-        Math.floor((titleW - i * TITLE_INDENT) / (Math.max(w.length, 1) * 0.56))
+        Math.floor((titleW - i * TITLE_INDENT) / (Math.max(w.length, 1) * 0.76))
       )
     )
   );
@@ -323,9 +323,10 @@ const SegmentWipe: React.FC<{ brand: Brand }> = ({ brand }) => {
 /* ------------------------------------------------------------------ */
 /* Segmented progress bar (top)                                        */
 /* ------------------------------------------------------------------ */
-const ProgressBar: React.FC<{ segments: ProgressSegment[]; brand: Brand }> = ({
+const ProgressBar: React.FC<{ segments: ProgressSegment[]; brand: Brand; showLabel?: boolean }> = ({
   segments,
   brand,
+  showLabel = true,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -363,7 +364,7 @@ const ProgressBar: React.FC<{ segments: ProgressSegment[]; brand: Brand }> = ({
           );
         })}
       </div>
-      <div
+      {showLabel ? <div
         style={{
           marginTop: 12,
           fontFamily: BODY,
@@ -378,7 +379,7 @@ const ProgressBar: React.FC<{ segments: ProgressSegment[]; brand: Brand }> = ({
         }}
       >
         {current.label}
-      </div>
+      </div> : null}
     </div>
   );
 };
@@ -959,8 +960,11 @@ export const Overlay: React.FC<OverlayProps> = (p) => {
   });
   const end = p.endCard ? p.endCard.from : p.duration;
   const titleEnd = p.title ? p.title.to : 0;
+  const tNow = useCurrentFrame() / fps;
+  const textHidden = (p.noTextWindows ?? []).some((w) => tNow >= w.from && tNow < w.to);
   return (
     <AbsoluteFill>
+     <AbsoluteFill style={{ opacity: textHidden ? 0 : 1 }}>
       {/* accents sit under the text layers */}
       {p.events.map((ev, i) => {
         const s = seq(ev.from, ev.to);
@@ -1018,8 +1022,9 @@ export const Overlay: React.FC<OverlayProps> = (p) => {
           />
         </Sequence>
       ) : null}
+     </AbsoluteFill>
       <Sequence from={0} durationInFrames={Math.max(1, fr(end))}>
-        <ProgressBar segments={p.progress} brand={p.brand} />
+        <ProgressBar segments={p.progress} brand={p.brand} showLabel={p.progressLabels !== false && !textHidden} />
       </Sequence>
       {p.endCard ? (
         <Sequence {...seq(p.endCard.from, p.endCard.to)}>

@@ -39,10 +39,10 @@
     "semantic_hash": "44e99006b66bead538f03e43e103e683"
   },
   "remotion/src/Overlay.tsx": {
-    "mtime": 1794761026.4243731,
-    "seen": 1794803792.2630546,
-    "ast_hash": "f31808a8d7ba4c369e0cb08717525480",
-    "semantic_hash": "f31808a8d7ba4c369e0cb08717525480"
+    "mtime": 1794849531.0839028,
+    "seen": 1794849543.488959,
+    "ast_hash": "919af4ac7c9aff7ee897758a187894c5",
+    "semantic_hash": ""
   },
   "remotion/src/Root.tsx": {
     "mtime": 1794544187.2333722,
@@ -63,10 +63,10 @@
     "semantic_hash": "c96add9e4c09d452ec267482e9d4629c"
   },
   "remotion/src/types.ts": {
-    "mtime": 1794761026.4248662,
-    "seen": 1794803792.263153,
-    "ast_hash": "d5da758a6ab7cff79afa119ae32cc1dd",
-    "semantic_hash": "d5da758a6ab7cff79afa119ae32cc1dd"
+    "mtime": 1794849479.6249666,
+    "seen": 1794849543.4889665,
+    "ast_hash": "24450d1285208188a17dbec7bee6d94f",
+    "semantic_hash": ""
   },
   "remotion/tsconfig.json": {
     "mtime": 1794544297.4811418,

@@ -75,6 +75,10 @@ export type OverlayProps = {
   events: TimedEvent[];
   endCard: { from: number; to: number; text: string; subtitle?: string } | null;
   lists?: ListCardItem[];
+  /** cut-time windows where the clip has its own baked-in text: nothing but a bare progress bar is drawn */
+  noTextWindows?: { from: number; to: number }[];
+  /** false = progress bar without the segment name under it */
+  progressLabels?: boolean;
 };
 
 export type CarouselProps = {
