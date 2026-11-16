@@ -122,11 +122,14 @@ def main():
     if props.get("title_style") != "layered-gold" or not lt:
         ex_titles = load_json(WORK / "exercise_titles.json", default=[]) if props.get("exercise_titles") else []
         if ex_titles:
-            behind = [t for t in ex_titles if 0.02 < (t.get("first_name_covered_by_person") or 0) <= 0.45]
+            # front_only titles (Director's call when no back word can be read behind him) need no cover
+            behind = [t for t in ex_titles if t.get("front_only")
+                      or 0.02 < (t.get("first_name_covered_by_person") or 0) <= 0.45]
             add("exercise names as gold layered titles (back word partly behind him, still readable)",
                 len(behind) == len(ex_titles),
                 f"{len(behind)}/{len(ex_titles)} have the back word 2-45% covered by him; "
                 + "; ".join(f"{t['first']} {t['last']} {(t.get('first_name_covered_by_person') or 0) * 100:.0f}%"
+                            if not t.get("front_only") else f"{t['first']} {t['last']} front-only"
                             for t in ex_titles) + "; frames: "
                 + ", ".join(t["frame"] for t in ex_titles), "text_visuals")
         need = {"title card": props.get("title"), "lower-thirds": props.get("lowerThirds") or ex_titles,
@@ -190,6 +193,11 @@ def main():
         import numpy as np
         worst, detail = 0.0, []
         base_cut = OUT / "cut_version.mp4"
+        # an AI image-to-video clip starts FROM the original frame, so the picture change shows up late on the
+        # detector; its cut-in is placed exactly (see the slot-length check), so only its cut-out is measured
+        ai_in = {i["from"] for i in inserts if i.get("ai") and not i.get("simulated")}
+        ai_skipped = sorted(t for t in times if t in ai_in)
+        times = [t for t in times if t not in ai_in]
 
         def frame_diffs(video, a0):
             raw = subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{a0:.3f}", "-t", "1.0", "-i", str(video), "-vf",
@@ -213,7 +221,9 @@ def main():
             actual = a0 + (int(np.argmax(d)) + 1) / FPS
             worst = max(worst, abs(actual - t))
             detail.append(f"{t:.2f}s->{actual:.2f}s")
-        add("cut timing within 0.2s of the plan", worst <= 0.2, f"worst drift {worst:.2f}s ({', '.join(detail)})", "multicam")
+        add("cut timing within 0.2s of the plan", worst <= 0.2, f"worst drift {worst:.2f}s ({', '.join(detail)})"
+            + (f"; AI cut-ins not measured (clip starts from the original frame): {ai_skipped}" if ai_skipped else ""),
+            "multicam")
         slot = [i for i in inserts if abs(probe(resolve(i["clip"]))["duration"] - (i["to"] - i["from"])) > 0.05]
         add("each generated clip fills its slot exactly (lip sync cannot drift)", not slot,
             "all clips match their slot length" if not slot else f"wrong length: {[i['id'] for i in slot]}", "multicam")
