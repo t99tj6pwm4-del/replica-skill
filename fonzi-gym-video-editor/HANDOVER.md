@@ -23,6 +23,6 @@
 ## Key decisions
 - Only Alfonso's own footage and own songs; English-only text; his captions verbatim; no hashtags on screen.
 - Stage first, show frames, never post without his yes; he posts himself; never post twice.
-- Fully automatic: he uploads one video, nothing else. No Sora; Omni only in Google Flow. No Remote Control.
+- Fully automatic: he uploads one video, nothing else. No Sora; Omni only in Google Flow. Remote Control allowed (Alfonso 2026-11-16: "PC + Remote Control" for free local AI angles); his PC TABLET-BK33DP824133M4 offers no usable folder yet (only Downloads, not_available) and likely lacks a GPU for local video AI; waiting on him to update the app, add a folder and check Task Manager GPU.
 - Camera angles never fail QA. Cheapest/free first. Fonts: Montserrat everywhere.
 - Secrets only in .env (never printed or committed).
