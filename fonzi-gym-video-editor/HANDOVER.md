@@ -9,13 +9,11 @@
 - Montserrat everywhere (Alfonso 2026-11-16): remotion/src/fonts.ts DISPLAY = Montserrat Black; scripts/layered_title.py titles in Montserrat Black, small sets x reps line bigger (SemiBold). Committed b399eec.
 
 ## Left to do
-- Re-render Locked In with Montserrat: `python3 scripts/render_final.py --title-style layered-gold-plus` (do NOT re-run build_overlay_props.py; overlay_props.json has hand edits).
-- Check all 8 gold title frames (work/layered_title*_frame.png) fit: back word partly behind him, nothing on face, clear of progress bar. Check mute + sets x reps.
-- Run QA, stage, send Alfonso video + frames; remind him sound is muted (add a sound in-app).
+- Locked In: Alfonso (2026-11-16) said no need to re-render. Montserrat re-render dropped; output/final_edit.mp4 (00:14 UTC, old fonts) and output/staged/ left as they are. Not approved, not exported.
 - "A Week of Work" (archived) still waits on his yes if he wants it.
 
 ## Next step
-- Re-render with Montserrat (above). Then on Alfonso's "approved": scripts/approve.py --alfonso-said-yes --own-footage-confirmed, scripts/export_final.py, send file + caption "Bulking season: lifting heavy, whole food, creatine, sleep. Comment LOCKED IN if you're in.", job.py set posted done. He posts himself.
+- New video tomorrow: run /fonzi-edit on it. Montserrat everywhere, the gold layered exercise titles, mute rule and top-down rule all apply automatically. Check the graph first (graphify query) before reading code.
 
 ## Key files
 - .claude/agents/fonzi-*.md, .claude/skills/fonzi-edit/SKILL.md, .claude/settings.json
