@@ -32,23 +32,34 @@ sys.path.insert(0, str(Path(__file__).parent))
 from common import FPS, H, OUT, REMOTION, W, WORK, brand, die, load_json, probe, rel, run, save_json  # noqa: E402
 
 GOLD = (205, 162, 32)                       # within #C9A227-#D4A017
-SERIF = REMOTION / "public" / "fonts" / "AbrilFatface-Regular.ttf"
+SERIF = REMOTION / "public" / "fonts" / "Montserrat.ttf"   # Alfonso (2026-11-16): Montserrat everywhere (Black)
+TITLE_WEIGHT = "Black"
 SANS = REMOTION / "public" / "fonts" / "Montserrat.ttf"
 WIDTH_FRAC = 0.90
 
 
-def fit_font(path: Path, text: str, width: int) -> ImageFont.FreeTypeFont:
+def font_at(path: Path, size: int, weight: str | None = None) -> ImageFont.FreeTypeFont:
+    f = ImageFont.truetype(str(path), size)
+    if weight:
+        try:
+            f.set_variation_by_name(weight)
+        except Exception:
+            pass
+    return f
+
+
+def fit_font(path: Path, text: str, width: int, weight: str | None = TITLE_WEIGHT) -> ImageFont.FreeTypeFont:
     """Largest font size whose rendered text is `width` pixels wide."""
     lo, hi = 10, 1200
     while lo < hi:
         mid = (lo + hi + 1) // 2
-        f = ImageFont.truetype(str(path), mid)
+        f = font_at(path, mid, weight)
         bb = f.getbbox(text)
         if bb[2] - bb[0] <= width:
             lo = mid
         else:
             hi = mid - 1
-    return ImageFont.truetype(str(path), lo)
+    return font_at(path, lo, weight)
 
 
 def text_layer(text: str, font: ImageFont.FreeTypeFont, cy: int, color=GOLD) -> Image.Image:
@@ -129,7 +140,7 @@ def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, i
     y1, yi, y2 = int(ys.get("first_y") or y1), int(ys.get("intro_y") or yi), int(ys.get("last_y") or y2)
     big1 = fit_font(SERIF, first.upper(), int(W * WIDTH_FRAC))
     big2 = fit_font(SERIF, last.upper(), int(W * WIDTH_FRAC))
-    small = ImageFont.truetype(str(SANS), max(34, int(big2.size * 0.16)))
+    small = ImageFont.truetype(str(SANS), max(48, int(big2.size * 0.22)))
     try:
         small.set_variation_by_name("SemiBold")
     except Exception:

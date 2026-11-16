@@ -10,7 +10,9 @@ let ready: Promise<void> | null = null;
 const loadOnce = (): Promise<void> => {
   if (!ready) {
     const faces = [
-      new FontFace(DISPLAY, `url(${staticFile("fonts/Anton-Regular.ttf")})`),
+      // Alfonso (2026-11-16): Montserrat everywhere. Headlines = Montserrat Black (the weight range is pinned
+      // to 900, so every DISPLAY text renders Black); small text = BODY, the full variable range.
+      new FontFace(DISPLAY, `url(${staticFile("fonts/Montserrat.ttf")})`, { weight: "900" }),
       new FontFace(BODY, `url(${staticFile("fonts/Montserrat.ttf")})`, { weight: "100 900" }),
     ];
     ready = Promise.all(faces.map((f) => f.load())).then((loaded) => {
