@@ -17,7 +17,39 @@
     }
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$CLAUDE_PROJECT_DIR/fonzi-gym-video-editor\" 2>/dev/null && [ -x \"$HOME/.local/bin/graphify\" ] && \"$HOME/.local/bin/graphify\" hook-guard search || true",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$CLAUDE_PROJECT_DIR/fonzi-gym-video-editor\" 2>/dev/null && [ -x \"$HOME/.local/bin/graphify\" ] && \"$HOME/.local/bin/graphify\" hook-guard read || true",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
     "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$CLAUDE_PROJECT_DIR/fonzi-gym-video-editor\" 2>/dev/null && [ -x \"$HOME/.local/bin/graphify\" ] && \"$HOME/.local/bin/graphify\" hook-guard compact || true",
+            "timeout": 10
+          }
+        ]
+      },
       {
         "matcher": "compact",
         "hooks": [

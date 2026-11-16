@@ -5,6 +5,7 @@
 - Free AI angles (wan-free on Hugging Face, quota exhausted until ~16:00 UTC 11-16) with free-local crop fallback; Seedance only on Alfonso's yes.
 - "Locked In / Bulking season" (input/drive_1E3BsV75.mp4, brief "1:30 second clip"): 91.9s. title_style layered-gold-plus: FONZI/STAYS FIT at 53.6-54.6 + 7 gold layered exercise titles (storyboard exercise_titles, each with sets x reps). Baked-in music muted by rule (work/audio_rule.json). No top-down shot this time (Alfonso: "Finish now, no top-down").
 - Standing answers (2026-11-15): all his footage is his; always mute baked-in music; exercise-name guesses ok; make up sets x reps; Claude picks caption; at least one top-down multicam shot per video (config multicam.require_top_down).
+- Graphify installed (code-only graph in fonzi-gym-video-editor/graphify-out/, hooks in root .claude/settings.json, verified firing; env setup script reinstalls it each session). Check the graph first; run `graphify update .` after structural changes.
 - Montserrat everywhere (Alfonso 2026-11-16): remotion/src/fonts.ts DISPLAY = Montserrat Black; scripts/layered_title.py titles in Montserrat Black, small sets x reps line bigger (SemiBold). Committed b399eec.
 
 ## Left to do
