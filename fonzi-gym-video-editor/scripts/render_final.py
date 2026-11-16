@@ -186,7 +186,8 @@ def main():
         ex_base = WORK / "exercise_base.mp4"
         infos = _lt.build_exercise_titles(cut, ex_base)
         for i in infos:
-            print(f"exercise title: {i['first']} (behind) / {i['last']} (in front) at {i['at']:.2f}s for {i['dur']:.2f}s")
+            where = "in front, no word behind" if i.get("front_only") else "behind"
+            print(f"exercise title: {i['first']} ({where}) / {i['last']} (in front) at {i['at']:.2f}s for {i['dur']:.2f}s")
         cut = ex_base
         props["lowerThirds"] = []
         props["exercise_titles"] = [{"at": i["at"], "dur": i["dur"], "text": f"{i['first']} {i['last']}".strip()}
