@@ -9,10 +9,10 @@
 - Montserrat everywhere (Alfonso 2026-11-16): remotion/src/fonts.ts DISPLAY = Montserrat Black; scripts/layered_title.py titles in Montserrat Black, small sets x reps line bigger (SemiBold). Committed b399eec.
 
 ## Left to do
-- Nothing open. "After Hours" approved 2026-11-17, exported to exports/2026-11-17_after-hours.mp4 (+ .txt caption, 7-slide carousel), handed to Alfonso; he posts himself.
+- "After Hours" 90s re-cut (job.py replaces exports/2026-11-17_after-hours.mp4): QA PASS, staged at output/staged/final_edit.mp4 (89.7s, song 59.087-148.84). WAITING for Alfonso's yes.
 
 ## Next step
-- Next video: /fonzi-edit <link> <brief>. iCloud shared albums (photos.icloud.com/shared/album/...) download via headless browser capture of ckdatabasews records (resOriginalRes downloadURL).
+- On his yes: approve.py --alfonso-said-yes --own-footage-confirmed; export_final.py; send file + caption "After hours, no shortcuts. Arms, back, shoulders, chest and legs in one session. Save it for your next gym day." + 9 carousel slides; job.py set posted done. Song in app: start at 0:59.
 
 ## Key files
 - .claude/agents/fonzi-*.md, .claude/skills/fonzi-edit/SKILL.md, .claude/settings.json
