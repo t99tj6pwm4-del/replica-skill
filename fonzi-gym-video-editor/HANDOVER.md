@@ -9,11 +9,11 @@
 - Montserrat everywhere (Alfonso 2026-11-16): remotion/src/fonts.ts DISPLAY = Montserrat Black; scripts/layered_title.py titles in Montserrat Black, small sets x reps line bigger (SemiBold). Committed b399eec.
 
 ## Left to do
-- "No Days Off" (input/drive_1pnZDifS.mp4, brief "Random clicks some will always have font don't add any to those lets really make it cinematic and punchy"): 47.8s, QA PASS, staged at output/staged/final_edit.mp4 + post.json. Waiting for Alfonso's yes. No-text windows (his baked titles) 9.6-16.733, 25.867-30.367 kept clean. 3 gold titles (EZ BAR front_only). 4 wan-free AI angles kept by his choice (fake shirt text angle_1, no real top-down). Muted.
+- "No Days Off" (input/drive_1pnZDifS.mp4, brief "Random clicks some will always have font don't add any to those lets really make it cinematic and punchy"): 47.8s, QA PASS, staged at output/staged/final_edit.mp4 + post.json. Alfonso (2026-11-17): not approved, not posting it; doing a new video instead. Gets archived at the next job.py init. No-text windows (his baked titles) 9.6-16.733, 25.867-30.367 kept clean. 3 gold titles (EZ BAR front_only). 4 wan-free AI angles kept by his choice (fake shirt text angle_1, no real top-down). Muted.
 - Locked In: dropped re-render, not approved.
 
 ## Next step
-- On Alfonso's yes: scripts/approve.py --alfonso-said-yes --own-footage-confirmed; scripts/export_final.py; send file + caption "Random clips, same mission. Which lift are you stealing for your next session?" (+ carousel slides); job.py set posted done. He posts himself; remind him the video is silent.
+- Next video: run /fonzi-edit <link> <brief> when Alfonso sends it.
 
 ## Key files
 - .claude/agents/fonzi-*.md, .claude/skills/fonzi-edit/SKILL.md, .claude/settings.json
