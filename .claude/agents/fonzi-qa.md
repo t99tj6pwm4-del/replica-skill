@@ -126,3 +126,20 @@ not apply to them. A bad one -> text_visuals (or storyboard for the at/dur/y).
 - Baked-in music is always muted: a final with no sound because of that rule is correct (qa_check marks it).
 - Made-up sets x reps and a chosen caption are his instruction, not a problem.
 - At least one top-down multicam shot (#13 / #14 / #24) must be in every video: missing one -> multicam.
+
+## Pop-up cards (Alfonso, 2026-11-17)
+
+Every gym reel (also one with a song soundtrack) must have the pop-up cards; a song video ("video_type":
+"song_video") must have none. qa_check checks: one Exercise Bar per storyboard lift (same names, the routine's
+sets x reps + Spanish name, no invented lift), a Routine Checklist on every lift after the first, exactly one
+Form Tip tied to a lift in the video, and no pop-up inside a no_text_window (0.1s margin). A gym reel without
+"lifts" in the storyboard is a NOTE for the storyboard agent.
+
+Look at a frame inside each card: Montserrat, dark translucent rounded card, gold #D4A017; bar = gold caps name +
+"sets x reps • Spanish name" in white; form tip = FORM TIP / white cue / grey Spanish line; checklist = TODAY'S
+ROUTINE, gold check rows for finished lifts, bold white arrow row for the current one, grey dot rows for the rest,
+"X OF N DONE". None of them on his face, none under the top 110px / bottom 420px. A card on his face or wrong
+text -> text_visuals (wrong lift / cue / times in the storyboard -> storyboard).
+
+The Spanish lines in these pop-ups are an approved exception to English-only (the English-only check allows
+Spanish letters and • there, nothing else). Hashtags are still never allowed.

@@ -115,7 +115,7 @@ Built-in safety:
 
 - Only your own footage, from `input/`. Nothing is downloaded from other creators.
 - Only your own audio: the video's sound plus your mp3s in `songs/`. No stock or AI music.
-- English only for all text the team writes; your own caption posts verbatim.
+- English only for all text the team writes; your own caption posts verbatim. Exception: the Spanish lines of the gym-reel pop-up cards (approved 2026-11-17).
 - Every edit is staged in `output/` and you see preview frames before anything is posted.
 - If a step fails, everything stops and you are told exactly what failed. A broken file is never posted.
 

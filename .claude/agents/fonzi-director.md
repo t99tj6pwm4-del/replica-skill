@@ -150,3 +150,9 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
    shot_library.py enforces it; top-down shots are exempt from the no-repeat rule.
 7. **Exercise titles:** every exercise name is a gold layered title (word behind him, word in front), the
    same style as FONZI / STAYS FIT, instead of the old lower-third box.
+8. **Pop-up cards (2026-11-17):** every gym reel gets the Exercise Bar, one Form Tip and the Routine Checklist
+   (a gym reel with a song soundtrack is still a gym reel; a song video gets none, "video_type": "song_video").
+   Have the Storyboard Agent plan "lifts" (name, sets_reps, spanish, cut_start, cut_end, gold_title_end) and one
+   "form_tip" (lift, at, cue, cue_es) with a real cue. Keep the gold layered exercise titles too: the bar and
+   checklist pop in right after each gold title. Spanish is allowed in these pop-ups only (approved exception to
+   English-only). Text/Visuals adds them to a hand-edited overlay_props.json with `scripts/add_popups.py`.

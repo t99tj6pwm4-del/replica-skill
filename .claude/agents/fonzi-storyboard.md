@@ -125,3 +125,18 @@ on his face. Windows must not overlap each other or the FONZI layered title. The
 - Every exercise name is a gold layered title ("exercise_titles"), not a lower-third.
 - Exercise name guesses are fine; do not stop to ask.
 - Caption: if he gives none, write one ("caption" in the storyboard).
+
+## Pop-up cards: plan "lifts" and one "form_tip" on every gym reel (Alfonso, 2026-11-17)
+
+Every gym reel (also one with a song soundtrack) gets pop-up cards built from two storyboard keys. A song video
+gets none: mark it "video_type": "song_video" and leave these out.
+- "lifts": [{"name": "Landmine Press", "sets_reps": "4 x 12", "spanish": "Press de mina", "cut_start": 3.2,
+  "cut_end": 14.8, "gold_title_end": 4.7}, ...]: every lift actually in the video, in the order it appears, never
+  an invented one. Name in Title Case English; sets_reps from the routine (or made-up realistic numbers, standing
+  answer); "spanish" = the usual Spanish gym name. cut_start / cut_end = the lift's span in the CUT timeline;
+  gold_title_end = when its gold exercise title ends (leave it out if the lift has none). Optional "bar_y" /
+  "checklist_y" (px from the top) when the default spot (bar 1160, checklist 570) would sit on his face.
+- "form_tip": {"lift": "Landmine Press", "at": 8.0, "cue": "Breathe out on the hardest part", "cue_es": "Exhala en
+  la parte más difícil"}: ONE per video, on the most technical lift, a real short cue that matches what he is doing
+  on screen at "at" (cut time; it holds 5s, so pick a time with 5s of that lift left). Optional "y" (default 196).
+- Keep "at" and the lift starts out of no_text_windows. Spanish is allowed only in "spanish" and "cue_es".

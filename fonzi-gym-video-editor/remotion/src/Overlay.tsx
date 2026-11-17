@@ -1041,7 +1041,7 @@ const FormTipCard: React.FC<{ item: FormTipPopup; brand: Brand; frames: number }
         left: 60,
         right: 60,
         top: item.y,
-        padding: "44px 48px 48px",
+        padding: "36px 48px 40px",
         transformOrigin: "50% 0%",
         ...pop,
       }}
@@ -1138,11 +1138,11 @@ const RoutineChecklist: React.FC<{ item: ChecklistPopup; brand: Brand; frames: n
                 <span
                   style={{
                     fontFamily: MONTSERRAT,
-                    fontWeight: cur ? WEIGHT.extraBold : WEIGHT.regular,
-                    fontSize: cur ? 28 : 30,
+                    fontWeight: cur ? WEIGHT.extraBold : WEIGHT.bold,
+                    fontSize: cur ? 34 : 44,
                     lineHeight: 1,
                     color,
-                    paddingLeft: cur ? 0 : 4,
+                    paddingLeft: cur ? 0 : 6,
                   }}
                 >
                   {cur ? "→" : "•"}

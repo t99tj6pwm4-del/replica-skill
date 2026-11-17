@@ -116,3 +116,41 @@ picture (scripts/layered_title.py build_exercise_titles) and drops the lower-thi
 output/work/layered_title_exN_frame.png: back word partly hidden behind him but readable, front word on his
 torso, nothing on his face, no other graphic on the gold letters during each window (move CAM tags / badges /
 lists out of those windows). If one is wrong, tell the Director the exact at/dur/y that works.
+
+## Pop-up cards on every gym reel (Alfonso's rule, 2026-11-17)
+
+Every gym reel gets three pop-up cards (a gym reel with a song soundtrack is still a gym reel). Never on a song
+video (storyboard "video_type": "song_video"). They sit on top of the footage, separate from the word-by-word
+captions (captions stay as they are). All Montserrat, dark translucent rounded card (#333 at 85%), gold
+`popup_color` #D4A017 from config/brand.json, quick spring pop-in (~0.2s) and quick pop-out. Remotion components
+ExerciseBar / FormTipCard / RoutineChecklist in remotion/src/Overlay.tsx, data in overlay_props.json "popups".
+- **Exercise Bar** (every lift): bottom third, thin gold top edge. Line 1 the exercise name, ExtraBold, gold, caps;
+  line 2 "sets x reps • Spanish name", Regular, white (e.g. LANDMINE PRESS / 4 x 12 • Press de mina).
+- **Form Tip** (once per video, the most technical lift): top of frame, holds 5s. FORM TIP (ExtraBold gold), the
+  cue (Bold white), the Spanish line (Regular grey).
+- **Routine Checklist** (every lift after the first): left side. TODAY'S ROUTINE (ExtraBold gold); finished lifts
+  gold with a gold check, the current lift bold white with an arrow, the rest grey with a dot; "X OF N DONE"
+  (gold bold), N = the lifts in the video, X = the finished ones.
+
+Data comes from the storyboard: "lifts": [{name, sets_reps, spanish, cut_start, cut_end, gold_title_end}] and
+"form_tip": {lift, at, cue, cue_es}. Only lifts that are really in the video; never invent one. If a gym reel has
+no "lifts" / "form_tip", ask the Director to have the Storyboard Agent add them.
+
+Timing (done by the scripts): the gold layered exercise title comes first (~1.5s); the Exercise Bar and the
+Checklist pop in when it ends (lifts[].gold_title_end; no gold title = the lift start) and hold 4s or to the lift
+end. The Form Tip pops in at form_tip.at for 5s (never past its lift). Nothing pops up inside a no_text_window
+(0.1s margin). When a bar is on screen the old lower-third for that moment is not drawn (same information).
+
+How:
+- A fresh `build_overlay_props.py` already adds them.
+- To add or refresh ONLY the pop-ups in an overlay_props.json you already hand-edited:
+  `python3 scripts/add_popups.py` (replaces just the "popups" key and brand.popupColor; captions, callouts and
+  everything else stay). `--dry-run` prints them without writing.
+- Never on his face: preview a frame inside every pop-up. Move a card with "y" (px from the top, 1920 tall) on the
+  card in overlay_props.json "popups", or (so it survives a rebuild) lifts[].bar_y / lifts[].checklist_y /
+  form_tip.y in the storyboard via the Director. Defaults: tip 196, checklist 570, bar 1160 (above the captions).
+  Keep everything out of the top 110px and bottom 420px.
+
+English-only exception (approved by Alfonso, 2026-11-17): the Spanish lines of these pop-ups (the Spanish exercise
+name and the Spanish cue) may use Spanish letters (á é í ó ú ü ñ ¿ ¡) and the • separator. Everything else on
+screen stays English-only, and no hashtags anywhere. render_final.py and qa_check.py allow exactly this.

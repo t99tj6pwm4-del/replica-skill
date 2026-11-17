@@ -11,9 +11,9 @@ and brand.popupColor, everything else in the file stays exactly as it is.
 From output/storyboard.json:
   "lifts": [{"name": "Landmine Press", "sets_reps": "4 x 12", "spanish": "Press de mina",
              "cut_start": 3.2, "cut_end": 14.8, "gold_title_end": 4.7,       # gold_title_end optional
-             "bar_y": 1160, "checklist_y": 540}, ...]                          # *_y optional (keep off his face)
+             "bar_y": 1160, "checklist_y": 570}, ...]                          # *_y optional (keep off his face)
   "form_tip": {"lift": "Landmine Press", "at": 8.0, "cue": "Breathe out on the hardest part",
-               "cue_es": "Exhala en la parte más difícil", "y": 150}           # y optional
+               "cue_es": "Exhala en la parte más difícil", "y": 196}           # y optional
   "video_type": "song_video"    # only on song videos: then NO pop-ups (a gym reel with a song is still a gym reel)
 
 Timing: the Exercise Bar (every lift) and the Routine Checklist (every lift after the first) pop in when the
@@ -35,7 +35,7 @@ from common import OUT, WORK, brand, die, load_json, rel, save_json  # noqa: E40
 BAR_HOLD, TIP_HOLD, LIST_HOLD = 4.0, 5.0, 4.0
 MARGIN = 0.1          # keep this far from a no_text_window
 MIN_SHOW = 1.0        # a pop-up shorter than this after clipping is dropped (and reported)
-BAR_Y, TIP_Y, LIST_Y = 1160, 150, 540
+BAR_Y, TIP_Y, LIST_Y = 1160, 196, 570   # tip below the progress bar label, list below the tip, bar above captions
 DOT = "•"
 # the only non-English text allowed on screen: the Spanish lines of these pop-ups (approved exception)
 POPUP_CHARS = re.compile(r"^[\x20-\x7EÀ-ÿ¡¿•]*$")
@@ -58,7 +58,7 @@ def no_text_windows(sb: dict, props: dict | None = None) -> list[tuple[float, fl
             out.append((float(a), float(b)))
     for w in (props or {}).get("noTextWindows") or []:
         out.append((float(w["from"]), float(w["to"])))
-    return sorted(out)
+    return sorted(set(out))
 
 
 def clip(a: float, b: float, windows: list) -> tuple[float, float]:
