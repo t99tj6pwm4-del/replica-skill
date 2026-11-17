@@ -71,17 +71,24 @@ def build_pieces(seg: dict, dead: list) -> list[dict]:
             for k, sp in enumerate((0.35, 0.5, 0.75, 1.0)):
                 speeds.append((f + k * part, f + (k + 1) * part, sp, "hero"))
         elif e["type"] == "speed_ramp":
-            # ramp = ease in, hold, ease out
+            # ramp = ease in, hold, ease out. The storyboard plans a ramp as (to - from) / speed seconds
+            # (storyboard_md.validate), so the hold is solved to keep exactly that length: the eased
+            # edges never push later cuts off the beat grid.
             f, t, sp = e["from"], e["to"], float(e["speed"])
-            edge = (t - f) * 0.2
+            edge = (t - f) * 0.1
             mid = sp ** 0.5 if base_speed == 1.0 else (sp * base_speed) ** 0.5
-            speeds += [(f, f + edge, mid, "speed_ramp"), (f + edge, t - edge, sp, "speed_ramp"),
+            hold = (t - f - 2 * edge) / ((t - f) / sp - 2 * edge / mid)
+            speeds += [(f, f + edge, mid, "speed_ramp"), (f + edge, t - edge, hold, "speed_ramp"),
                        (t - edge, t, mid, "speed_ramp")]
     marks = sorted({x for k in keep for x in k} | {x for s in speeds for x in s[:2]} | {x for z in zooms for x in z[:2]})
     pieces = []
     for lo, hi in zip(marks, marks[1:]):
         mid = (lo + hi) / 2
-        if not any(k0 <= mid <= k1 for k0, k1 in keep) or hi - lo < FRAME:
+        if not any(k0 <= mid <= k1 for k0, k1 in keep):
+            continue
+        if hi - lo < FRAME:
+            if pieces and abs(pieces[-1]["src_b"] - lo) < 1e-9:
+                pieces[-1]["src_b"] = hi   # fold a sub-frame sliver into the piece before it (no lost time)
             continue
         sp, kind = next(((s[2], s[3]) for s in speeds if s[0] <= mid < s[1]), (base_speed, None))
         z = max([zz[2] for zz in zooms if zz[0] <= mid < zz[1]] or [float(seg.get("zoom", 1.0))])
@@ -153,7 +160,9 @@ def main():
     shutil.rmtree(tmp, ignore_errors=True)
     tmp.mkdir(parents=True)
 
-    out_t, all_pieces, seg_map, events, callouts, snapped = 0.0, [], [], [], [], 0
+    # exact_t = unquantised timeline; each piece ends on the frame nearest its exact end, so frame
+    # rounding never accumulates (drift stays under half a frame for the whole cut)
+    out_t, exact_t, all_pieces, seg_map, events, callouts, snapped = 0.0, 0.0, [], [], [], [], 0
     for seg in sb["segments"]:
         seg = dict(seg)
         # snap each punch-in so the zoom cut lands on a beat
@@ -162,13 +171,13 @@ def main():
             for e in seg.get("effects", []):
                 if e["type"] != "punch_in":
                     continue
-                t, at_out = out_t, None
+                t, at_out = exact_t, None
                 for p in probe_pieces:
                     if p["src_a"] <= e["at"] < p["src_b"]:
                         at_out = t + (e["at"] - p["src_a"]) / p["speed"]
                         local_speed = p["speed"]
                         break
-                    t += q((p["src_b"] - p["src_a"]) / p["speed"])
+                    t += (p["src_b"] - p["src_a"]) / p["speed"]
                 if at_out is None:
                     continue
                 beat = phase + round((at_out - phase) / period) * period
@@ -180,10 +189,11 @@ def main():
         seg_start = out_t
         seg_pieces = build_pieces(seg, dead)
         for p in seg_pieces:
-            p["out_dur"] = q((p["src_b"] - p["src_a"]) / p["speed"])
-            if p["out_dur"] < FRAME:
+            exact_t += (p["src_b"] - p["src_a"]) / p["speed"]
+            p["out_dur"] = round(q(exact_t) - out_t, 4)
+            if p["out_dur"] < FRAME - 1e-6:
                 continue
-            p["out_a"], p["out_b"] = round(out_t, 4), round(out_t + p["out_dur"], 4)
+            p["out_a"], p["out_b"] = round(out_t, 4), round(q(exact_t), 4)
             p["seg"] = seg
             out_t = p["out_b"]
             all_pieces.append(p)
@@ -263,6 +273,14 @@ def main():
 
     # final export: freeze tail for the end card, optional song under the voice
     voice_vol = float(sb.get("voice_volume", 1.0))
+    # Alfonso (2026-11-15, config audio.mute_baked_music): always mute music baked into his uploads.
+    # With his own song from songs/ the render step does not mute anything, so with no speech the
+    # footage's baked-in audio is dropped here and the song is the only soundtrack.
+    from common import load_config
+    if ("voice_volume" not in sb and sb.get("song") and load_config().get("audio", {}).get("mute_baked_music")
+            and analysis.get("source") == rel(src) and len(analysis.get("raw_words", [])) < 3):
+        voice_vol = 0.0
+        print("audio: no speech, baked-in footage audio muted (Alfonso's rule); song only")
     fc = [f"[0:v]tpad=stop_mode=clone:stop_duration={tail},fps={FPS},format=yuv420p[v]",
           f"[0:a]volume={voice_vol},apad=pad_dur={tail}[voice]"]
     cmd = ["ffmpeg", "-v", "error", "-y", "-i", joined]
