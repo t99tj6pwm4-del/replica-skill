@@ -25,6 +25,32 @@
       "posted_at": "2026-11-13 13:16:36",
       "reel": {},
       "handed_to_alfonso": "exports/2026-11-13_heavy-curl-day.mp4"
+    },
+    {
+      "sha256": "116ee7532dd925c86837d1d9552af4b639757f27ac7232cdd76be1cbe3f8a565",
+      "source_sha256": "45b5adf2256faf16fa52ee7347923870034b7f837e3c782852b99177f2a80c09",
+      "fingerprint": [
+        "73311c4c3c070038",
+        "e0c2e05831f44840",
+        "732773713978f010",
+        "071ad3e72621282e",
+        "034e8acbe84c2c2e",
+        "3f1b3aeae0990866",
+        "3d2723f9b97900e6",
+        "dc62e0c1c1c00066",
+        "2c365cb9b95859ac",
+        "263c48b2b399f84d",
+        "069ab97469c5910b",
+        "061ab161e5c59123",
+        "037a5940c0c48612",
+        "bf7372bbd1d0c8c0",
+        "9d7373b9d1c8c4c0",
+        "b24dcc591f86c080"
+      ],
+      "title": "After Hours",
+      "posted_at": "2026-11-17 18:48:43",
+      "reel": {},
+      "handed_to_alfonso": "exports/2026-11-17_after-hours.mp4"
     }
   ]
 }
