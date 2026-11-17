@@ -122,24 +122,31 @@ def main():
     elif lifts:
         bars, lists, tip = pops.get("bars") or [], pops.get("checklists") or [], pops.get("formTip")
         names = [l["name"].strip() for l in lifts]
+        wins = no_text_windows(sb, props)
+        # a lift lying entirely inside a no-text window (his own baked-in title) correctly gets no cards
+        hidden = [i for i, l in enumerate(lifts) if any(a - 0.1 <= float(l["cut_start"]) and float(l["cut_end"]) <= b + 0.1
+                                                         for a, b in wins)]
+        shown = [i for i in range(len(lifts)) if i not in hidden]
+        want_names = [names[i].upper() for i in shown]
         bar_names = [b["title"] for b in bars]
-        add("pop-up: one Exercise Bar per lift", bar_names == [n.upper() for n in names],
-            f"{len(bars)} bars for {len(lifts)} lifts" + ("" if bar_names == [n.upper() for n in names]
-                                                          else f": bars {bar_names} vs lifts {names}"), "text_visuals")
+        note = f"; {len(hidden)} lift(s) inside a no-text window get none: {[names[i] for i in hidden]}" if hidden else ""
+        add("pop-up: one Exercise Bar per lift", bar_names == want_names,
+            f"{len(bars)} bars for {len(shown)} lifts" + note + ("" if bar_names == want_names
+                                                              else f": bars {bar_names} vs lifts {want_names}"), "text_visuals")
         want, _ = build_popups(sb, float(props.get("duration", info["duration"])), props)
         want_detail = [b["detail"] for b in (want or {}).get("bars", [])]
         add("pop-up: bars show the routine's sets x reps + Spanish name (no invented lift)",
             [b["detail"] for b in bars] == want_detail, " | ".join(b["detail"] for b in bars) or "none", "text_visuals")
-        okl = (len(lists) == len(lifts) - 1 and all(c.get("items") == names and c.get("current") == i
-                                                    for i, c in enumerate(lists, 1)))
+        want_cur = [i for i in shown if i > 0]
+        okl = (len(lists) == len(want_cur) and all(c.get("items") == names and c.get("current") == i
+                                                   for i, c in zip(want_cur, lists)))
         add("pop-up: a Routine Checklist on every lift after the first", okl,
-            f"{len(lists)} checklists for {len(lifts) - 1} lifts after the first"
+            f"{len(lists)} checklists for {len(want_cur)} shown lifts after the first" + note
             + ("" if okl else " (items must be the lifts in order, current = the lift on screen)"), "text_visuals")
         okt = bool(tip and tip.get("cue") and tip.get("lift", "").lower() in [n.lower() for n in names])
         add("pop-up: exactly one Form Tip, tied to a lift in the video", okt,
             f"{tip['lift']}: {tip['cue']} / {tip.get('cueEs', '')} at {tip['from']:.2f}-{tip['to']:.2f}s" if tip
             else "missing", "text_visuals")
-        wins = no_text_windows(sb, props)
         spans = [("bar " + b["title"], b) for b in bars] + [(f"checklist {c['current']}", c) for c in lists]
         spans += [("form tip", tip)] if tip else []
         hits = [f"{n} {x['from']:.2f}-{x['to']:.2f}s vs {a:.2f}-{b:.2f}s" for n, x in spans for a, b in wins
@@ -234,42 +241,43 @@ def main():
         mid = [t for t in times if any(w["start"] + 0.02 < t < w["end"] - 0.02 for w in words)]
         add("angle cuts never mid-word", not mid, f"{len(times)} cuts checked against {len(words)} words"
             if not mid else f"mid-word at {mid}", "multicam")
-        # where does the picture really change? measure it and compare with the plan
+        # frame-exact timing (2026-11-17): every frame inside a slot must be the angle, and the frame just
+        # before and just after the slot must still be the cut. Comparing with the cut frame by frame is exact,
+        # where guessing cut points from motion confused an AI angle that looks like the original with a cut.
         import subprocess
         import numpy as np
-        worst, detail = 0.0, []
         base_cut = OUT / "cut_version.mp4"
-        # an AI image-to-video clip starts FROM the original frame, so the picture change shows up late on the
-        # detector; its cut-in is placed exactly (see the slot-length check), so only its cut-out is measured
-        ai_in = {i["from"] for i in inserts if i.get("ai") and not i.get("simulated")}
-        ai_skipped = sorted(t for t in times if t in ai_in)
-        times = [t for t in times if t not in ai_in]
 
-        def frame_diffs(video, a0):
-            raw = subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{a0:.3f}", "-t", "1.0", "-i", str(video), "-vf",
-                                  f"fps={FPS},scale=48:86,format=gray", "-f", "rawvideo", "-"], capture_output=True).stdout
-            fr = np.frombuffer(raw, dtype=np.uint8)
-            n = len(fr) // (48 * 86)
-            if n < 3:
-                return None
-            return np.abs(np.diff(fr[: n * 48 * 86].reshape(n, 86, 48).astype(np.float32), axis=0)).mean(axis=(1, 2))
+        _all = {}
 
-        for t in times:
-            a0 = max(0.0, t - 0.5)
-            d = frame_diffs(mc_video, a0)
-            if d is None:
-                continue
-            # ignore picture changes that are already in the cut (its own jump cuts), so only the angle cut counts
-            b = frame_diffs(base_cut, a0) if base_cut.exists() else None
-            if b is not None:
-                k = min(len(d), len(b))
-                d = np.clip(d[:k] - b[:k], 0, None)
-            actual = a0 + (int(np.argmax(d)) + 1) / FPS
-            worst = max(worst, abs(actual - t))
-            detail.append(f"{t:.2f}s->{actual:.2f}s")
-        add("cut timing within 0.2s of the plan", worst <= 0.2, f"worst drift {worst:.2f}s ({', '.join(detail)})"
-            + (f"; AI cut-ins not measured (clip starts from the original frame): {ai_skipped}" if ai_skipped else ""),
-            "multicam")
+        def gray_frames(video, f_from, f_to):
+            # decode the whole video once (small, grey) and index by frame number: seeking can land a frame off
+            if video not in _all:
+                raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(video), "-vf", "scale=72:128,format=gray",
+                                      "-f", "rawvideo", "-"], capture_output=True).stdout
+                k = len(raw) // (72 * 128)
+                _all[video] = np.frombuffer(raw[: k * 72 * 128], dtype=np.uint8).reshape(k, 128, 72).astype(np.float32)
+            return _all[video][max(0, f_from): f_to + 1]
+
+        bad_t, detail = [], []
+        if base_cut.exists():
+            for i in inserts:
+                f0, f1 = round(i["from"] * FPS), round(i["to"] * FPS) - 1
+                m = gray_frames(mc_video, f0 - 1, f1 + 1)
+                c = gray_frames(base_cut, f0 - 1, f1 + 1)
+                k = min(len(m), len(c))
+                if k < 3:
+                    continue
+                d = np.abs(m[:k] - c[:k]).mean(axis=(1, 2))
+                outside_ok = d[0] < 2.0 and (k < f1 - f0 + 3 or d[-1] < 2.0)
+                inside = d[1:k - 1] if k == f1 - f0 + 3 else d[1:]
+                inside_ok = bool(len(inside)) and float(np.median(inside)) >= 2.0
+                detail.append(f"{i['id']} {i['from']:.3f}-{i['to']:.3f}s: before/after {d[0]:.1f}/{d[-1]:.1f}, "
+                              f"inside median {float(np.median(inside)) if len(inside) else 0:.1f}")
+                if not (outside_ok and inside_ok):
+                    bad_t.append(i["id"])
+        add("cut timing exact (each angle fills its slot frame by frame, the cut on both sides)", not bad_t,
+            "; ".join(detail) if not bad_t else f"off: {bad_t}; " + "; ".join(detail), "multicam")
         slot = [i for i in inserts if abs(probe(resolve(i["clip"]))["duration"] - (i["to"] - i["from"])) > 0.05]
         add("each generated clip fills its slot exactly (lip sync cannot drift)", not slot,
             "all clips match their slot length" if not slot else f"wrong length: {[i['id'] for i in slot]}", "multicam")
