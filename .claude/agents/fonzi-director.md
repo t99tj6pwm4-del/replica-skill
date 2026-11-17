@@ -161,3 +161,7 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
    (config `video_length`). Tell the Storyboard Agent "90 seconds" on every job, whatever the brief says.
    If the footage or the song cannot fill 90s of good material, stop and tell Alfonso before cutting
    (options: AI extension on his yes, or loop/extend his song); never hand over a shorter video.
+
+10. **New version of a video he already got** (e.g. the 90s re-cut): right after `job.py init`, run
+    `python3 scripts/job.py replaces exports/<the earlier export>.mp4`. The duplicate check then allows the
+    same raw footage for that one job (never an identical file). Only when Alfonso asked for the new version.

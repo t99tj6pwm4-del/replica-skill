@@ -18,7 +18,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import OUT, die, load_json, rel, resolve, save_json  # noqa: E402
+from common import LEDGER as LEDGER_FILE, OUT, die, load_json, rel, resolve, save_json  # noqa: E402
 
 STEPS = ["storyboard", "cuts", "multicam", "text_visuals", "qa", "approval", "posted"]
 NAMES = {"storyboard": "Storyboard", "cuts": "Cuts", "multicam": "Multicam/B-Roll", "text_visuals": "Text/Visuals", "qa": "Final Approval (QA)",
@@ -51,6 +51,8 @@ def main():
     s.add_argument("status", choices=["working", "done", "failed", "waiting"])
     s.add_argument("--note", default="")
     sub.add_parser("show")
+    r = sub.add_parser("replaces")   # Alfonso asked for a new version of a video he already got (e.g. a 90s re-cut)
+    r.add_argument("export", help="the exports/... file this job replaces, as listed in posted/ledger.json")
     a = ap.parse_args()
 
     if a.cmd == "init":
@@ -81,6 +83,13 @@ def main():
         job.setdefault("broll", []).append(a.request)
         save_json(JOB, job)
         print(f"B-roll requests: {job['broll']}")
+    if a.cmd == "replaces":
+        led = load_json(LEDGER_FILE, default={"posted": []})["posted"]
+        if not any(e.get("handed_to_alfonso") == a.export for e in led):
+            die(f"{a.export} is not in posted/ledger.json")
+        job["replaces"] = a.export
+        save_json(JOB, job)
+        print(f"this job replaces {a.export} (Alfonso asked for it); the duplicate check allows the same footage")
     if a.cmd == "set":
         st = job["steps"][a.step]
         if a.status == "working":

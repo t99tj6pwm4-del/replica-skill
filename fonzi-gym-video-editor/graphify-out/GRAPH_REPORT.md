@@ -1,7 +1,7 @@
 # Graph Report - fonzi-gym-video-editor  (2026-11-17)
 
 ## Corpus Check
-- 35 files · ~44,350 words
+- 35 files · ~44,473 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 10 file(s) not represented in the graph (top: (none) 6, .ttf 3, .example 1)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `df27afff`
+- Built from commit: `d91f4f9b`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -55,13 +55,13 @@
 ## Surprising Connections (you probably didn't know these)
 - `remember()` --calls--> `save_json()`  [EXTRACTED]
   scripts/post_to_meta.py → scripts/common.py
+- `main()` --calls--> `die()`  [EXTRACTED]
+  scripts/job.py → scripts/common.py
+- `main()` --calls--> `load_json()`  [EXTRACTED]
+  scripts/job.py → scripts/common.py
 - `main()` --calls--> `popup_text_ok()`  [EXTRACTED]
   scripts/qa_check.py → scripts/add_popups.py
 - `main()` --calls--> `find_duplicate()`  [EXTRACTED]
-  scripts/qa_check.py → scripts/common.py
-- `main()` --calls--> `load_config()`  [EXTRACTED]
-  scripts/qa_check.py → scripts/common.py
-- `main()` --calls--> `probe()`  [EXTRACTED]
   scripts/qa_check.py → scripts/common.py
 
 ## Import Cycles

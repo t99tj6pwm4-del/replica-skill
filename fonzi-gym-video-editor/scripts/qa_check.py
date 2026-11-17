@@ -209,8 +209,13 @@ def main():
     src = resolve(sb["source"]) if sb.get("source") else None
     src_sha = sha256(src) if src and src.exists() else None
     dup = find_duplicate(final, src_sha)
-    add("not a duplicate of a posted video", dup is None,
-        "no match in posted/ledger.json" if dup is None else f"{dup['match']}: posted {dup.get('posted_at')}", "director")
+    # a new version Alfonso asked for (job.py replaces <export>) may reuse that export's footage, never its file
+    allowed = bool(dup and job.get("replaces") and dup.get("handed_to_alfonso") == job["replaces"]
+                   and dup["match"] != "identical file")
+    add("not a duplicate of a posted video", dup is None or allowed,
+        "no match in posted/ledger.json" if dup is None else
+        (f"{dup['match']} as {job['replaces']}: the new version Alfonso asked for" if allowed
+         else f"{dup['match']}: posted {dup.get('posted_at')}"), "director")
     in_input = bool(src and src.exists() and INPUT.resolve() in src.resolve().parents)
     ext = load_json(OUT / "extended" / "extend.json", default={})
     if not in_input and ext and src and rel(src) == ext.get("extended"):
