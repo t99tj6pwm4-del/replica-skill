@@ -8,11 +8,14 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { BODY, DISPLAY, useFonts } from "./fonts";
+import { BODY, DISPLAY, MONTSERRAT, WEIGHT, useFonts } from "./fonts";
 import type {
   Brand,
   Callout,
   CaptionPage,
+  ChecklistPopup,
+  ExerciseBarPopup,
+  FormTipPopup,
   ListCardItem,
   LowerThird,
   OverlayProps,
@@ -949,6 +952,235 @@ const ListCard: React.FC<{ item: ListCardItem; brand: Brand; frames: number }> =
   );
 };
 
+
+/* ------------------------------------------------------------------ */
+/* Pop-up cards (Alfonso, 2026-11-17): exercise bar, form tip, routine */
+/* checklist. Montserrat, dark translucent rounded card, gold #D4A017.  */
+/* ------------------------------------------------------------------ */
+const POPUP_GOLD = "#D4A017"; // fallback only; the real value is brand.popupColor (config/brand.json)
+const CARD_BG = "rgba(51,51,51,0.85)"; // #333 at 85%
+const POPUP_GREY = "#C8C8C8";
+
+// quick pop-in (spring, ~0.2s) and quick pop-out (last ~0.17s)
+const usePop = (frames: number) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const s = spring({ frame, fps, config: { damping: 14, stiffness: 320, mass: 0.5 }, durationInFrames: 6 });
+  const out = interpolate(frame, [frames - 5, frames], [0, 1], { ...clamp, easing: Easing.in(Easing.cubic) });
+  return {
+    opacity: Math.min(1, interpolate(frame, [0, 4], [0, 1], clamp)) * (1 - out),
+    transform: `scale(${interpolate(s, [0, 1], [0.86, 1]) * interpolate(out, [0, 1], [1, 0.92])})`,
+  };
+};
+
+const cardStyle: React.CSSProperties = {
+  backgroundColor: CARD_BG,
+  borderRadius: 44,
+  boxSizing: "border-box",
+};
+
+const ExerciseBar: React.FC<{ item: ExerciseBarPopup; brand: Brand; frames: number }> = ({ item, brand, frames }) => {
+  const pop = usePop(frames);
+  const gold = brand.popupColor || POPUP_GOLD;
+  return (
+    <div
+      style={{
+        ...cardStyle,
+        position: "absolute",
+        left: 54,
+        right: 54,
+        top: item.y,
+        padding: "22px 44px 24px",
+        borderTop: `6px solid ${gold}`,
+        transformOrigin: "50% 100%",
+        ...pop,
+      }}
+    >
+      <div
+        style={{
+          fontFamily: MONTSERRAT,
+          fontWeight: WEIGHT.extraBold,
+          fontSize: 58,
+          lineHeight: 1.12,
+          letterSpacing: 1,
+          color: gold,
+          textTransform: "uppercase",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+        }}
+      >
+        {item.title}
+      </div>
+      {item.detail ? (
+        <div
+          style={{
+            fontFamily: MONTSERRAT,
+            fontWeight: WEIGHT.regular,
+            fontSize: 38,
+            lineHeight: 1.3,
+            marginTop: 4,
+            color: brand.textColor,
+            whiteSpace: "nowrap",
+          }}
+        >
+          {item.detail}
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
+const FormTipCard: React.FC<{ item: FormTipPopup; brand: Brand; frames: number }> = ({ item, brand, frames }) => {
+  const pop = usePop(frames);
+  const gold = brand.popupColor || POPUP_GOLD;
+  return (
+    <div
+      style={{
+        ...cardStyle,
+        position: "absolute",
+        left: 60,
+        right: 60,
+        top: item.y,
+        padding: "44px 48px 48px",
+        transformOrigin: "50% 0%",
+        ...pop,
+      }}
+    >
+      <div
+        style={{
+          fontFamily: MONTSERRAT,
+          fontWeight: WEIGHT.extraBold,
+          fontSize: 46,
+          lineHeight: 1.1,
+          color: gold,
+          letterSpacing: 0.5,
+        }}
+      >
+        FORM TIP
+      </div>
+      <div
+        style={{
+          fontFamily: MONTSERRAT,
+          fontWeight: WEIGHT.bold,
+          fontSize: 62,
+          lineHeight: 1.2,
+          marginTop: 14,
+          color: brand.textColor,
+          maxWidth: 680,
+        }}
+      >
+        {item.cue}
+      </div>
+      {item.cueEs ? (
+        <div
+          style={{
+            fontFamily: MONTSERRAT,
+            fontWeight: WEIGHT.regular,
+            fontSize: 36,
+            lineHeight: 1.3,
+            marginTop: 16,
+            color: POPUP_GREY,
+          }}
+        >
+          {item.cueEs}
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
+const RoutineChecklist: React.FC<{ item: ChecklistPopup; brand: Brand; frames: number }> = ({ item, brand, frames }) => {
+  const pop = usePop(frames);
+  const gold = brand.popupColor || POPUP_GOLD;
+  const n = item.items.length;
+  const tight = n > 6; // long routines: smaller rows so the card still fits on the left
+  const fs = tight ? 30 : 34;
+  const pitch = tight ? 52 : 62;
+  return (
+    <div
+      style={{
+        ...cardStyle,
+        position: "absolute",
+        left: 54,
+        top: item.y,
+        minWidth: 560,
+        maxWidth: 760,
+        padding: "40px 46px 44px",
+        transformOrigin: "0% 50%",
+        ...pop,
+      }}
+    >
+      <div
+        style={{
+          fontFamily: MONTSERRAT,
+          fontWeight: WEIGHT.extraBold,
+          fontSize: 38,
+          lineHeight: 1.1,
+          color: gold,
+          marginBottom: 14,
+          whiteSpace: "nowrap",
+        }}
+      >
+        TODAY'S ROUTINE
+      </div>
+      {item.items.map((name, i) => {
+        const done = i < item.current;
+        const cur = i === item.current;
+        const color = done ? gold : cur ? brand.textColor : POPUP_GREY;
+        return (
+          <div key={i} style={{ display: "flex", alignItems: "center", height: pitch }}>
+            <div style={{ width: 56, flexShrink: 0, display: "flex", alignItems: "center" }}>
+              {done ? (
+                <svg width="44" height="36" viewBox="0 0 44 36">
+                  <path d="M3 18 L15 30 L41 4" fill="none" stroke={gold} strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              ) : (
+                <span
+                  style={{
+                    fontFamily: MONTSERRAT,
+                    fontWeight: cur ? WEIGHT.extraBold : WEIGHT.regular,
+                    fontSize: cur ? 28 : 30,
+                    lineHeight: 1,
+                    color,
+                    paddingLeft: cur ? 0 : 4,
+                  }}
+                >
+                  {cur ? "→" : "•"}
+                </span>
+              )}
+            </div>
+            <div
+              style={{
+                fontFamily: MONTSERRAT,
+                fontWeight: cur ? WEIGHT.bold : WEIGHT.regular,
+                fontSize: fs,
+                lineHeight: 1.1,
+                color,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {name}
+            </div>
+          </div>
+        );
+      })}
+      <div
+        style={{
+          fontFamily: MONTSERRAT,
+          fontWeight: WEIGHT.bold,
+          fontSize: 32,
+          lineHeight: 1.1,
+          color: gold,
+          marginTop: 30,
+          letterSpacing: 0.5,
+        }}
+      >
+        {`${item.current} OF ${n} DONE`}
+      </div>
+    </div>
+  );
+};
+
 /* ------------------------------------------------------------------ */
 export const Overlay: React.FC<OverlayProps> = (p) => {
   useFonts();
@@ -962,6 +1194,11 @@ export const Overlay: React.FC<OverlayProps> = (p) => {
   const titleEnd = p.title ? p.title.to : 0;
   const tNow = useCurrentFrame() / fps;
   const textHidden = (p.noTextWindows ?? []).some((w) => tNow >= w.from && tNow < w.to);
+  const pops = p.popups;
+  // the exercise bar carries the same name + sets x reps: no lower-third on top of it
+  const lowerThirds = pops?.bars?.length
+    ? p.lowerThirds.filter((lt) => !pops.bars.some((b) => lt.from < b.to && b.from < lt.to))
+    : p.lowerThirds;
   return (
     <AbsoluteFill>
      <AbsoluteFill style={{ opacity: textHidden ? 0 : 1 }}>
@@ -983,7 +1220,7 @@ export const Overlay: React.FC<OverlayProps> = (p) => {
           </Sequence>
         );
       })}
-      {p.lowerThirds.map((lt, i) => {
+      {lowerThirds.map((lt, i) => {
         const s = seq(lt.from, lt.to);
         return (
           <Sequence key={`l${i}`} {...s}>
@@ -1010,6 +1247,28 @@ export const Overlay: React.FC<OverlayProps> = (p) => {
           y={p.layout.captionY}
         />
       </Sequence>
+      {/* pop-up cards sit over the captions' layer but stay separate from them */}
+      {(pops?.bars ?? []).map((b, i) => {
+        const s = seq(b.from, b.to);
+        return (
+          <Sequence key={`pb${i}`} {...s}>
+            <ExerciseBar item={b} brand={p.brand} frames={s.durationInFrames} />
+          </Sequence>
+        );
+      })}
+      {(pops?.checklists ?? []).map((c, i) => {
+        const s = seq(c.from, c.to);
+        return (
+          <Sequence key={`pc${i}`} {...s}>
+            <RoutineChecklist item={c} brand={p.brand} frames={s.durationInFrames} />
+          </Sequence>
+        );
+      })}
+      {pops?.formTip ? (
+        <Sequence {...seq(pops.formTip.from, pops.formTip.to)}>
+          <FormTipCard item={pops.formTip} brand={p.brand} frames={seq(pops.formTip.from, pops.formTip.to).durationInFrames} />
+        </Sequence>
+      ) : null}
       {p.title ? (
         <Sequence {...seq(p.title.from, p.title.to)}>
           <TitleCard

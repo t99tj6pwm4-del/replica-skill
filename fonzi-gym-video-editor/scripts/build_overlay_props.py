@@ -7,6 +7,9 @@ Remotion motion-graphics layer animates.
 
 Writes output/work/overlay_props.json (safe to hand-edit: fix a mis-heard word, move a callout,
 change which words are highlighted), then run scripts/render_final.py.
+Gym reels also get the pop-up cards (exercise bar, form tip, routine checklist) from the storyboard's
+"lifts" / "form_tip" (see scripts/add_popups.py). To add or refresh ONLY the pop-ups in a hand-edited
+overlay_props.json, run scripts/add_popups.py instead of this script.
 """
 from __future__ import annotations
 
@@ -16,6 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from common import FPS, H, OUT, W, WORK, brand, die, load_json, rel, save_json  # noqa: E402
+from add_popups import build_popups, summary as popup_summary  # noqa: E402
 
 MAX_WORDS = 3      # words on screen at once
 MAX_CHARS = 18
@@ -142,12 +146,19 @@ def main():
         "endCard": {"from": end["out_start"], "to": end["out_end"], "text": sb["end_card"]["text"].upper(),
                     "subtitle": sb["end_card"].get("subtitle", "")},
     }
+    pops, pop_notes = build_popups(sb, cm["duration"], props)
+    if pops:
+        props["popups"] = pops
+        props["brand"]["popupColor"] = b.get("popup_color", "#D4A017")
     save_json(WORK / "overlay_props.json", props)
     n = sum(len(p["words"]) for p in props["captions"])
     print(f"captions   {n} words on {len(props['captions'])} pages, "
           f"{sum(w['highlight'] for p in props['captions'] for w in p['words'])} highlighted")
     print(f"visuals    title card, {len(lower)} lower-thirds, {len(progress)}-part progress bar, "
           f"{len(props['callouts'])} callouts, {len(events)} edit accents, end card")
+    print(f"pop-ups    {popup_summary(pops)}")
+    for note in pop_notes:
+        print(f"note       {note}")
     if not words:
         print("note       Whisper heard no speech in the cut, so there are no captions to animate.")
     print(f"wrote      {rel(WORK / 'overlay_props.json')}")

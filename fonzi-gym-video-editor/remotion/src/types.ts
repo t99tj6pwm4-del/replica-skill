@@ -4,6 +4,8 @@ export type Brand = {
   color: string;
   textColor: string;
   darkColor: string;
+  /** pop-up cards gold (config/brand.json "popup_color"), default #D4A017 */
+  popupColor?: string;
 };
 
 export type CaptionWord = {
@@ -60,6 +62,38 @@ export type ListCardItem = {
   compact?: boolean; // header + one row of items (~112px tall)
 };
 
+/* Pop-up cards (Alfonso, 2026-11-17): gym reels only. Times are cut seconds, y is px from the top (1920). */
+export type ExerciseBarPopup = {
+  from: number;
+  to: number;
+  title: string; // exercise name, shown in caps
+  detail: string; // "4 x 12 \u2022 Press de mina"
+  y: number;
+};
+
+export type FormTipPopup = {
+  from: number;
+  to: number;
+  lift: string;
+  cue: string; // English cue
+  cueEs: string; // Spanish line
+  y: number;
+};
+
+export type ChecklistPopup = {
+  from: number;
+  to: number;
+  items: string[]; // every lift in the video, in order
+  current: number; // index of the lift on screen; items before it are done
+  y: number;
+};
+
+export type Popups = {
+  bars: ExerciseBarPopup[];
+  formTip: FormTipPopup | null;
+  checklists: ChecklistPopup[];
+};
+
 export type OverlayProps = {
   fps: number;
   width: number;
@@ -79,6 +113,8 @@ export type OverlayProps = {
   noTextWindows?: { from: number; to: number }[];
   /** false = progress bar without the segment name under it */
   progressLabels?: boolean;
+  /** pop-up cards: exercise bar, form tip, routine checklist (optional; absent = no pop-ups) */
+  popups?: Popups;
 };
 
 export type CarouselProps = {

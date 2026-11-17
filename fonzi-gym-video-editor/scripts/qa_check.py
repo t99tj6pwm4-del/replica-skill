@@ -99,10 +99,56 @@ def main():
         elif isinstance(n, str):
             texts.append(n)
 
-    walk(props)
+    walk({k: x for k, x in props.items() if k != "popups"})
     bad = [t for t in texts if "#" in t or re.search(r"[^\x20-\x7E]", t)]
-    add("English only, no hashtags on screen", not bad and bool(props), f"{len(texts)} text items checked" if not bad else f"bad: {bad[:5]}",
+    # approved exception (Alfonso, 2026-11-17): the pop-up cards' Spanish lines may use Spanish letters and •
+    from add_popups import build_popups, is_song_video, no_text_windows, popup_text_ok
+    pop_texts = []
+    if props.get("popups"):
+        texts_before = len(texts)
+        walk(props["popups"])
+        pop_texts = texts[texts_before:]
+        bad += [t for t in pop_texts if not popup_text_ok(t)]
+    add("English only, no hashtags on screen (Spanish allowed in pop-ups)", not bad and bool(props),
+        f"{len(texts)} text items checked ({len(pop_texts)} in pop-ups)" if not bad else f"bad: {bad[:5]}",
         "text_visuals")
+
+    # pop-up cards (Alfonso, 2026-11-17): every gym reel, never a song video
+    pops = props.get("popups") or {}
+    lifts = sorted(sb.get("lifts") or [], key=lambda l: float(l.get("cut_start", 0)))
+    if is_song_video(sb):
+        add("song video: no pop-up cards", not pops.get("bars") and not pops.get("formTip") and not pops.get("checklists"),
+            "none" if not pops else "pop-ups present on a song video", "text_visuals")
+    elif lifts:
+        bars, lists, tip = pops.get("bars") or [], pops.get("checklists") or [], pops.get("formTip")
+        names = [l["name"].strip() for l in lifts]
+        bar_names = [b["title"] for b in bars]
+        add("pop-up: one Exercise Bar per lift", bar_names == [n.upper() for n in names],
+            f"{len(bars)} bars for {len(lifts)} lifts" + ("" if bar_names == [n.upper() for n in names]
+                                                          else f": bars {bar_names} vs lifts {names}"), "text_visuals")
+        want, _ = build_popups(sb, float(props.get("duration", info["duration"])), props)
+        want_detail = [b["detail"] for b in (want or {}).get("bars", [])]
+        add("pop-up: bars show the routine's sets x reps + Spanish name (no invented lift)",
+            [b["detail"] for b in bars] == want_detail, " | ".join(b["detail"] for b in bars) or "none", "text_visuals")
+        okl = (len(lists) == len(lifts) - 1 and all(c.get("items") == names and c.get("current") == i
+                                                    for i, c in enumerate(lists, 1)))
+        add("pop-up: a Routine Checklist on every lift after the first", okl,
+            f"{len(lists)} checklists for {len(lifts) - 1} lifts after the first"
+            + ("" if okl else " (items must be the lifts in order, current = the lift on screen)"), "text_visuals")
+        okt = bool(tip and tip.get("cue") and tip.get("lift", "").lower() in [n.lower() for n in names])
+        add("pop-up: exactly one Form Tip, tied to a lift in the video", okt,
+            f"{tip['lift']}: {tip['cue']} / {tip.get('cueEs', '')} at {tip['from']:.2f}-{tip['to']:.2f}s" if tip
+            else "missing", "text_visuals")
+        wins = no_text_windows(sb, props)
+        spans = [("bar " + b["title"], b) for b in bars] + [(f"checklist {c['current']}", c) for c in lists]
+        spans += [("form tip", tip)] if tip else []
+        hits = [f"{n} {x['from']:.2f}-{x['to']:.2f}s vs {a:.2f}-{b:.2f}s" for n, x in spans for a, b in wins
+                if x["from"] < b + 0.1 - 1e-3 and a - 0.1 + 1e-3 < x["to"]]
+        add("pop-ups stay out of the no-text windows (0.1s margin)", not hits,
+            f"{len(spans)} pop-ups, {len(wins)} windows" if not hits else "; ".join(hits[:4]), "text_visuals")
+    elif any(s.get("type") == "exercise" for s in sb.get("segments", [])):
+        add("pop-up cards planned (storyboard \"lifts\" + \"form_tip\")", False,
+            "gym reel without \"lifts\" in the storyboard: no pop-ups", "storyboard", soft=True)
     lt = load_json(WORK / "layered_title.json", default={})
     plus = props.get("title_style") == "layered-gold-plus"
     if props.get("title_style") in ("layered-gold", "layered-gold-plus") and lt:

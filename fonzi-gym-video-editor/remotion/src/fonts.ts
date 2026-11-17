@@ -3,6 +3,9 @@ import { continueRender, delayRender, staticFile } from "remotion";
 
 export const DISPLAY = "FonziDisplay";
 export const BODY = "FonziBody";
+// Pop-up cards (Alfonso, 2026-11-17): Montserrat at exact weights. BODY carries the full 100-900 range.
+export const MONTSERRAT = BODY;
+export const WEIGHT = { regular: 400, bold: 700, extraBold: 800 } as const;
 
 let ready: Promise<void> | null = null;
 

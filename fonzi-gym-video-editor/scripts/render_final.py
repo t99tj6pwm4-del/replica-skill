@@ -32,7 +32,10 @@ def browser_args() -> list[str]:
 
 
 def check_text(props: dict):
-    """English only, no hashtags: refuse to render anything else."""
+    """English only, no hashtags: refuse to render anything else.
+    Approved exception (Alfonso, 2026-11-17): the Spanish lines of the pop-up cards (props.popups) may use
+    Spanish letters and the • separator. Still no hashtags anywhere."""
+    from add_popups import popup_text_ok
     bad = []
 
     def walk(node, path):
@@ -43,7 +46,10 @@ def check_text(props: dict):
             for i, v in enumerate(node):
                 walk(v, f"{path}[{i}]")
         elif isinstance(node, str) and not path.endswith(("color", "Color", "kind")):
-            if "#" in node or re.search(r"[^\x20-\x7E]", node):
+            if path.startswith("props.popups"):
+                if not popup_text_ok(node):
+                    bad.append(f"{path}: {node!r}")
+            elif "#" in node or re.search(r"[^\x20-\x7E]", node):
                 bad.append(f"{path}: {node!r}")
 
     walk({k: v for k, v in props.items() if k != "brand"}, "props")
