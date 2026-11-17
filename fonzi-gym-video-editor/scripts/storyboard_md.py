@@ -92,6 +92,14 @@ def validate(sb: dict, src_duration: float | None = None) -> tuple[list, list, f
         warnings.append("hook segment should be about 2 seconds")
     total += float(sb["end_card"].get("duration", 2.5))
     lo, hi = sb.get("min_duration", 60), sb.get("max_duration", 90)
+    try:  # Alfonso's hard rule (2026-11-17): every video is 90 seconds
+        from common import load_config
+        vl = load_config().get("video_length") or {}
+    except Exception:
+        vl = {}
+    if vl.get("target_seconds"):
+        tgt, tol = float(vl["target_seconds"]), float(vl.get("tolerance_seconds", 1.0))
+        lo, hi = tgt - tol, tgt + tol
     if not lo <= total <= hi:
         errors.append(f"planned length is {total:.1f}s; it must land between {lo} and {hi}s "
                       "(pauses removed by the Cuts Agent will shorten it a little more)")

@@ -49,3 +49,8 @@ Work inside `fonzi-gym-video-editor/` (cd there first).
 - If `cut_video.py` errors, read the message, fix what is yours to fix (re-run), otherwise report it.
 - If the Director sends you back with a fix from the Final Approval Agent, apply exactly that fix
   (through a corrected storyboard from the Storyboard Agent if it changes the plan) and re-export.
+
+## Length: HARD RULE, 90 seconds (Alfonso, 2026-11-17)
+
+`output/cut_version.mp4` must be 90s +/- 1s (end card included). If the cut lands outside that, report it
+with the exact length; QA fails it.

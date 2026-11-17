@@ -20,6 +20,7 @@
 - output/storyboard.json, output/work/overlay_props.json, output/staged/, posted/ledger.json
 
 ## Key decisions
+- HARD RULE (2026-11-17): every video is 90 seconds (+/-1s, config video_length; enforced by storyboard_md.py and qa_check.py).
 - Only Alfonso's own footage and own songs; English-only text (except the Spanish lines of the gym-reel pop-up cards); his captions verbatim; no hashtags on screen.
 - Stage first, show frames, never post without his yes; he posts himself; never post twice.
 - Fully automatic: he uploads one video, nothing else. No Sora; Omni only in Google Flow. Remote Control allowed (Alfonso 2026-11-16: "PC + Remote Control" for free local AI angles); his PC TABLET-BK33DP824133M4 offers no usable folder yet (only Downloads, not_available) and likely lacks a GPU for local video AI; fonzi-ai folder added but still not_available (Windows app version or feature not on for his account). Claude in Chrome cannot reach this cloud session without that link. Alfonso (2026-11-16): stick to the regular method (free HF angles + free-local fallback) for now; offer Flow pack only if he asks; "check again" when he is at the PC.

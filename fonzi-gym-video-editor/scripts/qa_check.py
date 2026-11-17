@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import (FPS, H, INPUT, OUT, W, WORK, find_duplicate, load_json, probe, rel, resolve, run,  # noqa: E402
+from common import (load_config, FPS, H, INPUT, OUT, W, WORK, find_duplicate, load_json, probe, rel, resolve, run,  # noqa: E402
                     save_json, sha256)
 
 
@@ -79,8 +79,15 @@ def main():
                 "Add one of your songs to songs/ for music", "cuts", soft=True)
         else:
             add("audio is not silent", False, f"mean {mean:.1f} dB but the raw video is {src_level} dB", "cuts")
-    lo, hi = sb.get("min_duration", 60), sb.get("max_duration", 90)
-    add(f"length {lo}-{hi}s", lo <= info["duration"] <= hi, f"{info['duration']:.2f}s", "cuts")
+    vl = (load_config().get("video_length") or {})
+    if vl.get("target_seconds"):
+        # Alfonso's hard rule (2026-11-17): every video is 90 seconds
+        tgt, tol = float(vl["target_seconds"]), float(vl.get("tolerance_seconds", 1.0))
+        add(f"length {tgt:.0f}s (Alfonso's hard rule, +/-{tol:g}s)", abs(info["duration"] - tgt) <= tol,
+            f"{info['duration']:.2f}s", "cuts")
+    else:
+        lo, hi = sb.get("min_duration", 60), sb.get("max_duration", 90)
+        add(f"length {lo}-{hi}s", lo <= info["duration"] <= hi, f"{info['duration']:.2f}s", "cuts")
     if cut_info:
         add("same length as the cut", abs(cut_info["duration"] - info["duration"]) < 0.2,
             f"cut {cut_info['duration']:.2f}s, final {info['duration']:.2f}s", "text_visuals")

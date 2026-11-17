@@ -127,3 +127,9 @@ titles:
   #                documentary, a clean standing shot); never on fast gym reels, song videos or quick cuts.
   #                Turn on per video: render_final.py --title-style layered-gold (or storyboard "title_style").
   title_style: normal
+
+# Alfonso's HARD RULE (2026-11-17): every video is 90 seconds long (end card included). QA fails anything
+# outside target +/- tolerance. The storyboard plans 90s, the song section must cover 90s.
+video_length:
+  target_seconds: 90
+  tolerance_seconds: 1.0

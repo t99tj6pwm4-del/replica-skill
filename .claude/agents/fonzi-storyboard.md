@@ -140,3 +140,12 @@ gets none: mark it "video_type": "song_video" and leave these out.
   la parte más difícil"}: ONE per video, on the most technical lift, a real short cue that matches what he is doing
   on screen at "at" (cut time; it holds 5s, so pick a time with 5s of that lift left). Optional "y" (default 196).
 - Keep "at" and the lift starts out of no_text_windows. Spanish is allowed only in "spanish" and "cue_es".
+
+## Length: HARD RULE, 90 seconds (Alfonso, 2026-11-17)
+
+Every video is planned at **90 seconds** (end card included, +/- 1s; `config.yaml` `video_length`).
+Set `min_duration` 89 and `max_duration` 91. `storyboard_md.py` refuses any other planned length.
+Remember that Hero curves / slow-mo play longer than their raw span and ramps shorter: compute the cut
+length honestly. With a song, pick a 90s stretch of it (best part, starting on a phrase/downbeat). If the
+song is shorter than 90s, or the footage has under ~90s of usable material, say so in your report instead of
+padding with weak shots, so the Director can ask Alfonso.

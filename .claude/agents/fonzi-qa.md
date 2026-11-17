@@ -143,3 +143,8 @@ text -> text_visuals (wrong lift / cue / times in the storyboard -> storyboard).
 
 The Spanish lines in these pop-ups are an approved exception to English-only (the English-only check allows
 Spanish letters and • there, nothing else). Hashtags are still never allowed.
+
+## Length: HARD RULE, 90 seconds (Alfonso, 2026-11-17)
+
+`qa_check.py` checks the final against `config.yaml` `video_length` (90s +/- 1s). Outside that is a FAIL:
+send it to the Cuts Agent, or to the Storyboard Agent if the plan itself is not 90s.

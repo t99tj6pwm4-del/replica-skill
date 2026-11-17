@@ -156,3 +156,8 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
    "form_tip" (lift, at, cue, cue_es) with a real cue. Keep the gold layered exercise titles too: the bar and
    checklist pop in right after each gold title. Spanish is allowed in these pop-ups only (approved exception to
    English-only). Text/Visuals adds them to a hand-edited overlay_props.json with `scripts/add_popups.py`.
+
+9. **Length: HARD RULE, every video is 90 seconds** (Alfonso, 2026-11-17), end card included, +/- 1s
+   (config `video_length`). Tell the Storyboard Agent "90 seconds" on every job, whatever the brief says.
+   If the footage or the song cannot fill 90s of good material, stop and tell Alfonso before cutting
+   (options: AI extension on his yes, or loop/extend his song); never hand over a shorter video.
