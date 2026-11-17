@@ -395,8 +395,13 @@ def main():
     fc, last = [], "0:v"
     for i, ins in enumerate(inserts, 1):
         cmd += ["-i", ROOT / ins["clip"]]
-        fc.append(f"[{i}:v]setpts=PTS-STARTPTS+{ins['from']:.3f}/TB[c{i}]")
-        fc.append(f"[{last}][c{i}]overlay=enable='between(t,{ins['from']:.3f},{ins['to'] - 0.001:.3f})':eof_action=pass[v{i}]")
+        # frame-accurate slot: first frame round(from*FPS), last frame round(to*FPS)-1 (to = the next cut, never covered).
+        # The insert starts a quarter frame early so the A-roll frame at the slot start always finds it, and the enable
+        # window sits half a frame inside the frame grid on both ends. eof_action=repeat holds the insert's last frame
+        # for the slot's last A-roll frame (with "pass" the overlay dropped it); the enable window stops it spilling.
+        f0, f1 = round(ins["from"] * FPS), round(ins["to"] * FPS)
+        fc.append(f"[{i}:v]setpts=PTS-STARTPTS+{(f0 - 0.25) / FPS:.6f}/TB[c{i}]")
+        fc.append(f"[{last}][c{i}]overlay=enable='between(t,{(f0 - 0.5) / FPS:.6f},{(f1 - 0.5) / FPS:.6f})':eof_action=repeat[v{i}]")
         last = f"v{i}"
     out = OUT / "multicam_version.mp4"
     cmd += ["-filter_complex", ";".join(fc) + f";[{last}]fps={FPS},format=yuv420p[v]", "-map", "[v]", "-map", "0:a",
