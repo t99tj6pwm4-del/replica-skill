@@ -982,6 +982,10 @@ const cardStyle: React.CSSProperties = {
 const ExerciseBar: React.FC<{ item: ExerciseBarPopup; brand: Brand; frames: number }> = ({ item, brand, frames }) => {
   const pop = usePop(frames);
   const gold = brand.popupColor || POPUP_GOLD;
+  // long names ("SEATED DUMBBELL SHOULDER PRESS") shrink to fit the 884px text width instead of being cut off
+  const inner = 1080 - 2 * 54 - 2 * 44;
+  const titleSize = Math.min(58, Math.floor(inner / (Math.max(1, item.title.length) * 0.8)));
+  const detailSize = Math.min(38, Math.floor(inner / (Math.max(1, (item.detail || "").length) * 0.57)));
   return (
     <div
       style={{
@@ -1000,7 +1004,7 @@ const ExerciseBar: React.FC<{ item: ExerciseBarPopup; brand: Brand; frames: numb
         style={{
           fontFamily: MONTSERRAT,
           fontWeight: WEIGHT.extraBold,
-          fontSize: 58,
+          fontSize: titleSize,
           lineHeight: 1.12,
           letterSpacing: 1,
           color: gold,
@@ -1016,7 +1020,7 @@ const ExerciseBar: React.FC<{ item: ExerciseBarPopup; brand: Brand; frames: numb
           style={{
             fontFamily: MONTSERRAT,
             fontWeight: WEIGHT.regular,
-            fontSize: 38,
+            fontSize: detailSize,
             lineHeight: 1.3,
             marginTop: 4,
             color: brand.textColor,

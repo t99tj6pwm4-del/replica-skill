@@ -17,8 +17,11 @@ effects_plan.json:
   "velocity_effects": [{"name": "Flash", "at": 31.0, "dur": 0.2}],
   "body_effects": [],                                      # not renderable here: keep empty
   "title_animation": "Flash In",                           # Animation > In on the hook title (Remotion)
-  "pro_approved": false
+  "pro_approved": false,
+  "exposure": [{"from": 21.3, "to": 25.3, "gamma": 1.3, "why": "dark bench clip"}]   # optional grade lift
 }
+"exposure" is not a library effect: it is a grade correction (CapCut Adjust) that lifts one dark clip's
+gamma/brightness inside the ONE filter, from cut to cut, so the rest of the video keeps the same look.
 The original audio is never touched: effects change the picture only, frame-exact.
 """
 from __future__ import annotations
@@ -225,6 +228,13 @@ def validate(plan: dict, cm: dict, video: str, strict: bool = True) -> tuple[lis
     for seg, n in per_clip.items():
         if n > 1:
             errors.append(f"{n} video effects in segment {seg}: 1 video effect max per clip")
+    for x in plan.get("exposure", []) or []:
+        a, b = float(x.get("from", -1)), float(x.get("to", -1))
+        g, br = float(x.get("gamma", 1.0)), float(x.get("brightness", 0.0))
+        if not (0 <= a < b <= cm["duration"] + 1e-6):
+            errors.append(f"exposure window {a}-{b}s is outside the video")
+        if not (1.0 <= g <= 1.5) or not (-0.05 <= br <= 0.1):
+            errors.append(f"exposure at {a}-{b}s: keep gamma 1.0-1.5 and brightness -0.05..0.1 (a small lift)")
     ta = plan.get("title_animation")
     if ta and ta not in TITLE_ANIMATIONS:
         errors.append(f"title_animation {ta!r}: use one of {sorted(TITLE_ANIMATIONS)} (Animation > In, hook only)")
@@ -309,7 +319,9 @@ def apply(base: Path, out: Path, video: str) -> dict | None:
     snap = lambda t: round(round(t * FPS) / FPS, 3)  # noqa: E731  frame grid
     for i in items:          # snap first, so the "is this effect active here" test uses the same edges
         i["f0"], i["f1"] = snap(i["from"]), snap(i["to"])
-    edges = sorted({0.0, round(dur, 3)} | {i["f0"] for i in items} | {i["f1"] for i in items})
+    expo = [dict(x, f0=snap(float(x["from"])), f1=snap(float(x["to"]))) for x in plan.get("exposure", []) or []]
+    edges = sorted({0.0, round(dur, 3)} | {i["f0"] for i in items} | {i["f1"] for i in items}
+                   | {x["f0"] for x in expo} | {x["f1"] for x in expo})
     tmp = WORK / "fx_tmp"
     shutil.rmtree(tmp, ignore_errors=True)
     tmp.mkdir(parents=True)
@@ -319,7 +331,9 @@ def apply(base: Path, out: Path, video: str) -> dict | None:
             continue
         active = [i for i in items if i["f0"] - 1e-6 <= a and b <= i["f1"] + 1e-6]
         # t must start at 0 inside each window, or the time-based recipes (flash, shake, zoom) do nothing
-        chain = ",".join(["setpts=PTS-STARTPTS"] + [recipe(i["kind"], b - a) for i in active]
+        lift = [f"eq=gamma={float(x.get('gamma', 1.0)):g}:brightness={float(x.get('brightness', 0.0)):g}"
+                for x in expo if x["f0"] - 1e-6 <= a and b <= x["f1"] + 1e-6]
+        chain = ",".join(["setpts=PTS-STARTPTS"] + lift + [recipe(i["kind"], b - a) for i in active]
                          + [fchain, f"fps={FPS}", "format=yuv420p"])
         piece = tmp / f"p{k:03d}.mp4"
         run(["ffmpeg", "-v", "error", "-y", "-ss", f"{a:.4f}", "-i", base, "-t", f"{b - a:.4f}", "-an",
@@ -337,7 +351,8 @@ def apply(base: Path, out: Path, video: str) -> dict | None:
         i.pop("f0", None), i.pop("f1", None)
     log(video, plan, items)
     summary = {"filter": plan.get("filter"), "title_animation": plan.get("title_animation"),
-               "items": items, "notes": notes, "combo": combo_key(plan)}
+               "items": items, "notes": notes, "combo": combo_key(plan),
+               "exposure": [{k: x[k] for k in x if k not in ("f0", "f1")} for x in expo]}
     save_json(WORK / "effects_applied.json", summary)
     return summary
 

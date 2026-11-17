@@ -38,9 +38,9 @@
     "semantic_hash": "44e99006b66bead538f03e43e103e683"
   },
   "remotion/src/Overlay.tsx": {
-    "mtime": 1794935209.4861138,
-    "seen": 1794935431.4806092,
-    "ast_hash": "e63109deb71b8951270f7f7f262e7523",
+    "mtime": 1794937807.8309703,
+    "seen": 1794938509.6918402,
+    "ast_hash": "7c499414f667ceb3bbcdc72ec9f5f6d0",
     "semantic_hash": ""
   },
   "remotion/src/Root.tsx": {
@@ -104,10 +104,10 @@
     "semantic_hash": ""
   },
   "scripts/effects.py": {
-    "mtime": 1794691228.7774768,
-    "seen": 1794803792.263262,
-    "ast_hash": "f71b56c4e2d5e5fb2bfa216e7c6a9dd0",
-    "semantic_hash": "f71b56c4e2d5e5fb2bfa216e7c6a9dd0"
+    "mtime": 1794937897.0537102,
+    "seen": 1794938509.6918583,
+    "ast_hash": "0451aff4d4f04b00d1b4e7aa910e3577",
+    "semantic_hash": ""
   },
   "scripts/export_final.py": {
     "mtime": 1794575791.2718024,
