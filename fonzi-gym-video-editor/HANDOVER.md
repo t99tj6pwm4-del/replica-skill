@@ -9,12 +9,10 @@
 - Montserrat everywhere (Alfonso 2026-11-16): remotion/src/fonts.ts DISPLAY = Montserrat Black; scripts/layered_title.py titles in Montserrat Black, small sets x reps line bigger (SemiBold). Committed b399eec.
 
 ## Left to do
-- "After Hours" (input/icloud_0efbfJGz.mov from iCloud shared album; song songs/alfonso_music_089_obcAC.mp3 from his "Music" album, section 107.012-148.84 @90.14 BPM; brief: follow the best of the music). Storyboard + cut (41.767s, all cuts on the beat) + 4 wan-free angles done. WAITING: Alfonso makes the top-down #13 for angle_1 (cut 5.333-8.000) in Google Flow from output/flow_pack/ and sends a Drive link.
-- When the link arrives: download it into a folder as angle_1.mp4 + copy angle_2..4 from output/work/wan_clips/, run multicam_generate.py --use-clips <folder>, check audio md5 88b795dfc441d0ef5153da933e341aec, then Text/Visuals (render_final.py + add_popups.py; gold titles + 3 pop-ups; form tip leg press 30-35 "Don't lock your knees out"), then QA.
-- "No Days Off" archived (not approved).
+- "After Hours" (iCloud footage + his iCloud "Music" song): QA PASS, staged at output/staged/final_edit.mp4 + post.json, 41.765s, song kept. Top-down = his Google Flow clip. Gold titles x4, pop-ups (bars x5, checklists x4, form tip leg press). WAITING for Alfonso's yes.
 
 ## Next step
-- Wait for Alfonso's Flow clip link, then continue as above.
+- On his yes: scripts/approve.py --alfonso-said-yes --own-footage-confirmed; scripts/export_final.py; send file + caption "After hours, no shortcuts. Arms, shoulders, chest and legs in one session. Save it for your next gym day." + 7 carousel slides; job.py set posted done. He posts himself.
 
 ## Key files
 - .claude/agents/fonzi-*.md, .claude/skills/fonzi-edit/SKILL.md, .claude/settings.json
