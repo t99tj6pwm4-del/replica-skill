@@ -9,11 +9,12 @@
 - Montserrat everywhere (Alfonso 2026-11-16): remotion/src/fonts.ts DISPLAY = Montserrat Black; scripts/layered_title.py titles in Montserrat Black, small sets x reps line bigger (SemiBold). Committed b399eec.
 
 ## Left to do
-- "No Days Off" (input/drive_1pnZDifS.mp4, brief "Random clicks some will always have font don't add any to those lets really make it cinematic and punchy"): 47.8s, QA PASS, staged at output/staged/final_edit.mp4 + post.json. Alfonso (2026-11-17): not approved, not posting it; doing a new video instead. Gets archived at the next job.py init. No-text windows (his baked titles) 9.6-16.733, 25.867-30.367 kept clean. 3 gold titles (EZ BAR front_only). 4 wan-free AI angles kept by his choice (fake shirt text angle_1, no real top-down). Muted.
-- Locked In: dropped re-render, not approved.
+- "After Hours" (input/icloud_0efbfJGz.mov from iCloud shared album; song songs/alfonso_music_089_obcAC.mp3 from his "Music" album, section 107.012-148.84 @90.14 BPM; brief: follow the best of the music). Storyboard + cut (41.767s, all cuts on the beat) + 4 wan-free angles done. WAITING: Alfonso makes the top-down #13 for angle_1 (cut 5.333-8.000) in Google Flow from output/flow_pack/ and sends a Drive link.
+- When the link arrives: download it into a folder as angle_1.mp4 + copy angle_2..4 from output/work/wan_clips/, run multicam_generate.py --use-clips <folder>, check audio md5 88b795dfc441d0ef5153da933e341aec, then Text/Visuals (render_final.py + add_popups.py; gold titles + 3 pop-ups; form tip leg press 30-35 "Don't lock your knees out"), then QA.
+- "No Days Off" archived (not approved).
 
 ## Next step
-- Next video: run /fonzi-edit <link> <brief> when Alfonso sends it.
+- Wait for Alfonso's Flow clip link, then continue as above.
 
 ## Key files
 - .claude/agents/fonzi-*.md, .claude/skills/fonzi-edit/SKILL.md, .claude/settings.json
