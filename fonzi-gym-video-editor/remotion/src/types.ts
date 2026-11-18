@@ -100,7 +100,7 @@ export type OverlayProps = {
   height: number;
   duration: number; // seconds
   brand: Brand;
-  layout: { captionY: number; lowerThirdY: number; titleOffsetY?: number };
+  layout: { captionY: number; lowerThirdY: number; titleOffsetY?: number; progressY?: number };
   title: { from: number; to: number; text: string; subtitle?: string; animation?: string } | null;
   lowerThirds: LowerThird[];
   progress: ProgressSegment[];

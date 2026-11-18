@@ -326,10 +326,11 @@ const SegmentWipe: React.FC<{ brand: Brand }> = ({ brand }) => {
 /* ------------------------------------------------------------------ */
 /* Segmented progress bar (top)                                        */
 /* ------------------------------------------------------------------ */
-const ProgressBar: React.FC<{ segments: ProgressSegment[]; brand: Brand; showLabel?: boolean }> = ({
+const ProgressBar: React.FC<{ segments: ProgressSegment[]; brand: Brand; showLabel?: boolean; top?: number }> = ({
   segments,
   brand,
   showLabel = true,
+  top = 118,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -339,7 +340,7 @@ const ProgressBar: React.FC<{ segments: ProgressSegment[]; brand: Brand; showLab
   const current = segments.find((s) => t >= s.from && t < s.to) ?? segments[segments.length - 1];
   const appear = interpolate(frame, [0, 10], [0, 1], clamp);
   return (
-    <div style={{ position: "absolute", top: 118, left: 56, right: 56, opacity: appear }}>
+    <div style={{ position: "absolute", top, left: 56, right: 56, opacity: appear }}>
       <div style={{ display: "flex", gap: 8 }}>
         {segments.map((s, i) => {
           const fill = interpolate(t, [s.from, s.to], [0, 100], clamp);
@@ -643,7 +644,7 @@ const EventAccent: React.FC<{ ev: TimedEvent; brand: Brand; frames: number }> = 
       <div
         style={{
           position: "absolute",
-          top: 232,
+          top: ev.y ?? 232,
           right: 56,
           display: "flex",
           alignItems: "center",
@@ -1287,7 +1288,7 @@ export const Overlay: React.FC<OverlayProps> = (p) => {
       ) : null}
      </AbsoluteFill>
       <Sequence from={0} durationInFrames={Math.max(1, fr(end))}>
-        <ProgressBar segments={p.progress} brand={p.brand} showLabel={p.progressLabels !== false && !textHidden} />
+        <ProgressBar segments={p.progress} brand={p.brand} showLabel={p.progressLabels !== false && !textHidden} top={p.layout.progressY ?? 118} />
       </Sequence>
       {p.endCard ? (
         <Sequence {...seq(p.endCard.from, p.endCard.to)}>
