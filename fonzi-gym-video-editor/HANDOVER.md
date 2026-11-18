@@ -1,28 +1,53 @@
 # HANDOVER
 
-## Done
-- 6-agent editor built and pushed (Director, Storyboard, Cuts, Multicam/B-Roll, Text/Visuals, QA) + `/fonzi-edit` skill.
-- Free AI angles (wan-free on Hugging Face, quota exhausted until ~16:00 UTC 11-16) with free-local crop fallback; Seedance only on Alfonso's yes.
-- "Locked In / Bulking season" (input/drive_1E3BsV75.mp4, brief "1:30 second clip"): 91.9s. title_style layered-gold-plus: FONZI/STAYS FIT at 53.6-54.6 + 7 gold layered exercise titles (storyboard exercise_titles, each with sets x reps). Baked-in music muted by rule (work/audio_rule.json). No top-down shot this time (Alfonso: "Finish now, no top-down").
-- Standing answers (2026-11-15): all his footage is his; always mute baked-in music; exercise-name guesses ok; make up sets x reps; Claude picks caption; at least one top-down multicam shot per video (config multicam.require_top_down).
-- Graphify installed (code-only graph in fonzi-gym-video-editor/graphify-out/, hooks in root .claude/settings.json, verified firing; env setup script reinstalls it each session). Check the graph first; run `graphify update .` after structural changes.
-- Montserrat everywhere (Alfonso 2026-11-16): remotion/src/fonts.ts DISPLAY = Montserrat Black; scripts/layered_title.py titles in Montserrat Black, small sets x reps line bigger (SemiBold). Committed b399eec.
+## What this session worked on
+Running the fonzi-gym-video-editor team (`/fonzi-edit`) on Alfonso's gym videos and adding the features he asked for along the way.
+Branch `claude/blissful-hamilton-k7clws` (push only there, no PRs). All code is committed and pushed.
 
-## Left to do
-- "After Hours" 90s re-cut (job.py replaces exports/2026-11-17_after-hours.mp4): QA PASS, staged at output/staged/final_edit.mp4 (89.7s, song 59.087-148.84). WAITING for Alfonso's yes.
+## Done
+- **"After Hours" 41.8s** (iCloud footage `input/icloud_0efbfJGz.mov` + his song `songs/alfonso_music_089_obcAC.mp3`): approved and exported as `exports/2026-11-17_after-hours.mp4` (+ .txt caption, carousel). Logged in `posted/ledger.json`.
+- **"After Hours" 90s re-cut**: QA PASS. The job is marked `job.py replaces exports/2026-11-17_after-hours.mp4`. Staged at `output/staged/final_edit.mp4` (89.7s, song 59.087-148.84). Sent to Alfonso.
+- **New features**, all committed:
+  - Three gym-reel pop-up cards: Exercise Bar, Form Tip and Routine Checklist (`remotion/src/Overlay.tsx`, `scripts/add_popups.py`, plus QA checks).
+  - Montserrat everywhere.
+  - Frame-exact multicam inserts.
+  - Beat-exact speed ramps in `cut_video.py`.
+  - Footage audio is dropped under a chosen song.
+  - Frame-exact angle timing check in QA.
+  - The `front_only` gold title option.
+  - `job.py replaces`.
+  - A 90s length rule enforced in `storyboard_md.py` and `qa_check.py`.
+- **Graphify** (code knowledge graph): `graphify-out/`, with hooks in the repo-root `.claude/settings.json`. The env setup script reinstalls it.
+- **Not approved**: "No Days Off" and "Locked In" are archived and were not posted.
+
+## Still open
+- **Waiting for Alfonso's yes** on the 90s "After Hours".
 
 ## Next step
-- On his yes: approve.py --alfonso-said-yes --own-footage-confirmed; export_final.py; send file + caption "After hours, no shortcuts. Arms, back, shoulders, chest and legs in one session. Save it for your next gym day." + 9 carousel slides; job.py set posted done. Song in app: start at 0:59.
+- **On his "yes"**, from `fonzi-gym-video-editor/`:
+  1. Run `python3 scripts/approve.py --alfonso-said-yes --own-footage-confirmed`.
+  2. Run `python3 scripts/export_final.py`.
+  3. Send him the exported mp4, the caption .txt and the carousel slides.
+  4. Run `python3 scripts/job.py set posted done`.
+  5. Tell him: if he adds the sound in the app, it starts at 0:59. He posts it himself.
+- **If he asks for changes**, send them to the one agent that owns that part, then re-run QA.
+- **New video**: `/fonzi-edit <Drive or iCloud link> <brief>`.
+  - iCloud shared albums (`photos.icloud.com/shared/album/…`) download via Playwright: capture the `ckdatabasews` records responses and use `resOriginalRes.downloadURL`.
+
+## Key decisions (Alfonso's standing rules)
+- **90 seconds, hard rule.** Every video is 90s ±1s (`config.yaml` `video_length`).
+- **Footage and music**: all footage he gives is his. Only his own songs. The footage's baked-in music is always muted; his chosen song never is.
+- **Exercises**: name guesses are fine; sets x reps are made up. Every lift gets a gold layered title (Montserrat Black; `front_only` when no back word can read behind him) **and** the pop-up cards.
+- **Language**: English only. The one exception is the Spanish lines in the pop-ups. No hashtags on screen.
+- **Clips with baked-in text** (`no_text_windows`): nothing is added on top.
+- **Camera angles**: at least one top-down angle per video. Free Wan rarely produces a real top-down, so the fallback is a Flow pack that Alfonso makes in Google Flow and sends back (that worked). Angles never fail QA; tell him about any oddities.
+- **Spending**: free first (wan-free, then a free-local crop). Paid Seedance only with his yes. No Sora. Apinex was cancelled (the key he pasted should be rotated).
+- **Posting**: stage the video and show frames first. He posts it himself. Never post twice.
+- **Secrets**: only in `.env`. Never printed or committed.
 
 ## Key files
-- .claude/agents/fonzi-*.md, .claude/skills/fonzi-edit/SKILL.md, .claude/settings.json
-- fonzi-gym-video-editor/config.yaml, config/brand.json, scripts/*.py (render_final, layered_title, qa_check, shot_library), remotion/src/Overlay.tsx, remotion/src/fonts.ts
-- output/storyboard.json, output/work/overlay_props.json, output/staged/, posted/ledger.json
-
-## Key decisions
-- HARD RULE (2026-11-17): every video is 90 seconds (+/-1s, config video_length; enforced by storyboard_md.py and qa_check.py).
-- Only Alfonso's own footage and own songs; English-only text (except the Spanish lines of the gym-reel pop-up cards); his captions verbatim; no hashtags on screen.
-- Stage first, show frames, never post without his yes; he posts himself; never post twice.
-- Fully automatic: he uploads one video, nothing else. No Sora; Omni only in Google Flow. Remote Control allowed (Alfonso 2026-11-16: "PC + Remote Control" for free local AI angles); his PC TABLET-BK33DP824133M4 offers no usable folder yet (only Downloads, not_available) and likely lacks a GPU for local video AI; fonzi-ai folder added but still not_available (Windows app version or feature not on for his account). Claude in Chrome cannot reach this cloud session without that link. Alfonso (2026-11-16): stick to the regular method (free HF angles + free-local fallback) for now; offer Flow pack only if he asks; "check again" when he is at the PC.
-- Camera angles never fail QA. Cheapest/free first. Fonts: Montserrat everywhere.
-- Secrets only in .env (never printed or committed).
+- **Agents and skill**: `.claude/agents/fonzi-*.md` (director standing answers 1-10), `.claude/skills/fonzi-edit/SKILL.md`, `.claude/settings.json`.
+- **Config**: `fonzi-gym-video-editor/config.yaml`, `config/brand.json`.
+- **Scripts** (`scripts/`): `job.py`, `cut_video.py`, `multicam_prompt.py`, `multicam_generate.py`, `layered_title.py`, `add_popups.py`, `build_overlay_props.py`, `render_final.py`, `qa_check.py`, `qa_verdict.py`, `approve.py`, `export_final.py`.
+- **Overlay**: `remotion/src/Overlay.tsx`, `types.ts`, `fonts.ts`.
+- **Current job**: `output/` (`job.json`, `storyboard.json`, `staged/`, `qa_report.md`). The saved Flow top-down clip is at `input/flow_topdown_dbcurl_alfonso.mp4`.
