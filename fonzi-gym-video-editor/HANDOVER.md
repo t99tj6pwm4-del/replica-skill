@@ -21,7 +21,7 @@ Branch `claude/blissful-hamilton-k7clws` (push only there, no PRs). All code is 
 
 ## Left to do
 - **Waiting for Alfonso's yes** on the 90s "After Hours". That job is now archived in `output/archive/20261118-143146/` (staged mp4 + post.json). On a yes, restore it into `output/` before approve/export.
-- **New job running (2026-11-18)**: footage `input/icloud_0f4ek4zg.mov` (409s) + song `songs/alfonso_music_01duYefU.mp3`. Gym reel, 90s. Step: Storyboard.
+- **"Full Send" (2026-11-18)**: footage `input/icloud_0f4ek4zg.mov` + song `songs/alfonso_music_01duYefU.mp3`, 89.68s, QA PASS. Staged at `output/staged/final_edit.mp4` and sent to Alfonso. Waiting for his yes (then approve/export as in Next step). Song in-app start would be 1:26.
 
 ## Next step
 - **On his "yes"**, from `fonzi-gym-video-editor/`:
