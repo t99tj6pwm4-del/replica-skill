@@ -198,12 +198,17 @@ def main():
         need = {"title card": props.get("title") or props.get("opener"),   # Alfonso's own opener image counts as the hook card
                 "lower-thirds": props.get("lowerThirds") or ex_titles,
                 "progress bar": props.get("progress"), "end card": props.get("endCard")}
+        if is_song_video(sb):   # song videos (Director): no lower-thirds or progress bar needed
+            need.pop("lower-thirds"); need.pop("progress bar")
         missing = [k for k, x in need.items() if not x]
-        add("title card, lower-thirds, progress bar, end card present", not missing,
+        add("title card, lower-thirds, progress bar, end card present" if not is_song_video(sb) else "title card, end card present", not missing,
             "all present" if not missing else f"missing: {', '.join(missing)}", "text_visuals")
         n_words = sum(len(p["words"]) for p in props.get("captions", []))
         spoken = len(load_json(WORK / "transcript.json", default={"words": []})["words"])
-        if spoken >= 3:
+        if sb.get("captions") is False:   # storyboard turned captions off (e.g. explicit song lyrics, no dialogue)
+            add("word-by-word captions present", n_words == 0, "captions off in the storyboard (captions: false); "
+                f"{n_words} caption words rendered", "text_visuals", soft=True)
+        elif spoken >= 3:
             add("word-by-word captions present", n_words > 0, f"{n_words} caption words for {spoken} spoken", "text_visuals")
         else:
             add("word-by-word captions present", n_words > 0, "no speech in the video, so there is nothing to caption",
