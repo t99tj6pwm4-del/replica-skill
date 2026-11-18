@@ -98,6 +98,27 @@ def smooth_masks(masks: list, radius: int = 3, hold: bool = False) -> list:
     return out
 
 
+def drop_specks(mask: Image.Image, behind: Image.Image, min_px: int = 2500) -> Image.Image:
+    """Bits of the back word that peek out in small fragments (mask edge noise around a fast fist / arm) are
+    hidden: a letter shows cleanly or not at all, no stray gold specks."""
+    try:
+        from scipy import ndimage
+    except ImportError:
+        return mask
+    m = np.array(mask)
+    vis = (np.array(behind)[:, :, 3] > 0) & (m < 128)
+    lab, n = ndimage.label(vis)
+    if not n:
+        return mask
+    sizes = np.bincount(lab.ravel())
+    small = np.isin(lab, [i for i in range(1, n + 1) if sizes[i] < min_px])
+    if not small.any():
+        return mask
+    small = ndimage.binary_dilation(small, iterations=3) & (np.array(behind)[:, :, 3] > 0)   # no thin gold rim left
+    m = np.where(small, 255, m).astype(np.uint8)
+    return Image.fromarray(m, "L")
+
+
 def layout(mask: Image.Image) -> tuple[int, int, int]:
     """Where the lines go, from the person's outline: first name over the head/shoulders (so his head
     covers part of it), last name across the chest, the small line between them on the chest."""
@@ -154,7 +175,7 @@ def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, i
                          hold=hold_mask)
     for k, f in enumerate(frames):
         img = Image.open(f).convert("RGBA")
-        mask = masks[k]
+        mask = drop_specks(masks[k], behind)
         person = img.copy()
         person.putalpha(mask)
         if front_only:   # no word behind him: the first word is drawn in front too, same gold look
