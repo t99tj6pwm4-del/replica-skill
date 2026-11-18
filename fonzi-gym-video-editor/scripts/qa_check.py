@@ -195,7 +195,8 @@ def main():
                             if not t.get("front_only") else f"{t['first']} {t['last']} front-only"
                             for t in ex_titles) + "; frames: "
                 + ", ".join(t["frame"] for t in ex_titles), "text_visuals")
-        need = {"title card": props.get("title"), "lower-thirds": props.get("lowerThirds") or ex_titles,
+        need = {"title card": props.get("title") or props.get("opener"),   # Alfonso's own opener image counts as the hook card
+                "lower-thirds": props.get("lowerThirds") or ex_titles,
                 "progress bar": props.get("progress"), "end card": props.get("endCard")}
         missing = [k for k, x in need.items() if not x]
         add("title card, lower-thirds, progress bar, end card present", not missing,
