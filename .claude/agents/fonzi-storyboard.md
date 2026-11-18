@@ -149,3 +149,8 @@ Remember that Hero curves / slow-mo play longer than their raw span and ramps sh
 length honestly. With a song, pick a 90s stretch of it (best part, starting on a phrase/downbeat). If the
 song is shorter than 90s, or the footage has under ~90s of usable material, say so in your report instead of
 padding with weak shots, so the Director can ask Alfonso.
+
+## Gold titles behind him (Alfonso, 2026-11-18)
+Every exercise title's back word goes BEHIND him (no `front_only`), even if his body hides most of it:
+Alfonso is fine with the words not being readable. Place the back word across his body (never on his face,
+never in the bottom 420px). Use `front_only` only when he is not in the shot at that moment.

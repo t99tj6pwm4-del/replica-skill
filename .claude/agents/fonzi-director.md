@@ -165,3 +165,8 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
 10. **New version of a video he already got** (e.g. the 90s re-cut): right after `job.py init`, run
     `python3 scripts/job.py replaces exports/<the earlier export>.mp4`. The duplicate check then allows the
     same raw footage for that one job (never an identical file). Only when Alfonso asked for the new version.
+
+11. **Gold titles go BEHIND him, readability not required (2026-11-18).** Alfonso: "I'm fine if the words are
+    not readable." Every exercise title's back word is layered behind his body even when most of it is hidden
+    (QA accepts up to config `titles.max_back_cover`, 95%). Do not use `front_only` just because the back word
+    would be hard to read; only when he is not in the shot at that moment.

@@ -182,12 +182,15 @@ def main():
     if props.get("title_style") != "layered-gold" or not lt:
         ex_titles = load_json(WORK / "exercise_titles.json", default=[]) if props.get("exercise_titles") else []
         if ex_titles:
-            # front_only titles (Director's call when no back word can be read behind him) need no cover
+            # front_only titles (Director's call when no back word can be read behind him) need no cover.
+            # Alfonso 2026-11-18: the back word may be mostly hidden, readability is not required
+            # (config titles.max_back_cover; it must still be really behind him and not fully gone).
+            max_cov = float((load_config().get("titles") or {}).get("max_back_cover", 0.45))
             behind = [t for t in ex_titles if t.get("front_only")
-                      or 0.02 < (t.get("first_name_covered_by_person") or 0) <= 0.45]
-            add("exercise names as gold layered titles (back word partly behind him, still readable)",
+                      or 0.02 < (t.get("first_name_covered_by_person") or 0) <= max_cov]
+            add("exercise names as gold layered titles (back word partly behind him)",
                 len(behind) == len(ex_titles),
-                f"{len(behind)}/{len(ex_titles)} have the back word 2-45% covered by him; "
+                f"{len(behind)}/{len(ex_titles)} have the back word 2-{max_cov * 100:.0f}% covered by him; "
                 + "; ".join(f"{t['first']} {t['last']} {(t.get('first_name_covered_by_person') or 0) * 100:.0f}%"
                             if not t.get("front_only") else f"{t['first']} {t['last']} front-only"
                             for t in ex_titles) + "; frames: "

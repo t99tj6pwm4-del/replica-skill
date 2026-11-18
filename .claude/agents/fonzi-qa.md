@@ -148,3 +148,7 @@ Spanish letters and • there, nothing else). Hashtags are still never allowed.
 
 `qa_check.py` checks the final against `config.yaml` `video_length` (90s +/- 1s). Outside that is a FAIL:
 send it to the Cuts Agent, or to the Storyboard Agent if the plan itself is not 90s.
+
+## Gold titles behind him (Alfonso, 2026-11-18)
+A mostly hidden back word is NOT a fail: Alfonso is fine with the words not being readable. Only flag a title
+whose back word is not behind him at all (under 2%) or completely gone (over config `titles.max_back_cover`).

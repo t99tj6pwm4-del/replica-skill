@@ -154,3 +154,8 @@ How:
 English-only exception (approved by Alfonso, 2026-11-17): the Spanish lines of these pop-ups (the Spanish exercise
 name and the Spanish cue) may use Spanish letters (á é í ó ú ü ñ ¿ ¡) and the • separator. Everything else on
 screen stays English-only, and no hashtags anywhere. render_final.py and qa_check.py allow exactly this.
+
+## Gold titles behind him (Alfonso, 2026-11-18)
+Render every exercise title layered (back word behind him) as the storyboard says, even when most of the back
+word is hidden. Do not switch a title to `front_only` for readability; QA allows up to config
+`titles.max_back_cover` (95%) covered.

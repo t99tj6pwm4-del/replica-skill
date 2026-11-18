@@ -127,6 +127,9 @@ titles:
   #                documentary, a clean standing shot); never on fast gym reels, song videos or quick cuts.
   #                Turn on per video: render_final.py --title-style layered-gold (or storyboard "title_style").
   title_style: normal
+  # Alfonso 2026-11-18: exercise-title back words go BEHIND him even if mostly hidden (not readable is fine).
+  # QA accepts 2%..max_back_cover of the back word covered by his body. front_only only when he is not in shot.
+  max_back_cover: 0.95
 
 # Alfonso's HARD RULE (2026-11-17): every video is 90 seconds long (end card included). QA fails anything
 # outside target +/- tolerance. The storyboard plans 90s, the song section must cover 90s.
