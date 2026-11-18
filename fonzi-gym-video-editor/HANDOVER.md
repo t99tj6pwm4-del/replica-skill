@@ -21,7 +21,8 @@ Branch `claude/blissful-hamilton-k7clws` (push only there, no PRs). All code is 
 
 ## Left to do
 - **Waiting for Alfonso's yes** on the 90s "After Hours". That job is now archived in `output/archive/20261118-143146/` (staged mp4 + post.json). On a yes, restore it into `output/` before approve/export.
-- **"Full Send" (2026-11-18)**: footage `input/icloud_0f4ek4zg.mov` + song `songs/alfonso_music_01duYefU.mp3`, 89.68s, QA PASS. Staged at `output/staged/final_edit.mp4` and sent to Alfonso. Waiting for his yes (then approve/export as in Next step). Song in-app start would be 1:26.
+- **"Full Send" (2026-11-18)**: footage `input/icloud_0f4ek4zg.mov` + song `songs/alfonso_music_01duYefU.mp3`, 89.68s, v2 (all gold titles behind him) QA PASS, staged and sent. Waiting for his yes. Optional: Flow pack at `output/flow_pack/` (4 x 4s clips, prompts in FLOW_NOTES.md). When clips arrive put them in `output/flow_pack/returned/angle_N.mp4`, run Multicam (`multicam_generate.py --provider google-flow`), then Text/Visuals re-render (keep overlay_props hand edits), then QA. Song in-app start 1:26.
+- **New standing answer 11**: gold title back word always behind him, unreadable is fine (config `titles.max_back_cover` 0.95).
 
 ## Next step
 - **On his "yes"**, from `fonzi-gym-video-editor/`:
