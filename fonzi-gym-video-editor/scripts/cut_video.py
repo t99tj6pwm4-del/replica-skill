@@ -191,7 +191,7 @@ def main():
         for p in seg_pieces:
             exact_t += (p["src_b"] - p["src_a"]) / p["speed"]
             p["out_dur"] = round(q(exact_t) - out_t, 4)
-            if p["out_dur"] < FRAME - 1e-6:
+            if p["out_dur"] < FRAME / 2:   # out_t is rounded to 4 decimals, so one frame can read 0.0333 < FRAME
                 continue
             p["out_a"], p["out_b"] = round(out_t, 4), round(q(exact_t), 4)
             p["seg"] = seg

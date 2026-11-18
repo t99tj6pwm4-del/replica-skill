@@ -7,9 +7,9 @@
     "ast_empty": true
   },
   "config.yaml": {
-    "mtime": 1794941717.7321248,
-    "seen": 1794941747.2021627,
-    "ast_hash": "0534d0a92554d2f59df88c0bcaeed2e4",
+    "mtime": 1795020304.8852258,
+    "seen": 1795031177.0348754,
+    "ast_hash": "3126f28c8aad7274013fa71bd228b3cb",
     "semantic_hash": ""
   },
   "config/brand.json": {
@@ -97,9 +97,9 @@
     "semantic_hash": "9f2f6ae0abbbd68b588d4057077b49fa"
   },
   "scripts/cut_video.py": {
-    "mtime": 1794935288.2126186,
-    "seen": 1794935431.480622,
-    "ast_hash": "708c9a45a88f2863a2151f4023214ffb",
+    "mtime": 1795030977.2396684,
+    "seen": 1795031177.0349085,
+    "ast_hash": "cd01d0718fa69b53b0c49f8b62104585",
     "semantic_hash": ""
   },
   "scripts/effects.py": {
@@ -139,9 +139,9 @@
     "semantic_hash": ""
   },
   "scripts/layered_title.py": {
-    "mtime": 1794850873.3174968,
-    "seen": 1794851686.7531767,
-    "ast_hash": "e9af1ba284329e41c17fc4669472cb7a",
+    "mtime": 1795024754.9007287,
+    "seen": 1795031177.0349176,
+    "ast_hash": "65729b052e348ce36d827e0ed6915e22",
     "semantic_hash": ""
   },
   "scripts/multicam_generate.py": {
@@ -163,9 +163,9 @@
     "semantic_hash": "90980883d9c12ebcdea6637dcf20d52c"
   },
   "scripts/qa_check.py": {
-    "mtime": 1794948407.0549095,
-    "seen": 1794948452.2195966,
-    "ast_hash": "1e49c9bbf190793c2ffd77d8d33e03cb",
+    "mtime": 1795026610.3259227,
+    "seen": 1795031177.0349233,
+    "ast_hash": "2ac4cee1d70371e7fdb7206671f86f1e",
     "semantic_hash": ""
   },
   "scripts/qa_verdict.py": {
@@ -175,9 +175,9 @@
     "semantic_hash": "c973d8d30c0fab05785a8c7ccb10bc6d"
   },
   "scripts/render_final.py": {
-    "mtime": 1794935084.1758587,
-    "seen": 1794935431.4806361,
-    "ast_hash": "d637554b05936f1731886461e5671cc4",
+    "mtime": 1795022758.4661024,
+    "seen": 1795031177.034926,
+    "ast_hash": "008ae9d6a10634b4c4608852cb8a925b",
     "semantic_hash": ""
   },
   "scripts/setup.sh": {
@@ -211,9 +211,9 @@
     "semantic_hash": ""
   },
   "HANDOVER.md": {
-    "mtime": 1795012446.3605995,
-    "seen": 1795014274.2132025,
-    "ast_hash": "3bac5540653faffcb5e645180c35770d",
+    "mtime": 1795030029.3260393,
+    "seen": 1795031177.0349333,
+    "ast_hash": "9d6c71ee26a219a3a81092a36731f80c",
     "semantic_hash": ""
   },
   "README.md": {
