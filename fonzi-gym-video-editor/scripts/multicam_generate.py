@@ -404,7 +404,7 @@ def main():
         fc.append(f"[{last}][c{i}]overlay=enable='between(t,{(f0 - 0.5) / FPS:.6f},{(f1 - 0.5) / FPS:.6f})':eof_action=repeat[v{i}]")
         last = f"v{i}"
     out = OUT / "multicam_version.mp4"
-    cmd += ["-filter_complex", ";".join(fc) + f";[{last}]fps={FPS},format=yuv420p[v]", "-map", "[v]", "-map", "0:a",
+    cmd += ["-filter_complex", ";".join(fc) + f";[{last}]format=yuv420p[v]", "-map", "[v]", "-map", "0:a",
             "-t", f"{dur:.3f}", "-c:v", "libx264", "-preset", "medium", "-crf", "17", "-profile:v", "high",
             "-r", str(FPS), "-c:a", "copy", "-movflags", "+faststart", out]
     run(cmd)
