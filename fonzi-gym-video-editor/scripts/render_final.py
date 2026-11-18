@@ -205,8 +205,16 @@ def main():
               "--codec=prores", "--prores-profile=4444", "--pixel-format=yuva444p10le", "--image-format=png",
               f"--concurrency={os.cpu_count() or 2}"])
     final = OUT / "final_edit.mp4"
-    run(["ffmpeg", "-v", "error", "-y", "-i", cut, "-i", overlay, "-filter_complex",
-         f"[0:v][1:v]overlay=format=auto,fps={FPS},format=yuv420p[v]", "-map", "[v]", "-map", "0:a?",
+    # optional opener image (Alfonso's own thumbnail): full frame over everything from 0 to "to", audio untouched
+    opener = props.get("opener") or {}
+    extra, fc = [], f"[0:v][1:v]overlay=format=auto,fps={FPS},format=yuv420p[v]"
+    if opener.get("image"):
+        extra = ["-loop", "1", "-t", f"{info['duration']:.3f}", "-i", str(OUT.parent / opener["image"])]
+        fc = (f"[0:v][1:v]overlay=format=auto,fps={FPS}[g];"
+              f"[2:v]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},setsar=1,fps={FPS}[op];"
+              f"[g][op]overlay=enable='lt(t,{float(opener['to']):.3f})',format=yuv420p[v]")
+    run(["ffmpeg", "-v", "error", "-y", "-i", cut, "-i", overlay, *extra, "-filter_complex",
+         fc, "-map", "[v]", "-map", "0:a?",
          "-t", f"{info['duration']:.3f}", "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-profile:v", "high",
          "-pix_fmt", "yuv420p", "-r", str(FPS), "-c:a", "copy", "-movflags", "+faststart", final])
     overlay.unlink(missing_ok=True)

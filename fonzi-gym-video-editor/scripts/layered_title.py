@@ -92,7 +92,8 @@ def smooth_masks(masks: list, radius: int = 3, hold: bool = False) -> list:
     out = []
     for k in range(len(arr)):
         win = arr[max(0, k - radius): k + radius + 1]
-        med = (win.sum(axis=0) * 2 > len(win)).astype(np.uint8) * 255
+        med = (win.sum(axis=0) * 2 > len(win)) | arr[k]   # keep this frame's own cut-out: a fast fist/arm
+        med = med.astype(np.uint8) * 255                    # must not be voted away (gold specks over it)
         out.append(Image.fromarray(med, "L").filter(ImageFilter.GaussianBlur(0.8)))
     return out
 
