@@ -148,7 +148,9 @@ well (a still point of a rep, a setup, a pose). multicam_prompt.py / shot_librar
 
 ## Identity references for Google Flow packs (Alfonso, 2026-11-19)
 Alfonso's own reference sheets live in `fonzi-gym-video-editor/references/` (committed at Alfonso's request, 2026-11-19, knowing the repo is public): `character_sheet_01..09.png` (face / body / expressions; he is fine with them showing no tattoos)
-and `tattoo_left_arm_sleeve.jpg` + `tattoo_left_arm_angles.png` + `tattoo_left_arm_high_low.png` (high/low front 3/4, outer, rear 3/4:
+and `tattoo_left_arm_sleeve.jpg` + `tattoo_left_arm_angles.png` + `tattoo_left_arm_high_low.png` + `tattoo_left_arm_forearm_wrist.png`
+(palm up/down, thumb up, wrist flexed/extended, fist) + `tattoo_left_arm_shoulder_elbow.png` (overhead reach,
+side/forward reach, hand behind head, 90-degree bend, across chest: pick the pose closest to the lift) (high/low front 3/4, outer, rear 3/4:
 pick the one matching the shot's camera height; close-ups: deltoid edges, biceps to elbow,
 elbow from below, thumb-side forearm, little-finger-side wrist) (his real LEFT-arm full sleeve: shark at the shoulder, princess on the upper arm,
 "LOVE" text, Power Rangers coin mid-arm, Majin Buu on the forearm, green dragon in flames at the wrist).
