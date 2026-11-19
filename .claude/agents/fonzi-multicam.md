@@ -158,3 +158,9 @@ In every Flow pack: copy one character sheet (pick the face closest to the start
 the tattoo sheet into `output/flow_pack/`, tell Alfonso to add them as ingredients/references next to the start
 frame, and add to each FLOW_NOTES prompt: "Same man as the reference sheet; full colour tattoo sleeve on his LEFT
 arm exactly as the tattoo reference" (only when the arm is visible). The start frame is still the real clip frame.
+
+Also in `references/`: `pose_sheet_01..NN.png` (full-body poses, each as front / side profile / rear 3/4: hands on
+hips, arms crossed, gestures, phone, walking, squat, lunges, hip hinge, kneeling, sitting, bench sit, plank, bird
+dog, glute bridge...) and `expressions_01..04.png` (face expressions, each from front, 3/4 left and 3/4 right).
+For a Flow slot, add the pose sheet whose pose and camera direction match the slot's shot, and, for a face
+close-up, the expressions sheet with the matching emotion.
