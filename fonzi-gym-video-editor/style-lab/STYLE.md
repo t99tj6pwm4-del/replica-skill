@@ -21,14 +21,17 @@
 ## Locked
 - **Gold name title, clean** (r1-t1, round 1): layered title over the footage, gold stays clean and flat (#D4A017, Montserrat Black): big word behind him, small intro line on his chest, second line in front of his chest. Whoosh in.
 - **Gold name title + snap** (r1-t3, round 1): same, but it lands with a 2-frame white flash, a 1.08 -> 1 punch-in over 6 frames and a small shake, on an impact hit. For the big name moment.
-- **Zoom through the shirt** (r1-x5, round 1): punch into a dark object (his black tank) until the frame goes dark, next shot comes out of the dark. Whoosh + impact. (Being pushed further in round 2.)
-- **Logo end card: flicker on** (r1-l2, round 1): flickers on like a sign warming up, then a steady glow. Clicks. Round 1 note: "animated so there is dripping, the drip effect looks like real drips" (round 2).
+- **Zoom through the shirt** (r1-x5, round 1) **with zoom blur** (r2-x5, round 2): punch into a dark object (his black tank) over 10 frames (ease-in, zoom to 6x, darkening 80%) with a radial zoom blur that builds as it speeds up; next shot fades up out of the dark over 8 frames. Whoosh 0.45 s before, impact on the cut.
+- **Logo end card: flicker on** (r1-l2, round 1): flickers on like a sign warming up, then a steady glow. Clicks. **With real drips** (round 2, all three kept): drips run down from the halo, letters and tail after the flicker. Allowed amounts: a few slow drips (6, drops fall now and then), heavy drips (14, drops falling), wet paint (14, creep down and stay). Rotate between them across videos.
 
 ## Rejected
+- **Flicker mask / light leak** (round 2, both versions dropped).
+- **Slow luma fade 0.65 s** (round 2).
+- **Zoom into the dumbbell, faster** (round 2): stay with the shirt + zoom blur.
 - **Colour grading by the team** (round 1, 2026-11-19): "not what I wanted". Alfonso grades his videos himself. The team never grades: no `film_grade.py` in any edit, and Style Lab options are shown on ungraded footage. His 5-step spec stays in GRADE_AND_TRANSITIONS.md for reference only.
 
-## Maybe (round 1, no notes)
-- Luma fade (r1-x1), Flicker mask (r1-x2): variations in round 2.
+## Maybe
+- Luma fade, fast 0.2 s (r2-x1): note "I want cut out then punch in effect" -> round 3 builds cut-out + punch-in.
 
 ## Not chosen (round 1, unrated)
 - Film gold title, film burn, rise, drip reveal logo, slam logo.
