@@ -31,7 +31,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 sys.path.insert(0, str(Path(__file__).parent))
 from common import FPS, H, OUT, REMOTION, W, WORK, brand, die, load_json, probe, rel, run, save_json  # noqa: E402
 
-GOLD = (205, 162, 32)                       # within #C9A227-#D4A017
+GOLD = (212, 160, 23)                       # mustard gold #D4A017 (Alfonso, Style Lab 2026-11-19)
 SERIF = REMOTION / "public" / "fonts" / "Montserrat.ttf"   # Alfonso (2026-11-16): Montserrat everywhere (Black)
 TITLE_WEIGHT = "Black"
 SANS = REMOTION / "public" / "fonts" / "Montserrat.ttf"
@@ -287,7 +287,7 @@ def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, i
     if abs(probe(out)["duration"] - total) > 0.1:
         die("layered title changed the video length: not passing it on")
     info = {"style": "Layered Title (Documentary Gold)", "at": round(at, 3), "dur": round(seg_len, 3),
-            "first": first.upper(), "last": last.upper(), "intro_line": intro, "gold": "#CDA220",
+            "first": first.upper(), "last": last.upper(), "intro_line": intro, "gold": "#D4A017",
             "first_line_y": y1, "last_line_y": y2, "intro_y": yi,
             "first_name_covered_by_person": float(covered[0]) if covered else None, "front_only": front_only,
             "cut_model": model, "parallax": on, "frame": rel(frame_png)}

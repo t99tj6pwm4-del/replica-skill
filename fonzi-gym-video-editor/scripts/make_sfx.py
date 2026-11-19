@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Make the team's own sound effects from plain synthesis (no stock sounds, no AI): sfx/whoosh.wav, sfx/pop.wav.
+"""Make the team's own sound effects from plain synthesis (no stock sounds, no AI): sfx/whoosh.wav, pop, impact, riser, crackle, click.
 
     python3 scripts/make_sfx.py            # writes sfx/whoosh.wav and sfx/pop.wav (48 kHz stereo)
 
@@ -27,11 +27,26 @@ WHOOSH = ("anoisesrc=d=0.55:c=pink:r=48000:a=0.9,"
 # pop: a short sine blip that drops in pitch, plus a tiny click of noise, very fast decay
 POP = ("aevalsrc='0.9*sin(2*PI*(520+900*exp(-t*40))*t)*exp(-t*28)|0.9*sin(2*PI*(520+900*exp(-t*40))*t)*exp(-t*28)'"
        ":s=48000:d=0.16,afade=t=out:st=0.10:d=0.06,highpass=f=120")
+# impact: a deep sine thump that drops in pitch, plus a short noise crack on top
+IMPACT = ("aevalsrc='0.9*sin(2*PI*(45+140*exp(-t*18))*t)*exp(-t*6)+0.35*(random(0)-0.5)*exp(-t*55)|"
+          "0.9*sin(2*PI*(45+140*exp(-t*18))*t)*exp(-t*6)+0.35*(random(1)-0.5)*exp(-t*55)':s=48000:d=0.9,"
+          "lowpass=f=5000,afade=t=out:st=0.6:d=0.3")
+# riser: band-passed noise with a rising sine underneath, swelling up to the end
+RISER = ("aevalsrc='(0.5*sin(2*PI*(180*pow(4,t/1.2))*t)+0.6*(random(0)-0.5))*pow(t/1.2,2)|"
+         "(0.5*sin(2*PI*(180*pow(4,t/1.2))*t)+0.6*(random(1)-0.5))*pow(t/1.2,2)':s=48000:d=1.2,"
+         "highpass=f=200,lowpass=f=9000")
+# crackle: sparse film-dust clicks over a soft hiss (film burn / flicker)
+CRACKLE = ("aevalsrc='(gt(random(0),0.9993)*(random(1)-0.5)*2+0.05*(random(2)-0.5))|"
+           "(gt(random(3),0.9993)*(random(4)-0.5)*2+0.05*(random(5)-0.5))':s=48000:d=1.0,"
+           "highpass=f=400,afade=t=in:st=0:d=0.05,afade=t=out:st=0.8:d=0.2")
+# click: a tiny bright tick (flicker frames, UI)
+CLICK = ("aevalsrc='0.9*sin(2*PI*2400*t)*exp(-t*160)|0.9*sin(2*PI*2400*t)*exp(-t*160)':s=48000:d=0.06")
 
 
 def main():
     SFX.mkdir(exist_ok=True)
-    for name, graph in (("whoosh", WHOOSH), ("pop", POP)):
+    for name, graph in (("whoosh", WHOOSH), ("pop", POP), ("impact", IMPACT), ("riser", RISER),
+                        ("crackle", CRACKLE), ("click", CLICK)):
         out = SFX / f"{name}.wav"
         raw = SFX / f"{name}_raw.wav"
         run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", graph, "-ar", "48000", "-ac", "2", raw])

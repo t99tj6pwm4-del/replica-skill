@@ -139,9 +139,9 @@
     "semantic_hash": ""
   },
   "scripts/layered_title.py": {
-    "mtime": 1795075056.6785448,
-    "seen": 1795075132.8873658,
-    "ast_hash": "5a7ac576833b34dddbe93b9b94032143",
+    "mtime": 1795083769.868926,
+    "seen": 1795083772.2596622,
+    "ast_hash": "7edce1ed5938d861fa546ca442763f77",
     "semantic_hash": ""
   },
   "scripts/multicam_generate.py": {
@@ -211,9 +211,9 @@
     "semantic_hash": ""
   },
   "HANDOVER.md": {
-    "mtime": 1795078938.08043,
-    "seen": 1795078939.4227934,
-    "ast_hash": "14576d644aa7e48c0c114898c9b4d43b",
+    "mtime": 1795083769.8887153,
+    "seen": 1795083772.2596838,
+    "ast_hash": "d8c232f3e09bd0784ab1d58552bab701",
     "semantic_hash": ""
   },
   "README.md": {
@@ -277,9 +277,9 @@
     "semantic_hash": ""
   },
   "scripts/make_sfx.py": {
-    "mtime": 1795074521.89676,
-    "seen": 1795075132.8873687,
-    "ast_hash": "9acbabb4c3555b95fa8024318ed86e69",
+    "mtime": 1795082156.595871,
+    "seen": 1795083772.259664,
+    "ast_hash": "156b8c0a03eaa3de53ec84a6b43646a9",
     "semantic_hash": ""
   },
   "references/character_sheet_01.png": {
@@ -457,15 +457,15 @@
     "semantic_hash": ""
   },
   "sfx/pop.wav": {
-    "mtime": 1795074522.249821,
-    "seen": 1795075132.8874795,
+    "mtime": 1795082157.0019674,
+    "seen": 1795083772.2597594,
     "ast_hash": "036e320941cea1640f3d76dc564edd09",
     "semantic_hash": ""
   },
   "sfx/whoosh.wav": {
-    "mtime": 1795074522.098192,
-    "seen": 1795075132.8874815,
-    "ast_hash": "668329fb5178b69341dd5e96b82c351b",
+    "mtime": 1795082156.8198705,
+    "seen": 1795083772.2597618,
+    "ast_hash": "2494dadab7f3bf500d97a14d34c9a2cc",
     "semantic_hash": ""
   },
   "MOVE_TO_NEW_ACCOUNT.md": {
@@ -484,6 +484,78 @@
     "mtime": 1795078927.4538484,
     "seen": 1795078939.422803,
     "ast_hash": "85bfdd813ed41f95ce7fdcbf15951273",
+    "semantic_hash": ""
+  },
+  "scripts/film_grade.py": {
+    "mtime": 1795082242.2598696,
+    "seen": 1795083772.2596552,
+    "ast_hash": "7e711d06c9001b63e6e4c639b5412be8",
+    "semantic_hash": ""
+  },
+  "style-lab/round1/build.py": {
+    "mtime": 1795082501.6287494,
+    "seen": 1795083772.2596807,
+    "ast_hash": "ff5d85be13ad75cb4be0892e04ebaf98",
+    "semantic_hash": ""
+  },
+  "style-lab/GRADE_AND_TRANSITIONS.md": {
+    "mtime": 1795081993.0375934,
+    "seen": 1795083772.259706,
+    "ast_hash": "7b11ca906a8893b337e097801544678c",
+    "semantic_hash": ""
+  },
+  "style-lab/SETUP_PROMPT.md": {
+    "mtime": 1795079155.5662973,
+    "seen": 1795083772.2597075,
+    "ast_hash": "bf7e38a70df2c8145ba115629e7c8e63",
+    "semantic_hash": ""
+  },
+  "style-lab/SOUND-LIBRARY.md": {
+    "mtime": 1795079080.2399824,
+    "seen": 1795083772.2597086,
+    "ast_hash": "d9f42fd70362cbcd9b9faaba9a5355c3",
+    "semantic_hash": ""
+  },
+  "style-lab/STYLE.md": {
+    "mtime": 1795081993.0527859,
+    "seen": 1795083772.2597127,
+    "ast_hash": "21c740f7533e7363bb37fe433529071e",
+    "semantic_hash": ""
+  },
+  "style-lab/style-lab.html": {
+    "mtime": 1795079058.2728639,
+    "seen": 1795083772.2597141,
+    "ast_hash": "dee1b6f38c3f662c34ce35d3de490c61",
+    "semantic_hash": ""
+  },
+  "brand/fonzi_logo.png": {
+    "mtime": 1795081973.9285336,
+    "seen": 1795083772.259715,
+    "ast_hash": "f40d72240edf643f63f030b70901c39b",
+    "semantic_hash": ""
+  },
+  "sfx/click.wav": {
+    "mtime": 1795082157.7267692,
+    "seen": 1795083772.2597556,
+    "ast_hash": "5f6d8a8aaaa9a0d2a250e2be83e20e76",
+    "semantic_hash": ""
+  },
+  "sfx/crackle.wav": {
+    "mtime": 1795082157.58083,
+    "seen": 1795083772.2597568,
+    "ast_hash": "b00dcdfd94082a53f06747db24fc84c2",
+    "semantic_hash": ""
+  },
+  "sfx/impact.wav": {
+    "mtime": 1795082157.19683,
+    "seen": 1795083772.259758,
+    "ast_hash": "57f2ff10333d41b444424c0517b62deb",
+    "semantic_hash": ""
+  },
+  "sfx/riser.wav": {
+    "mtime": 1795082157.39683,
+    "seen": 1795083772.2597606,
+    "ast_hash": "2311be5ff15f575924bb6d6912ed5f55",
     "semantic_hash": ""
   },
   "remotion/package-lock.json": {
