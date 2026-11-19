@@ -38,6 +38,7 @@ Branch `claude/blissful-hamilton-k7clws` (push only there, no PRs). All code is 
   - iCloud shared albums (`photos.icloud.com/shared/album/…`) download via Playwright: capture the `ckdatabasews` records responses and use `resOriginalRes.downloadURL`.
 
 ## Key files
+- **Moving to another account**: `MOVE_TO_NEW_ACCOUNT.md` (fork, environment + setup script, secrets, first prompt).
 - **Identity references**: `references/` (9 character sheets + `tattoo_left_arm_sleeve.jpg`, LEFT-arm sleeve). Used in every Flow pack.
 - **Agents and skill**: `.claude/agents/fonzi-*.md` (director standing answers 1-10), `.claude/skills/fonzi-edit/SKILL.md`, `.claude/settings.json`.
 - **Config**: `fonzi-gym-video-editor/config.yaml`, `config/brand.json`.
