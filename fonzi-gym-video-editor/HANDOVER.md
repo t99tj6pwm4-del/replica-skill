@@ -22,6 +22,7 @@ Branch `claude/blissful-hamilton-k7clws` (push only there, no PRs). All code is 
 ## Left to do
 - **90s "After Hours" re-cut: NOT APPROVED** (Alfonso, 2026-11-19). Not exported. The 41.8s version stays the only After Hours export.
 - **Nothing is waiting for approval.** Next: a new `/fonzi-edit` job.
+- **Style Lab (2026-11-19)**: published at https://claude.ai/artifact/Xez5Sv5JbCzCsqC7oz1Chc (db/user/assets). Steps in `style-lab/SETUP_PROMPT.md`, brief in `style-lab/STYLE.md`. Next: finish the brief interview (one question at a time), then round 1.
 - **Effects added (2026-11-19)**: x-ray hit and film-strip flash cut recipes in `docs/effects/`, Director standing answer 13. Waiting on his selfies for the flash cut and on enough credits (balance 10).
 - **"Full Send" (2026-11-18)**: NOT APPROVED by Alfonso (2026-11-19), not exported, not posted. Files kept in output/ and output/archive/.
 - **"Shh" (2026-11-18)**: NOT APPROVED by Alfonso (2026-11-19), not exported, not posted. Files kept in output/ and output/archive/.

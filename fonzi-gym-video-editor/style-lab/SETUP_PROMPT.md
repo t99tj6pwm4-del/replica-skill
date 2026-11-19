@@ -1,6 +1,7 @@
 # Style Lab setup prompt
 
 Source: https://ruby-cotija-fb5.notion.site/Style-Lab-3f428691eca38128a16bc80fcb2c6487 (template by Shaan Johari). Saved 2026-11-19.
+Published page (private): https://claude.ai/artifact/Xez5Sv5JbCzCsqC7oz1Chc (reuse it every round).
 Template: `style-lab.html` (read in full; plain page, no outside scripts). Publish with capabilities {db, user, assets} only with Alfonso's OK.
 
 ```
