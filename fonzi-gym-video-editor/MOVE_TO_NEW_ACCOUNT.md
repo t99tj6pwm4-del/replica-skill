@@ -1,4 +1,20 @@
-# Moving the gym video editor to another Claude account
+# Moving the gym video editor to a NEW Claude account
+
+## The easy way (Claude sets itself up)
+1. **Plan:** the new Claude account needs a paid plan (Pro or Max) to use Claude Code on the web.
+2. **GitHub:** go to https://claude.ai/connect-github while signed in to the NEW Claude account and connect GitHub.
+   - Same GitHub account as now: allow the repo `replica-skill`. Done.
+   - Different GitHub account: first fork https://github.com/t99tj6pwm4-del/replica-skill (untick
+     "Copy the main branch only"), then allow the fork.
+3. **Open** https://claude.ai/code, pick the `replica-skill` repository, keep the Default environment, and start.
+4. **Paste** the "first message" prompt at the bottom of this page. Claude makes the environment (you approve
+   a card), saves the setup script, and opens a secure form for your Hugging Face token.
+5. When it says the new environment is ready, **start one more new session** on that environment, then send
+   `/fonzi-edit <link>` like always.
+
+The manual way (if you prefer to click it yourself) is below.
+
+# Manual way
 
 Everything the team needs (agents, `/fonzi-edit` skill, scripts, rules, reference sheets, sound effects,
 HANDOVER.md) is in the GitHub repo `t99tj6pwm4-del/replica-skill`, branch `claude/blissful-hamilton-k7clws`.
@@ -45,7 +61,12 @@ fi
 Start a new Claude Code session on that environment and repo, then paste:
 
 ```
-This is my fonzi-gym-video-editor project, moved from my other account. Check out the branch
+This is my fonzi-gym-video-editor project, moved from my other account. If this session is not on an
+environment called fonzi-gym-video-editor yet, create one for me first: personal, unrestricted network,
+for the replica-skill repo, with the setup script from fonzi-gym-video-editor/MOVE_TO_NEW_ACCOUNT.md
+(run it here once first to check it works), and ask me for my Hugging Face token with the secure form
+for huggingface.co and zerogpu-aoti-wan2-2-fp8da-aoti-faster.hf.space. Then tell me to start a new
+session on it. Check out the branch
 claude/blissful-hamilton-k7clws and keep working on it (push only to that branch, no pull requests).
 Read fonzi-gym-video-editor/HANDOVER.md first, then .claude/agents/fonzi-director.md, and follow every
 standing rule in them exactly as before. Then check the setup: python requirements, remotion npm install,
