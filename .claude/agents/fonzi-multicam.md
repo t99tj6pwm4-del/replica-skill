@@ -145,3 +145,13 @@ Every video gets at least ONE top-down shot from the library (#13 straight down 
 else #14 extreme high angle or #24 high ceiling corner), placed on a moment where seeing him from above reads
 well (a still point of a rep, a setup, a pose). multicam_prompt.py / shot_library.py enforce it and refuse a
 `--shots` list without one. Top-down shots are exempt from the no-repeat rule.
+
+## Identity references for Google Flow packs (Alfonso, 2026-11-19)
+Alfonso's own reference sheets live in `fonzi-gym-video-editor/input/references/` (git-ignored, re-upload if a new
+session lacks them): `character_sheet_01..09.png` (face / body / expressions; he is fine with them showing no tattoos)
+and `tattoo_left_arm_sleeve.jpg` (his real LEFT-arm full sleeve: shark at the shoulder, princess on the upper arm,
+"LOVE" text, Power Rangers coin mid-arm, Majin Buu on the forearm, green dragon in flames at the wrist).
+In every Flow pack: copy one character sheet (pick the face closest to the start frame) and, when his arms show,
+the tattoo sheet into `output/flow_pack/`, tell Alfonso to add them as ingredients/references next to the start
+frame, and add to each FLOW_NOTES prompt: "Same man as the reference sheet; full colour tattoo sleeve on his LEFT
+arm exactly as the tattoo reference" (only when the arm is visible). The start frame is still the real clip frame.
