@@ -22,7 +22,7 @@
 - (nothing yet)
 
 ## Rejected
-- (nothing yet)
+- **Colour grading by the team** (round 1, 2026-11-19): "not what I wanted". Alfonso grades his videos himself. The team never grades: no `film_grade.py` in any edit, and Style Lab options are shown on ungraded footage. His 5-step spec stays in GRADE_AND_TRANSITIONS.md for reference only.
 
 ## Open questions
 - Item 9 (what to build first): proposed round 1 = gold name title (youngla style), the teal & orange grade, transitions. Waiting for his OK.

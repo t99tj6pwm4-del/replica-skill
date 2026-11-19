@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Fonzi film grade (Style Lab brief, 2026-11-19): Alfonso's 5-step teal & orange film look, built by us.
+"""NOT USED IN EDITS: Alfonso dropped team colour grading (2026-11-19); he grades himself. Kept for reference.
+
+Fonzi film grade (Style Lab brief, 2026-11-19): Alfonso's 5-step teal & orange film look, built by us.
 
     python3 scripts/film_grade.py IN.mp4 OUT.mp4 [--strength light|medium|heavy] [--ss S --t T]
 

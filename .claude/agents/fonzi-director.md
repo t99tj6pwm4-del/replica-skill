@@ -197,3 +197,6 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
     - **Credits first**: check `balance` and quote with `estimate_image_cost`. Priority when credits are short:
       Kling angles (top-down rule) > x-ray > flash cut. Skip any effect the balance can't cover and tell him; never
       half-run one. Never fails QA by being skipped.
+14. **No colour grading by the team (2026-11-19).** Alfonso grades his videos himself ("not what I wanted"). Never add
+    a colour grade, LUT or film look to an edit (`scripts/film_grade.py` is reference only). Style decisions live in
+    `fonzi-gym-video-editor/style-lab/STYLE.md` (Locked / Rejected); follow it on every video.
