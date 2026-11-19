@@ -155,3 +155,13 @@ sfx:
   popup: sfx/pop.wav               # each exercise bar / checklist / form tip card
   hook: sfx/whoosh.wav             # the hook title card
 
+# Alfonso 2026-11-19: AI camera angles from Higgsfield (his credits, his yes). Run by the Director via MCP tools.
+higgsfield:
+  enabled: true
+  model: kling_o3_image_reference   # "Kling 3.0 Omni" image-reference, std = 720p
+  mode: std
+  aspect_ratio: "9:16"
+  sound: "off"
+  clip_seconds: 3                   # ~3 credits each (5 s ~6.25); slots are 2.5-3.5 s
+  max_reference_images: 7
+

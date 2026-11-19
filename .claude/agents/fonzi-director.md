@@ -170,3 +170,19 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
     not readable." Every exercise title's back word is layered behind his body even when most of it is hidden
     (QA accepts up to config `titles.max_back_cover`, 95%). Do not use `front_only` just because the back word
     would be hard to read; only when he is not in the shot at that moment.
+
+12. **AI camera angles via Higgsfield (2026-11-19).** Alfonso connected Higgsfield with his own credits and said to
+    use it, with **Kling 3.0 Omni (image reference), 720p** = Higgsfield model `kling_o3_image_reference`,
+    `mode: std`, `aspect_ratio: 9:16`, `sound: off`, `duration: 3` (≈3 credits a clip; 5 s ≈ 6.25). This is his
+    yes for this paid engine: use it on every video without asking again, but check `balance` first and only
+    make as many clips as the credits cover (say how many were made and the credits left). The Higgsfield tools
+    are MCP tools, so YOU (the Director) run them, not a subagent:
+    1. Multicam Agent writes the frozen prompt + slots and a Flow-style pack (start frames per slot) as usual.
+    2. For each slot: `media_upload` the slot's start frame plus the matching sheets from
+       `fonzi-gym-video-editor/references/` (one character/expressions sheet, a pose sheet, the tattoo sheet when
+       his arms show; max 7 images), then `generate_video` with those as `image_references` and the slot's
+       FLOW_NOTES prompt (+ "same man as the references, LEFT-arm colour sleeve, vertical 9:16, no text").
+    3. Download the results into `output/flow_pack/returned/angle_N.mp4` and have the Multicam Agent cut them in
+       with `--use-clips` (slots with no clip stay free-local). Then Text/Visuals + QA as usual.
+    wan-free and free-local remain the fallback when credits run out. Never use Higgsfield for anything else
+    (no music, no voices) unless he asks.

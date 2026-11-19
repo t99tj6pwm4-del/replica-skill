@@ -46,7 +46,8 @@ Branch `claude/blissful-hamilton-k7clws` (push only there, no PRs). All code is 
 - **Overlay**: `remotion/src/Overlay.tsx`, `types.ts`, `fonts.ts`.
 - **Current job**: `output/` (`job.json`, `storyboard.json`, `staged/`, `qa_report.md`). The saved Flow top-down clip is at `input/flow_topdown_dbcurl_alfonso.mp4`.
 
-## Key decisions (Alfonso's standing rules)
+## Key decisions
+- **AI angles = Higgsfield Kling 3.0 Omni image-reference 720p** (`kling_o3_image_reference`, std, 3 s, silent) on his credits; Director runs it (standing answer 12). Balance 2026-11-19: 10 credits (free plan) = 3 clips. (Alfonso's standing rules)
 - **90 seconds, hard rule.** Every video is 90s ±1s (`config.yaml` `video_length`).
 - **Footage and music**: all footage he gives is his. Only his own songs. The footage's baked-in music is always muted; his chosen song never is.
 - **Exercises**: name guesses are fine; sets x reps are made up. Every lift gets a gold layered title (Montserrat Black; `front_only` when no back word can read behind him) **and** the pop-up cards.
