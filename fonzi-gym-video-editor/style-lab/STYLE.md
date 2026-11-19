@@ -14,7 +14,7 @@
    - (No reference #2 was sent.)
 5. **Never:** non-English text except the Spanish pop-up lines, hashtags on screen, text over his face, stock or AI music, other creators' footage.
 6. **Already has:** Montserrat (Black for titles), Documentary Gold layered titles (back word behind him), the three pop-up cards, honey + salt opener. Colours: teal & orange film grade with grain and glow, gold titles on top. Logo: TODO.
-7. **Movement:** cinematic, with the transitions above (match cuts, masks, wipes, luma/film-burn, cut-out zoom). Speed/feel: TODO.
+7. **Movement:** cinematic, with the transitions above (match cuts, masks, wipes, luma/film-burn, cut-out zoom). Speed/feel: a mix: smooth cinematic moves between lifts, hard snaps on the big moments (titles, heaviest rep, beat drops).
 8. **Sound:** his own songs; our own synthesised whoosh + pop (`sfx/`). SFX: only sounds we synthesise ourselves (free, `scripts/make_sfx.py`): whoosh, pop, and new hits, risers, clicks, film-burn crackle as needed. No packs, no AI sounds.
 9. **Build first:** TODO (ask).
 
@@ -25,4 +25,4 @@
 - (nothing yet)
 
 ## Open questions
-- Brief items 6 (logo), 7 (speed/feel), 9.
+- Brief items 6 (logo), 9.
