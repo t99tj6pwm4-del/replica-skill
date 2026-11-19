@@ -21,8 +21,8 @@ Branch `claude/blissful-hamilton-k7clws` (push only there, no PRs). All code is 
 
 ## Left to do
 - **Waiting for Alfonso's yes** on the 90s "After Hours". That job is now archived in `output/archive/20261118-143146/` (staged mp4 + post.json). On a yes, restore it into `output/` before approve/export.
-- **"Full Send" (2026-11-18)**: footage `input/icloud_0f4ek4zg.mov` + song `songs/alfonso_music_01duYefU.mp3`, 89.68s. v3 QA PASS, staged and sent: opener image `input/opener_honey_salt.jpg` for 0-2.086s (overlay_props `opener`), 3 Alfonso Flow angles (slots 1-3) + crop slot 4, all gold titles behind him. Waiting for his yes. ARCHIVED in `output/archive/20261118-192653/` when the shh-skit job started; on a yes restore it into `output/` then approve/export. Song in-app start 1:26.
-- **"Shh" (2026-11-18)**: his own Wan AI video `input/icloud_07cAOLWn_shh_skit.mp4`, song_video, 89.97s, song `alfonso_music_089_obcAC.mp3` from 0 (it is the clip's own audio). QA PASS, staged at `output/staged/` and sent. Waiting for his yes. Caption "Shh... some things stay between us." Song in-app start 0:00.
+- **"Full Send" (2026-11-18)**: NOT APPROVED by Alfonso (2026-11-19), not exported, not posted. Files kept in output/ and output/archive/.
+- **"Shh" (2026-11-18)**: NOT APPROVED by Alfonso (2026-11-19), not exported, not posted. Files kept in output/ and output/archive/.
 - **New standing answer 11**: gold title back word always behind him, unreadable is fine (config `titles.max_back_cover` 0.95).
 
 ## Next step
