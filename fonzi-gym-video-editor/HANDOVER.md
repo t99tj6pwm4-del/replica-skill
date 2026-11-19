@@ -20,7 +20,8 @@ Branch `claude/blissful-hamilton-k7clws` (push only there, no PRs). All code is 
 - **Not approved**: "No Days Off" and "Locked In" are archived and were not posted.
 
 ## Left to do
-- **Waiting for Alfonso's yes** on the 90s "After Hours". That job is now archived in `output/archive/20261118-143146/` (staged mp4 + post.json). On a yes, restore it into `output/` before approve/export.
+- **90s "After Hours" re-cut: NOT APPROVED** (Alfonso, 2026-11-19). Not exported. The 41.8s version stays the only After Hours export.
+- **Nothing is waiting for approval.** Next: a new `/fonzi-edit` job.
 - **"Full Send" (2026-11-18)**: NOT APPROVED by Alfonso (2026-11-19), not exported, not posted. Files kept in output/ and output/archive/.
 - **"Shh" (2026-11-18)**: NOT APPROVED by Alfonso (2026-11-19), not exported, not posted. Files kept in output/ and output/archive/.
 - **New standing answer 11**: gold title back word always behind him, unreadable is fine (config `titles.max_back_cover` 0.95).
