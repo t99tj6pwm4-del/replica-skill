@@ -227,11 +227,78 @@ def main():
           f"{out['audio']['codec'] if out['audio'] else 'NO AUDIO'}  {out['duration']:.2f}s")
 
     mute_if_rule(final)
+    add_sfx(final, props)
     slides = render_carousel(load_json(OUT / "storyboard.json"), load_json(WORK / "cut_map.json"))
     if slides:
         print(f"wrote  output/carousel/ ({len(slides)} slides + carousel.json)")
     if (W, H) != (v["width"], v["height"]):
         die(f"final is {v['width']}x{v['height']}, expected {W}x{H}")
+
+
+def sfx_events(props: dict) -> list[tuple[float, str]]:
+    """(time, kind) for every text move that gets a sound: hook card, gold exercise titles, pop-up cards."""
+    ev = []
+    t = props.get("title") or {}
+    if t.get("text") and t.get("from") is not None:
+        ev.append((float(t["from"]), "hook"))
+    for e in props.get("exercise_titles") or []:
+        ev.append((float(e["at"]), "title"))
+    pops = props.get("popups") or {}
+    for c in (pops.get("bars") or []) + (pops.get("checklists") or []) + ([pops["formTip"]] if pops.get("formTip") else []):
+        at = c.get("from", c.get("at"))
+        if at is not None:
+            ev.append((float(at), "popup"))
+    ev.sort()
+    out, last = [], -9.0
+    for at, kind in ev:          # two sounds closer than 0.25 s would smear: keep the first
+        if at - last >= 0.25:
+            out.append((at, kind))
+            last = at
+    return out
+
+
+def add_sfx(final: Path, props: dict) -> int:
+    """Alfonso (2026-11-19): a quiet whoosh / pop on every text move, mixed UNDER the existing sound (his voice
+    or his song). Never replaces or shifts the audio; the length stays the same. config.yaml sfx:"""
+    from common import load_config
+    cfg = load_config().get("sfx") or {}
+    if not cfg.get("enabled"):
+        return 0
+    ev = [(at, OUT.parent / cfg.get(kind, "")) for at, kind in sfx_events(props) if cfg.get(kind)]
+    ev = [(at, f) for at, f in ev if f.exists() and at < float(props["duration"]) - 0.05]
+    if not ev:
+        return 0
+    files = sorted({f for _, f in ev})
+    inputs = []
+    for f in files:
+        inputs += ["-i", str(f)]
+    vol = float(cfg.get("volume_db", -16))
+    fc, labels = [], []
+    for k, (at, f) in enumerate(ev):
+        idx = 1 + files.index(f)
+        fc.append(f"[{idx}:a]volume={vol}dB,adelay={int(at * 1000)}|{int(at * 1000)}[s{k}]")
+        labels.append(f"[s{k}]")
+    # split each sfx input as many times as it is used
+    uses = {}
+    for k, (at, f) in enumerate(ev):
+        uses.setdefault(1 + files.index(f), []).append(k)
+    splits = []
+    for idx, ks in uses.items():
+        if len(ks) > 1:
+            splits.append(f"[{idx}:a]asplit={len(ks)}" + "".join(f"[i{idx}_{j}]" for j in range(len(ks))))
+            for j, k in enumerate(ks):
+                fc[k] = fc[k].replace(f"[{idx}:a]", f"[i{idx}_{j}]", 1)
+    graph = ";".join(splits + fc + ["[0:a]" + "".join(labels) + f"amix=inputs={len(ev) + 1}:duration=first:"
+                                    "normalize=0:dropout_transition=0[a]"])
+    tmp = final.with_name("final_sfx.mp4")
+    run(["ffmpeg", "-v", "error", "-y", "-i", final, *inputs, "-filter_complex", graph, "-map", "0:v", "-map", "[a]",
+         "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", tmp])
+    if abs(probe(tmp)["duration"] - probe(final)["duration"]) > 0.05:
+        die("sound effects changed the video length: not passing it on")
+    tmp.replace(final)
+    save_json(WORK / "sfx_log.json", {"volume_db": vol, "events": [{"at": round(a, 3), "file": rel(f)} for a, f in ev]})
+    print(f"sound effects: {len(ev)} quiet hits under the audio ({vol} dB), log in output/work/sfx_log.json")
+    return len(ev)
 
 
 def mute_if_rule(final: Path) -> bool:

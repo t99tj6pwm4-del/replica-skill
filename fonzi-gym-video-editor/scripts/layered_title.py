@@ -119,6 +119,69 @@ def drop_specks(mask: Image.Image, behind: Image.Image, min_px: int = 2500) -> I
     return Image.fromarray(m, "L")
 
 
+def title_cfg() -> dict:
+    from common import load_config
+    return load_config().get("titles") or {}
+
+
+def cut_session():
+    """Cut-out model (Alfonso, 2026-11-19): birefnet-portrait gives cleaner edges round hair, cap, hands than
+    u2net_human_seg. Falls back to u2net_human_seg if the big model cannot load (first use downloads ~1 GB)."""
+    from rembg import new_session
+    want = title_cfg().get("cut_model", "birefnet-general-lite")
+    try:
+        return new_session(want), want
+    except Exception as e:   # no network / no disk: keep working with the small model
+        print(f"cut-out model {want} not available ({e}); using u2net_human_seg")
+        return new_session("u2net_human_seg"), "u2net_human_seg"
+
+
+def raw_masks(session, model: str, frames: list) -> list:
+    """Person cut-out for every frame of a title window. The big model is slow on CPU (~9 s a frame), so:
+    - it runs on every `cut_every`-th frame; frames in between take the UNION of their two neighbours
+      (a slightly bigger person outline never shows gold specks over a moving fist);
+    - results are cached by the frames' own bytes + model, so a re-render that only moves a title is instant."""
+    import hashlib
+    step = max(1, int(title_cfg().get("cut_every", 2))) if model != "u2net_human_seg" else 1
+    h = hashlib.sha1(f"{model}:{step}".encode())
+    for f in frames:
+        h.update(f.read_bytes())
+    cache = WORK / "mask_cache" / f"{h.hexdigest()}.npz"
+    if cache.exists():
+        packed = np.load(cache)
+        arr = np.unpackbits(packed["m"], axis=-1)[..., :W].astype(bool)
+        return [Image.fromarray(a.astype(np.uint8) * 255, "L") for a in arr]
+    keys = sorted(set(range(0, len(frames), step)) | {len(frames) - 1})
+    print(f"cut-out ({model}): {len(keys)} of {len(frames)} frames, about {len(keys) * 9 // 60 + 1} min ...", flush=True)
+    got = {k: np.array(person_mask(session, Image.open(frames[k]).convert("RGB"))) > 128 for k in keys}
+    out = []
+    for k in range(len(frames)):
+        if k in got:
+            out.append(got[k])
+        else:
+            lo = max(x for x in keys if x < k)
+            hi = min(x for x in keys if x > k)
+            out.append(got[lo] | got[hi])
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(cache, m=np.packbits(np.stack(out), axis=-1))
+    return [Image.fromarray(a.astype(np.uint8) * 255, "L") for a in out]
+
+
+def depth_move(layer: Image.Image, cy: int, t: float, push: float, drift: float) -> Image.Image:
+    """Virtual camera (Alfonso, 2026-11-19): a slow push-in through the layers. The back word grows a little
+    and drifts one way, the front words grow more and drift the other way, so the title sits in depth."""
+    if not push and not drift:
+        return layer
+    e = 1 - (1 - t) ** 2                       # ease-out over the title window
+    s = 1 + push * e
+    w, h = int(round(W * s)), int(round(H * s))
+    big = layer.resize((w, h), Image.BICUBIC)
+    cx_new, cy_new = W * s / 2, cy * s         # the line's centre after scaling about (0,0)
+    out = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    out.paste(big, (int(round(W / 2 - cx_new)), int(round(cy - cy_new + drift * e))), big)
+    return out
+
+
 def layout(mask: Image.Image) -> tuple[int, int, int]:
     """Where the lines go, from the person's outline: first name over the head/shoulders (so his head
     covers part of it), last name across the chest, the small line between them on the chest."""
@@ -137,7 +200,7 @@ def layout(mask: Image.Image) -> tuple[int, int, int]:
 def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, intro: str,
           ys: dict | None = None, tag: str = "", hold_mask: bool = False, front_only: bool = False) -> dict:
     try:
-        from rembg import new_session
+        import rembg  # noqa: F401
     except ImportError:
         die("rembg is not installed. Run: pip install 'rembg[cpu]'")
     for t in (first, last, intro):
@@ -155,8 +218,13 @@ def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, i
     frames = sorted((tmp / "in").glob("f*.png"))
     if not frames:
         die("layered title: could not read frames from the video")
-    session = new_session("u2net_human_seg")
-    first_mask = person_mask(session, Image.open(frames[0]).convert("RGB"))
+    session, model = cut_session()
+    par = title_cfg().get("parallax") or {}
+    on = bool(par.get("enabled", True))
+    back_push, front_push = (float(par.get("back_push", 0.03)), float(par.get("front_push", 0.05))) if on else (0, 0)
+    drift = float(par.get("drift_px", 12)) if on else 0.0
+    raws = raw_masks(session, model, frames)
+    first_mask = raws[0]
     y1, y2, yi = layout(first_mask)
     ys = ys or {}   # optional fixed line positions (pixels from the top), e.g. for a chest-up shot
     y1, yi, y2 = int(ys.get("first_y") or y1), int(ys.get("intro_y") or yi), int(ys.get("last_y") or y2)
@@ -171,10 +239,15 @@ def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, i
     front = text_layer(last.upper(), big2, y2)
     line = text_layer(intro, small, yi) if intro.strip() else Image.new("RGBA", (W, H), (0, 0, 0, 0))
     covered = []
-    masks = smooth_masks([first_mask] + [person_mask(session, Image.open(f).convert("RGB")) for f in frames[1:]],
-                         hold=hold_mask)
+    masks = smooth_masks(raws, hold=hold_mask)
+    n = max(1, len(frames) - 1)
+    behind0, front0, line0 = behind, front, line
     for k, f in enumerate(frames):
         img = Image.open(f).convert("RGBA")
+        t = k / n
+        behind = depth_move(behind0, y1, t, back_push, -drift)       # back word drifts up
+        front = depth_move(front0, y2, t, front_push, drift)          # front words drift down, grow more
+        line = depth_move(line0, yi, t, front_push, drift)
         mask = drop_specks(masks[k], behind)
         person = img.copy()
         person.putalpha(mask)
@@ -216,8 +289,8 @@ def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, i
     info = {"style": "Layered Title (Documentary Gold)", "at": round(at, 3), "dur": round(seg_len, 3),
             "first": first.upper(), "last": last.upper(), "intro_line": intro, "gold": "#CDA220",
             "first_line_y": y1, "last_line_y": y2, "intro_y": yi,
-            "first_name_covered_by_person": covered[0] if covered else None, "front_only": front_only,
-            "frame": rel(frame_png)}
+            "first_name_covered_by_person": float(covered[0]) if covered else None, "front_only": front_only,
+            "cut_model": model, "parallax": on, "frame": rel(frame_png)}
     save_json(WORK / f"layered_title{tag}.json", info)
     return info
 

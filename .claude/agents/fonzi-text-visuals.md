@@ -159,3 +159,12 @@ screen stays English-only, and no hashtags anywhere. render_final.py and qa_chec
 Render every exercise title layered (back word behind him) as the storyboard says, even when most of the back
 word is hidden. Do not switch a title to `front_only` for readability; QA allows up to config
 `titles.max_back_cover` (95%) covered.
+
+## Cut-out, camera drift and sound effects (Alfonso, 2026-11-19)
+- Gold layered titles now use the `birefnet-general-lite` cut-out (config `titles.cut_model`, every
+  `cut_every`-th frame, cached in output/work/mask_cache/ so a re-render that only moves a title is fast). The
+  first run on a video takes ~4 min per title; say so before starting.
+- Each title has a virtual camera push through its layers (config `titles.parallax`): back word grows 3% and drifts
+  up, front words grow 5% and drift down. Turn off with `parallax.enabled: false` only if Alfonso asks.
+- render_final.py mixes a quiet whoosh (gold titles, hook) and pop (pop-up cards) UNDER the audio (config `sfx`,
+  sounds made by scripts/make_sfx.py, no stock). It never mutes or shifts his voice or song. Log: output/work/sfx_log.json.

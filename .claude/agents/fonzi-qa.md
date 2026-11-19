@@ -152,3 +152,8 @@ send it to the Cuts Agent, or to the Storyboard Agent if the plan itself is not 
 ## Gold titles behind him (Alfonso, 2026-11-18)
 A mostly hidden back word is NOT a fail: Alfonso is fine with the words not being readable. Only flag a title
 whose back word is not behind him at all (under 2%) or completely gone (over config `titles.max_back_cover`).
+
+## Sound effects (Alfonso, 2026-11-19)
+The final has quiet whoosh/pop hits under the audio at each title and pop-up (output/work/sfx_log.json). They are
+expected, made by the team (scripts/make_sfx.py), not stock and not other creators' audio. Flag only if one is loud
+over his voice or the song.

@@ -130,9 +130,28 @@ titles:
   # Alfonso 2026-11-18: exercise-title back words go BEHIND him even if mostly hidden (not readable is fine).
   # QA accepts 2%..max_back_cover of the back word covered by his body. front_only only when he is not in shot.
   max_back_cover: 0.95
+  # Alfonso 2026-11-19 (from the captions-reel write-up): cleaner cut-out + a virtual camera through the layers
+  cut_model: birefnet-general-lite # rembg cut-out model: much cleaner edges than u2net_human_seg; ~9 s a frame on CPU
+                                   # (birefnet-portrait is best but ~15 s and ~9 GB RAM a frame: too heavy here)
+  cut_every: 2                     # run the cut-out on every 2nd frame; in-between frames use their neighbours
+  parallax:
+    enabled: true
+    back_push: 0.03                # back word grows 3% over the title window
+    front_push: 0.05               # front words grow 5%: they feel closer to the camera (more clips the frame edge)
+    drift_px: 12                   # back word drifts up, front words drift down
 
 # Alfonso's HARD RULE (2026-11-17): every video is 90 seconds long (end card included). QA fails anything
 # outside target +/- tolerance. The storyboard plans 90s, the song section must cover 90s.
 video_length:
   target_seconds: 90
   tolerance_seconds: 1.0
+
+# Alfonso 2026-11-19: a quiet sound on every text move. The sounds are made by scripts/make_sfx.py from plain
+# synthesis (no stock, no AI). Mixed UNDER the voice / his song, never replacing it. Swap in his own files any time.
+sfx:
+  enabled: true
+  volume_db: -16                   # relative to full scale; keep it under the voice and the song
+  title: sfx/whoosh.wav            # each gold layered exercise title
+  popup: sfx/pop.wav               # each exercise bar / checklist / form tip card
+  hook: sfx/whoosh.wav             # the hook title card
+

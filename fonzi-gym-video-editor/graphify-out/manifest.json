@@ -7,9 +7,9 @@
     "ast_empty": true
   },
   "config.yaml": {
-    "mtime": 1795020304.8852258,
-    "seen": 1795031177.0348754,
-    "ast_hash": "3126f28c8aad7274013fa71bd228b3cb",
+    "mtime": 1795075056.6754844,
+    "seen": 1795075132.8873022,
+    "ast_hash": "2ed8ae7d6e18887c32013cb76ef86e3b",
     "semantic_hash": ""
   },
   "config/brand.json": {
@@ -139,15 +139,15 @@
     "semantic_hash": ""
   },
   "scripts/layered_title.py": {
-    "mtime": 1795024754.9007287,
-    "seen": 1795031177.0349176,
-    "ast_hash": "65729b052e348ce36d827e0ed6915e22",
+    "mtime": 1795075056.6785448,
+    "seen": 1795075132.8873658,
+    "ast_hash": "5a7ac576833b34dddbe93b9b94032143",
     "semantic_hash": ""
   },
   "scripts/multicam_generate.py": {
-    "mtime": 1794937623.3659122,
-    "seen": 1794937659.4123282,
-    "ast_hash": "9cdbe2f98f52a1bdf83fe74ccc7c262c",
+    "mtime": 1795032136.6854687,
+    "seen": 1795075132.8873715,
+    "ast_hash": "00a4714ae5fdafec8de00eb7cb7c6e33",
     "semantic_hash": ""
   },
   "scripts/multicam_prompt.py": {
@@ -163,9 +163,9 @@
     "semantic_hash": "90980883d9c12ebcdea6637dcf20d52c"
   },
   "scripts/qa_check.py": {
-    "mtime": 1795026610.3259227,
-    "seen": 1795031177.0349233,
-    "ast_hash": "2ac4cee1d70371e7fdb7206671f86f1e",
+    "mtime": 1795032924.447761,
+    "seen": 1795075132.8873782,
+    "ast_hash": "9d2b3314fcc5d696223b82717b7e5839",
     "semantic_hash": ""
   },
   "scripts/qa_verdict.py": {
@@ -175,9 +175,9 @@
     "semantic_hash": "c973d8d30c0fab05785a8c7ccb10bc6d"
   },
   "scripts/render_final.py": {
-    "mtime": 1795022758.4661024,
-    "seen": 1795031177.034926,
-    "ast_hash": "008ae9d6a10634b4c4608852cb8a925b",
+    "mtime": 1795074545.7918835,
+    "seen": 1795075132.8873823,
+    "ast_hash": "d0a66b603135e3aa5d4f9e0f87b0737e",
     "semantic_hash": ""
   },
   "scripts/setup.sh": {
@@ -211,9 +211,9 @@
     "semantic_hash": ""
   },
   "HANDOVER.md": {
-    "mtime": 1795030029.3260393,
-    "seen": 1795031177.0349333,
-    "ast_hash": "9d6c71ee26a219a3a81092a36731f80c",
+    "mtime": 1795059035.4612818,
+    "seen": 1795075132.8874025,
+    "ast_hash": "24bd0af3b7fb0b42beeeca4763e5c651",
     "semantic_hash": ""
   },
   "README.md": {
@@ -274,6 +274,198 @@
     "mtime": 1794935386.4635766,
     "seen": 1794935431.4806163,
     "ast_hash": "1d02aebc25a732d32b754717649275df",
+    "semantic_hash": ""
+  },
+  "scripts/make_sfx.py": {
+    "mtime": 1795074521.89676,
+    "seen": 1795075132.8873687,
+    "ast_hash": "9acbabb4c3555b95fa8024318ed86e69",
+    "semantic_hash": ""
+  },
+  "references/character_sheet_01.png": {
+    "mtime": 1795058537.4639728,
+    "seen": 1795075132.8874276,
+    "ast_hash": "3000311b7c363d1053bdca55e08a2046",
+    "semantic_hash": ""
+  },
+  "references/character_sheet_02.png": {
+    "mtime": 1795058537.8594291,
+    "seen": 1795075132.8874297,
+    "ast_hash": "b98020892e81be3289a592bd859359e7",
+    "semantic_hash": ""
+  },
+  "references/character_sheet_03.png": {
+    "mtime": 1795058537.8634293,
+    "seen": 1795075132.8874314,
+    "ast_hash": "e8028349dbbe8c30a75196730754f4ae",
+    "semantic_hash": ""
+  },
+  "references/character_sheet_04.png": {
+    "mtime": 1795058537.8641698,
+    "seen": 1795075132.8874333,
+    "ast_hash": "02d5e309191e76e327e75f970ec979b5",
+    "semantic_hash": ""
+  },
+  "references/character_sheet_05.png": {
+    "mtime": 1795058537.8674293,
+    "seen": 1795075132.887435,
+    "ast_hash": "790b9f4c5c41b01aafc00b2be8b422f8",
+    "semantic_hash": ""
+  },
+  "references/character_sheet_06.png": {
+    "mtime": 1795058538.0794291,
+    "seen": 1795075132.8874366,
+    "ast_hash": "8d5bb56d8ea499982e811eead7886fee",
+    "semantic_hash": ""
+  },
+  "references/character_sheet_07.png": {
+    "mtime": 1795058538.2394292,
+    "seen": 1795075132.8874383,
+    "ast_hash": "1b6756176c6ce45bc1e8ee91aceca6dc",
+    "semantic_hash": ""
+  },
+  "references/character_sheet_08.png": {
+    "mtime": 1795058538.2434292,
+    "seen": 1795075132.8874404,
+    "ast_hash": "f155521706ceb17eee26e1170244ae15",
+    "semantic_hash": ""
+  },
+  "references/character_sheet_09.png": {
+    "mtime": 1795058538.2994292,
+    "seen": 1795075132.887442,
+    "ast_hash": "58cb5fabfba85222da56bdfca4188ed5",
+    "semantic_hash": ""
+  },
+  "references/expressions_01.png": {
+    "mtime": 1795062527.2923555,
+    "seen": 1795075132.8874443,
+    "ast_hash": "dabe35893f5320dbc01b1124e14c07db",
+    "semantic_hash": ""
+  },
+  "references/expressions_02.png": {
+    "mtime": 1795062527.2963033,
+    "seen": 1795075132.8874466,
+    "ast_hash": "559e28fd8a47af51fdbd64389e26c410",
+    "semantic_hash": ""
+  },
+  "references/expressions_03.png": {
+    "mtime": 1795062527.3034272,
+    "seen": 1795075132.8874483,
+    "ast_hash": "ad398c21c425667d7d688a1da85e7781",
+    "semantic_hash": ""
+  },
+  "references/expressions_04.png": {
+    "mtime": 1795062527.3060813,
+    "seen": 1795075132.8874497,
+    "ast_hash": "87b630011fa902715590cbef54feccf6",
+    "semantic_hash": ""
+  },
+  "references/pose_sheet_01.png": {
+    "mtime": 1795062527.1939025,
+    "seen": 1795075132.8874516,
+    "ast_hash": "024d48f7484951455e8c0987c6fb0333",
+    "semantic_hash": ""
+  },
+  "references/pose_sheet_02.png": {
+    "mtime": 1795062527.2070868,
+    "seen": 1795075132.8874536,
+    "ast_hash": "50ad1827568b10dc1d9c89887f2a2eb4",
+    "semantic_hash": ""
+  },
+  "references/pose_sheet_03.png": {
+    "mtime": 1795062527.2158957,
+    "seen": 1795075132.8874552,
+    "ast_hash": "1ca2099fb56fb45c833fc097b9690fe6",
+    "semantic_hash": ""
+  },
+  "references/pose_sheet_04.png": {
+    "mtime": 1795062527.2250452,
+    "seen": 1795075132.8874571,
+    "ast_hash": "d34d35475af789b0d56dc28c3b81666c",
+    "semantic_hash": ""
+  },
+  "references/pose_sheet_05.png": {
+    "mtime": 1795062527.233835,
+    "seen": 1795075132.8874586,
+    "ast_hash": "ae2170d3fe4589833e475fcdb35c9434",
+    "semantic_hash": ""
+  },
+  "references/pose_sheet_06.png": {
+    "mtime": 1795062527.2423022,
+    "seen": 1795075132.8874605,
+    "ast_hash": "d3c70db5339cded965d80d4535cea806",
+    "semantic_hash": ""
+  },
+  "references/pose_sheet_07.png": {
+    "mtime": 1795062527.2526777,
+    "seen": 1795075132.8874621,
+    "ast_hash": "f8820c861a172875b77422273645e751",
+    "semantic_hash": ""
+  },
+  "references/pose_sheet_08.png": {
+    "mtime": 1795062527.2622905,
+    "seen": 1795075132.887464,
+    "ast_hash": "ceffa529737d54b24c42fca1eeaccd22",
+    "semantic_hash": ""
+  },
+  "references/pose_sheet_09.png": {
+    "mtime": 1795062527.2710705,
+    "seen": 1795075132.8874655,
+    "ast_hash": "80fb20b27f2bd301641f92626d04ec8d",
+    "semantic_hash": ""
+  },
+  "references/pose_sheet_10.png": {
+    "mtime": 1795062527.2809439,
+    "seen": 1795075132.8874676,
+    "ast_hash": "8cc7a9ccf44effea39d65b5d9f98754c",
+    "semantic_hash": ""
+  },
+  "references/pose_sheet_11.png": {
+    "mtime": 1795062527.2897527,
+    "seen": 1795075132.887469,
+    "ast_hash": "c61cc3d91b82b44ff57537913e491322",
+    "semantic_hash": ""
+  },
+  "references/tattoo_left_arm_angles.png": {
+    "mtime": 1795058958.6222978,
+    "seen": 1795075132.8874712,
+    "ast_hash": "236b254c0697f6ed931daf78e12d3ba5",
+    "semantic_hash": ""
+  },
+  "references/tattoo_left_arm_forearm_wrist.png": {
+    "mtime": 1795059013.6365628,
+    "seen": 1795075132.8874729,
+    "ast_hash": "d3491c8c4069fcdd0215f9b30714a00c",
+    "semantic_hash": ""
+  },
+  "references/tattoo_left_arm_high_low.png": {
+    "mtime": 1795058970.573353,
+    "seen": 1795075132.8874748,
+    "ast_hash": "9314573a08faf63bc6457a74d42863eb",
+    "semantic_hash": ""
+  },
+  "references/tattoo_left_arm_shoulder_elbow.png": {
+    "mtime": 1795059013.6386147,
+    "seen": 1795075132.8874764,
+    "ast_hash": "880cb7076047090045fb76765a93f1d9",
+    "semantic_hash": ""
+  },
+  "references/tattoo_left_arm_sleeve.jpg": {
+    "mtime": 1795058538.4394293,
+    "seen": 1795075132.887478,
+    "ast_hash": "cb998e722c67145d50a745108cbce3d8",
+    "semantic_hash": ""
+  },
+  "sfx/pop.wav": {
+    "mtime": 1795074522.249821,
+    "seen": 1795075132.8874795,
+    "ast_hash": "036e320941cea1640f3d76dc564edd09",
+    "semantic_hash": ""
+  },
+  "sfx/whoosh.wav": {
+    "mtime": 1795074522.098192,
+    "seen": 1795075132.8874815,
+    "ast_hash": "668329fb5178b69341dd5e96b82c351b",
     "semantic_hash": ""
   },
   "remotion/package-lock.json": {
