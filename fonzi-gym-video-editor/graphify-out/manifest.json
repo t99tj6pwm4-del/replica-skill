@@ -7,9 +7,9 @@
     "ast_empty": true
   },
   "config.yaml": {
-    "mtime": 1795075056.6754844,
-    "seen": 1795075132.8873022,
-    "ast_hash": "2ed8ae7d6e18887c32013cb76ef86e3b",
+    "mtime": 1795077669.9875226,
+    "seen": 1795078939.42272,
+    "ast_hash": "b13172a5a7da28b2dda0467f5fddc335",
     "semantic_hash": ""
   },
   "config/brand.json": {
@@ -211,9 +211,9 @@
     "semantic_hash": ""
   },
   "HANDOVER.md": {
-    "mtime": 1795059035.4612818,
-    "seen": 1795075132.8874025,
-    "ast_hash": "24bd0af3b7fb0b42beeeca4763e5c651",
+    "mtime": 1795078938.08043,
+    "seen": 1795078939.4227934,
+    "ast_hash": "14576d644aa7e48c0c114898c9b4d43b",
     "semantic_hash": ""
   },
   "README.md": {
@@ -466,6 +466,24 @@
     "mtime": 1795074522.098192,
     "seen": 1795075132.8874815,
     "ast_hash": "668329fb5178b69341dd5e96b82c351b",
+    "semantic_hash": ""
+  },
+  "MOVE_TO_NEW_ACCOUNT.md": {
+    "mtime": 1795076712.0540786,
+    "seen": 1795078939.4227953,
+    "ast_hash": "dfc11e73ca1b0f7a3a7d7ae411499a2a",
+    "semantic_hash": ""
+  },
+  "docs/effects/flash_cut.md": {
+    "mtime": 1795078927.4538016,
+    "seen": 1795078939.4228017,
+    "ast_hash": "27c8c5e02c0317feaca32707842934dc",
+    "semantic_hash": ""
+  },
+  "docs/effects/xray_hit.md": {
+    "mtime": 1795078927.4538484,
+    "seen": 1795078939.422803,
+    "ast_hash": "85bfdd813ed41f95ce7fdcbf15951273",
     "semantic_hash": ""
   },
   "remotion/package-lock.json": {

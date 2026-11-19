@@ -22,6 +22,7 @@ Branch `claude/blissful-hamilton-k7clws` (push only there, no PRs). All code is 
 ## Left to do
 - **90s "After Hours" re-cut: NOT APPROVED** (Alfonso, 2026-11-19). Not exported. The 41.8s version stays the only After Hours export.
 - **Nothing is waiting for approval.** Next: a new `/fonzi-edit` job.
+- **Effects added (2026-11-19)**: x-ray hit and film-strip flash cut recipes in `docs/effects/`, Director standing answer 13. Waiting on his selfies for the flash cut and on enough credits (balance 10).
 - **"Full Send" (2026-11-18)**: NOT APPROVED by Alfonso (2026-11-19), not exported, not posted. Files kept in output/ and output/archive/.
 - **"Shh" (2026-11-18)**: NOT APPROVED by Alfonso (2026-11-19), not exported, not posted. Files kept in output/ and output/archive/.
 - **New standing answer 11**: gold title back word always behind him, unreadable is fine (config `titles.max_back_cover` 0.95).
@@ -40,7 +41,7 @@ Branch `claude/blissful-hamilton-k7clws` (push only there, no PRs). All code is 
 ## Key files
 - **Moving to another account**: `MOVE_TO_NEW_ACCOUNT.md` (fork, environment + setup script, secrets, first prompt).
 - **Identity references**: `references/` (9 character sheets + `tattoo_left_arm_sleeve.jpg`, LEFT-arm sleeve). Used in every Flow pack.
-- **Agents and skill**: `.claude/agents/fonzi-*.md` (director standing answers 1-10), `.claude/skills/fonzi-edit/SKILL.md`, `.claude/settings.json`.
+- **Agents and skill**: `.claude/agents/fonzi-*.md` (director standing answers 1-13), `.claude/skills/fonzi-edit/SKILL.md`, `.claude/settings.json`.
 - **Config**: `fonzi-gym-video-editor/config.yaml`, `config/brand.json`.
 - **Scripts** (`scripts/`): `job.py`, `cut_video.py`, `multicam_prompt.py`, `multicam_generate.py`, `layered_title.py`, `add_popups.py`, `build_overlay_props.py`, `render_final.py`, `qa_check.py`, `qa_verdict.py`, `approve.py`, `export_final.py`.
 - **Overlay**: `remotion/src/Overlay.tsx`, `types.ts`, `fonts.ts`.

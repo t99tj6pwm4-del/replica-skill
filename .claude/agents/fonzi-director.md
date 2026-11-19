@@ -186,3 +186,14 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
        with `--use-clips` (slots with no clip stay free-local). Then Text/Visuals + QA as usual.
     wan-free and free-local remain the fallback when credits run out. Never use Higgsfield for anything else
     (no music, no voices) unless he asks.
+13. **Optional Higgsfield effects: x-ray hit and film-strip flash cut (2026-11-19).** Alfonso said "add these whenever
+    you see fit". Recipes (follow them step by step, verbatim): `fonzi-gym-video-editor/docs/effects/xray_hit.md` and
+    `docs/effects/flash_cut.md`. You (the Director) run the Higgsfield tools; Cuts splices the result in, QA checks it.
+    - **X-ray hit** (8.25 credits): at most one per gym reel, on the hardest rep or the song drop, on a sharp frame with
+      his head in shot. Cut a 2-4 s piece of `output/cut_version.mp4` ending on that frame, run the recipe, splice
+      `output/effects/xray.mp4` back frame-exact, whoosh SFX at the hit. Total length stays 90 s.
+    - **Flash cut** (about 41 credits + 15 outpaints): a hook/intro, only with his own selfies (or the `references/`
+      sheets if he has none). Vertical: `run.sh 1080x1920`.
+    - **Credits first**: check `balance` and quote with `estimate_image_cost`. Priority when credits are short:
+      Kling angles (top-down rule) > x-ray > flash cut. Skip any effect the balance can't cover and tell him; never
+      half-run one. Never fails QA by being skipped.
