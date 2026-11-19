@@ -25,13 +25,14 @@
 - **Logo end card: flicker on** (r1-l2, round 1): flickers on like a sign warming up, then a steady glow. Clicks. **With real drips** (round 2, all three kept): drips run down from the halo, letters and tail after the flicker. Allowed amounts: a few slow drips (6, drops fall now and then), heavy drips (14, drops falling), wet paint (14, creep down and stay). Rotate between them across videos.
 
 ## Rejected
+- **Cut out with a black background, or with a white outline** (round 3).
 - **Flicker mask / light leak** (round 2, both versions dropped).
 - **Slow luma fade 0.65 s** (round 2).
 - **Zoom into the dumbbell, faster** (round 2): stay with the shirt + zoom blur.
 - **Colour grading by the team** (round 1, 2026-11-19): "not what I wanted". Alfonso grades his videos himself. The team never grades: no `film_grade.py` in any edit, and Style Lab options are shown on ungraded footage. His 5-step spec stays in GRADE_AND_TRANSITIONS.md for reference only.
 
 ## Maybe
-- Luma fade, fast 0.2 s (r2-x1): note "I want cut out then punch in effect" -> round 3 builds cut-out + punch-in.
+- Cut out + punch in (from the fast luma fade note). Round 3: white flash behind him = Maybe, note "background should be the original starting image but flickering" -> round 4: original background strobing to white / black / bright.
 
 ## Not chosen (round 1, unrated)
 - Film gold title, film burn, rise, drip reveal logo, slam logo.
