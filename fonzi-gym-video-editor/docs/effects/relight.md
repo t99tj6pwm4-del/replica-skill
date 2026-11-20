@@ -4,7 +4,7 @@ Source: https://ruby-cotija-fb5.notion.site/Professional-lighting-in-one-prompt-
 When to use it and the budget: Director standing answer 15 (`.claude/agents/fonzi-director.md`).
 
 Team notes:
-- **Model override (Alfonso, 2026-11-20): MiniMax H3 Lite, 480p, always 4 s max** (he checked the app: cheapest).
+- **Model override (Alfonso, 2026-11-20): MiniMax H3 Lite, 480p, always 4 s max** (he checked the app: cheapest; 6.25 credits in his app screenshot, 2026-11-20).
   The connector didn't list "H3 Lite" on 2026-11-20; search for it before each relight. Fallback if it's still
   missing: the cheapest 480p model in the connector at that time, and tell him. On 2026-11-20 that was Wan 3.0 (`wan3_0`):
   480p, 9:16, duration 4, generate_audio false: 3 credits. Still ~2-3 credits, so ~6 per look (Seedance below: 80).

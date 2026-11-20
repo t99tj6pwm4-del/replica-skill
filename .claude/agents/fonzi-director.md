@@ -201,7 +201,7 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
     a colour grade, LUT or film look to an edit (`scripts/film_grade.py` is reference only). Style decisions live in
     `fonzi-gym-video-editor/style-lab/STYLE.md` (Locked / Rejected); follow it on every video.
 15. **Optional Higgsfield relight (2026-11-20).** Recipe: `fonzi-gym-video-editor/docs/effects/relight.md` (21 looks).
-    **Model (Alfonso, 2026-11-20): MiniMax H3 Lite, 480p, 4 seconds max** (he checked the Higgsfield app incl. the
+    **Model (Alfonso, 2026-11-20): MiniMax H3 Lite, 480p, 4 seconds max** (6.25 credits in his app screenshot; he checked the Higgsfield app incl. the
     motion-control models: it is the cheapest). On 2026-11-20 the Higgsfield connector did NOT list an "H3 Lite":
     before each relight, search `models_explore` for it; if it's there use it (480p, 9:16, 4 s, sound off). If not,
     use the cheapest 480p model the connector offers right then (2026-11-20: Wan 3.0 `wan3_0`, 480p, 9:16,
