@@ -4,11 +4,13 @@ Source: https://ruby-cotija-fb5.notion.site/Professional-lighting-in-one-prompt-
 When to use it and the budget: Director standing answer 15 (`.claude/agents/fonzi-director.md`).
 
 Team notes:
-- **Model override (Alfonso, 2026-11-20): MiniMax at 480p, never Seedance, always 4 s max.** 480p is only on
-  MiniMax H3 Max (`minimax_h3_max`, resolution 480p, 9:16, min 5 s): generate 5 s (7.5 credits), trim to <= 4 s.
-  Still ~2-3 credits, so ~10 per look (the Seedance step below quoted 80).
-  In STEP 3 use generate_video with model minimax_h3_max: start_image = relit still, video_references = the original
-  clip (trimmed to <= 4 s), duration 5, resolution 480p. H3 regenerates rather than edits: check the moves still match before splicing.
+- **Model override (Alfonso, 2026-11-20): the cheapest 480p model, always 4 s max = Wan 3.0 (`wan3_0`).**
+  480p, 9:16, duration 4, generate_audio false: 3 credits. Still ~2-3 credits, so ~6 per look (Seedance below: 80).
+  In STEP 3 use generate_video with model wan3_0: image_references = [relit still], video_references = [the original
+  clip trimmed to <= 4 s] (Wan 3.0 can't combine start_image with references). It regenerates rather than edits:
+  check the moves still match before splicing.
+  Price check 2026-11-20 (480p, 4 s): Wan 3.0 3 | Grok 1.5 Lite 4 | Wan 3.0 Prime 5 | MiniMax H3 Max 7.5 (5 s min) |
+  Grok 1.5 10 | Seedance 2.0 12 | Seedance 2.5 edit 14 | Cinematic Studio 3.5/4.0 12-14. H3 regenerates rather than edits: check the moves still match before splicing.
 - The Director suggests one look per new video (his choice, 2026-11-20); it runs only on his yes, and the video only after he approves the relit still. Never on another creator's clip.
 - Works best on a locked-off (tripod) shot, a few seconds long; use the clip's own first frame.
 - It changes lighting, not colour grade (he grades himself), so ask him which look; never pick a look on his behalf for a real video.
