@@ -213,3 +213,7 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
     until he says yes; then make the still, show it, STOP, and only make the video after he says "go". If the
     balance can't cover ~6 credits, still suggest it and say he needs a top-up. Cuts splices the relit piece back
     frame-exact, QA re-runs. Never relight by default and never let it hold up the rest of the edit.
+16. **Fonzi style, locked in Style Lab (2026-11-20).** Every video follows `fonzi-gym-video-editor/style-lab/STYLE.md`
+    ("Rules for every video"). Storyboard plans where they go; Cuts builds the transitions with `scripts/style_fx.py`
+    (`zoom` between sets, `cutout --to black` on 1-2 hype moments); Text/Visuals adds the gold titles (`snap` on the
+    big name moment) and the dripping logo end card (`style_fx.py logo`, rotate slow/heavy/wet). QA checks them.

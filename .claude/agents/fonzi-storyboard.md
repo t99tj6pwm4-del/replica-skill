@@ -154,3 +154,8 @@ padding with weak shots, so the Director can ask Alfonso.
 Every exercise title's back word goes BEHIND him (no `front_only`), even if his body hides most of it:
 Alfonso is fine with the words not being readable. Place the back word across his body (never on his face,
 never in the bottom 420px). Use `front_only` only when he is not in the shot at that moment.
+
+## Fonzi style (Style Lab, locked 2026-11-20)
+Follow `fonzi-gym-video-editor/style-lab/STYLE.md`, section "Rules for every video". Effects come from
+`scripts/style_fx.py` (snap / zoom / cutout / logo); our own sounds only; never a colour grade (Alfonso grades
+himself). Most cuts stay plain and on the beat; one effect per cut at most; cut-out at most 1-2 per video.

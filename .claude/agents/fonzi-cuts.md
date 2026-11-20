@@ -54,3 +54,8 @@ Work inside `fonzi-gym-video-editor/` (cd there first).
 
 `output/cut_version.mp4` must be 90s +/- 1s (end card included). If the cut lands outside that, report it
 with the exact length; QA fails it.
+
+## Fonzi style (Style Lab, locked 2026-11-20)
+Follow `fonzi-gym-video-editor/style-lab/STYLE.md`, section "Rules for every video". Effects come from
+`scripts/style_fx.py` (snap / zoom / cutout / logo); our own sounds only; never a colour grade (Alfonso grades
+himself). Most cuts stay plain and on the beat; one effect per cut at most; cut-out at most 1-2 per video.

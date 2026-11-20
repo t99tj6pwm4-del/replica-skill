@@ -168,3 +168,8 @@ word is hidden. Do not switch a title to `front_only` for readability; QA allows
   up, front words grow 5% and drift down. Turn off with `parallax.enabled: false` only if Alfonso asks.
 - render_final.py mixes a quiet whoosh (gold titles, hook) and pop (pop-up cards) UNDER the audio (config `sfx`,
   sounds made by scripts/make_sfx.py, no stock). It never mutes or shifts his voice or song. Log: output/work/sfx_log.json.
+
+## Fonzi style (Style Lab, locked 2026-11-20)
+Follow `fonzi-gym-video-editor/style-lab/STYLE.md`, section "Rules for every video". Effects come from
+`scripts/style_fx.py` (snap / zoom / cutout / logo); our own sounds only; never a colour grade (Alfonso grades
+himself). Most cuts stay plain and on the beat; one effect per cut at most; cut-out at most 1-2 per video.

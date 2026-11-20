@@ -157,3 +157,8 @@ whose back word is not behind him at all (under 2%) or completely gone (over con
 The final has quiet whoosh/pop hits under the audio at each title and pop-up (output/work/sfx_log.json). They are
 expected, made by the team (scripts/make_sfx.py), not stock and not other creators' audio. Flag only if one is loud
 over his voice or the song.
+
+## Fonzi style (Style Lab, locked 2026-11-20)
+Follow `fonzi-gym-video-editor/style-lab/STYLE.md`, section "Rules for every video". Effects come from
+`scripts/style_fx.py` (snap / zoom / cutout / logo); our own sounds only; never a colour grade (Alfonso grades
+himself). Most cuts stay plain and on the beat; one effect per cut at most; cut-out at most 1-2 per video.
