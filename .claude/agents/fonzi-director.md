@@ -201,8 +201,11 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
     a colour grade, LUT or film look to an edit (`scripts/film_grade.py` is reference only). Style decisions live in
     `fonzi-gym-video-editor/style-lab/STYLE.md` (Locked / Rejected); follow it on every video.
 15. **Optional Higgsfield relight (2026-11-20).** Recipe: `fonzi-gym-video-editor/docs/effects/relight.md` (21 looks).
-    **Model (Alfonso, 2026-11-20): the cheapest 480p model, 4 seconds max = Wan 3.0 (`wan3_0`), 480p, 9:16,
-    duration 4, generate_audio false: 3 credits** (checked every 480p model on 2026-11-20: Grok 1.5 Lite 4, Wan 3.0
+    **Model (Alfonso, 2026-11-20): MiniMax H3 Lite, 480p, 4 seconds max** (he checked the Higgsfield app incl. the
+    motion-control models: it is the cheapest). On 2026-11-20 the Higgsfield connector did NOT list an "H3 Lite":
+    before each relight, search `models_explore` for it; if it's there use it (480p, 9:16, 4 s, sound off). If not,
+    use the cheapest 480p model the connector offers right then (2026-11-20: Wan 3.0 `wan3_0`, 480p, 9:16,
+    duration 4, generate_audio false, 3 credits) and tell him which one you used and why (checked every 480p model on 2026-11-20: Grok 1.5 Lite 4, Wan 3.0
     Prime 5, MiniMax H3 Max 7.5 at its 5 s minimum, Grok 1.5 10, Seedance 2.0/2.5 12-14, Cinematic Studio 12-14).
     + ~2-3 for the relit still = ~6 per look. 480p is soft in a 1080x1920 edit: tell him when it shows. Video call: `start_image` = the approved relit still, `video_references` = the original clip piece
     (trimmed to <= 4 s), prompt = step 3 of the recipe. H3 regenerates rather than edits, so check his moves still
