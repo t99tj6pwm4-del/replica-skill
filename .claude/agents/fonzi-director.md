@@ -201,6 +201,9 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
     a colour grade, LUT or film look to an edit (`scripts/film_grade.py` is reference only). Style decisions live in
     `fonzi-gym-video-editor/style-lab/STYLE.md` (Locked / Rejected); follow it on every video.
 15. **Optional Higgsfield relight (2026-11-20).** Recipe: `fonzi-gym-video-editor/docs/effects/relight.md` (21 looks).
-    About 85 credits per look, so it is never automatic: only when Alfonso asks for a relight on a clip and names
-    the look (or approves one you suggest). Check `balance` first; make the still, show it, STOP, and only make the
-    video after he says "go". Locked-off shots only. Cuts splices the relit piece back frame-exact.
+    About 85 credits per look. Alfonso chose (2026-11-20): on EVERY new video, suggest one relight when you hand
+    over the preview frames: name the clip (time in the cut, prefer a locked-off shot of his heaviest set), the look
+    from the 21 (e.g. Top light, Rim light, Rembrandt) and the cost, plus the current `balance`. Nothing is generated
+    until he says yes; then make the still, show it, STOP, and only make the video after he says "go". If the
+    balance can't cover ~85 credits, still suggest it and say he needs a top-up. Cuts splices the relit piece back
+    frame-exact, QA re-runs. Never relight by default and never let it hold up the rest of the edit.

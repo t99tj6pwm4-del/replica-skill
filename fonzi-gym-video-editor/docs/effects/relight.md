@@ -5,7 +5,7 @@ When to use it and the budget: Director standing answer 15 (`.claude/agents/fonz
 
 Team notes:
 - Cost: about 85 credits per look (still ~2-3, video ~80). Balance on 2026-11-19 was 10 credits, so it needs a top-up.
-- Only on his yes for that clip, and only after he approves the relit still. Never re-uses another creator's clip.
+- The Director suggests one look per new video (his choice, 2026-11-20); it runs only on his yes, and the video only after he approves the relit still. Never on another creator's clip.
 - Works best on a locked-off (tripod) shot, a few seconds long; use the clip's own first frame.
 - It changes lighting, not colour grade (he grades himself), so ask him which look; never pick a look on his behalf for a real video.
 - The relit clip goes to `output/flow_pack/returned/` style: Cuts splices it back frame-exact in place of the original piece.
