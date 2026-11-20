@@ -4,9 +4,8 @@ Source: https://ruby-cotija-fb5.notion.site/Professional-lighting-in-one-prompt-
 When to use it and the budget: Director standing answer 15 (`.claude/agents/fonzi-director.md`).
 
 Team notes:
-- **Model override (Alfonso, 2026-11-20): MiniMax H3 Lite, 480p, always 4 s max** (he checked the app: cheapest; 6.25 credits in his app screenshot, 2026-11-20).
-  The connector didn't list "H3 Lite" on 2026-11-20; search for it before each relight. Fallback if it's still
-  missing: the cheapest 480p model in the connector at that time, and tell him. On 2026-11-20 that was Wan 3.0 (`wan3_0`):
+- **Model override (Alfonso, 2026-11-20, final): Wan 3.0 (`wan3_0`), 480p, always 4 s max** (MiniMax H3 Lite was
+  6.25 credits in his app; Wan 3.0 is 3).
   480p, 9:16, duration 4, generate_audio false: 3 credits. Still ~2-3 credits, so ~6 per look (Seedance below: 80).
   In STEP 3 use generate_video with model wan3_0: image_references = [relit still], video_references = [the original
   clip trimmed to <= 4 s] (Wan 3.0 can't combine start_image with references). It regenerates rather than edits:
