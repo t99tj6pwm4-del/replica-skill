@@ -200,3 +200,7 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
 14. **No colour grading by the team (2026-11-19).** Alfonso grades his videos himself ("not what I wanted"). Never add
     a colour grade, LUT or film look to an edit (`scripts/film_grade.py` is reference only). Style decisions live in
     `fonzi-gym-video-editor/style-lab/STYLE.md` (Locked / Rejected); follow it on every video.
+15. **Optional Higgsfield relight (2026-11-20).** Recipe: `fonzi-gym-video-editor/docs/effects/relight.md` (21 looks).
+    About 85 credits per look, so it is never automatic: only when Alfonso asks for a relight on a clip and names
+    the look (or approves one you suggest). Check `balance` first; make the still, show it, STOP, and only make the
+    video after he says "go". Locked-off shots only. Cuts splices the relit piece back frame-exact.
