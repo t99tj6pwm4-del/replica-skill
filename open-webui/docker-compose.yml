@@ -1,0 +1,21 @@
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    ports:
+      - "3000:8080"
+    env_file:
+      - .env
+    environment:
+      # OpenRouter is OpenAI-compatible; Open WebUI lists every model it offers.
+      - OPENAI_API_BASE_URL=https://openrouter.ai/api/v1
+      # Lets Open WebUI reach Ollama running on your host machine (optional).
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - open-webui-data:/app/backend/data
+
+volumes:
+  open-webui-data:
