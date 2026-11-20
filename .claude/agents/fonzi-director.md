@@ -201,9 +201,13 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
     a colour grade, LUT or film look to an edit (`scripts/film_grade.py` is reference only). Style decisions live in
     `fonzi-gym-video-editor/style-lab/STYLE.md` (Locked / Rejected); follow it on every video.
 15. **Optional Higgsfield relight (2026-11-20).** Recipe: `fonzi-gym-video-editor/docs/effects/relight.md` (21 looks).
-    About 85 credits per look. Alfonso chose (2026-11-20): on EVERY new video, suggest one relight when you hand
+    **Model (Alfonso, 2026-11-20): MiniMax H3 (`minimax_h3`, the cheaper one; there is no "H3 Lite" in Higgsfield),
+    always 4 seconds max, 9:16, 2K: ~8 credits** + ~2-3 for the relit still = ~11 per look (Seedance 2.5 video edit
+    was 80). Video call: `start_image` = the approved relit still, `video_references` = the original clip piece
+    (trimmed to <= 4 s), prompt = step 3 of the recipe. H3 regenerates rather than edits, so check his moves still
+    line up with the original before Cuts splices it in; if they drift, tell him instead of using it. Alfonso chose: on EVERY new video, suggest one relight when you hand
     over the preview frames: name the clip (time in the cut, prefer a locked-off shot of his heaviest set), the look
-    from the 21 (e.g. Top light, Rim light, Rembrandt) and the cost, plus the current `balance`. Nothing is generated
+    from the 21 (e.g. Top light, Rim light, Rembrandt) and the cost (~11 credits), plus the current `balance`. Nothing is generated
     until he says yes; then make the still, show it, STOP, and only make the video after he says "go". If the
-    balance can't cover ~85 credits, still suggest it and say he needs a top-up. Cuts splices the relit piece back
+    balance can't cover ~11 credits, still suggest it and say he needs a top-up. Cuts splices the relit piece back
     frame-exact, QA re-runs. Never relight by default and never let it hold up the rest of the edit.

@@ -23,7 +23,7 @@ Branch `claude/blissful-hamilton-k7clws` (push only there, no PRs). All code is 
 - **90s "After Hours" re-cut: NOT APPROVED** (Alfonso, 2026-11-19). Not exported. The 41.8s version stays the only After Hours export.
 - **Nothing is waiting for approval.** Next: a new `/fonzi-edit` job.
 - **Style Lab (2026-11-19)**: published at https://claude.ai/artifact/Xez5Sv5JbCzCsqC7oz1Chc (db/user/assets). Steps in `style-lab/SETUP_PROMPT.md`, brief in `style-lab/STYLE.md`. Brief done (`style-lab/STYLE.md`, `GRADE_AND_TRANSITIONS.md`). Round 1 loaded (15 cards: grade, title, transitions, logo; built by `style-lab/round1/build.py`, outputs in `output/style_lab/r1/`). Round 4 loaded (3 cards: cut out + punch in with the original background flickering to white / black / bright; `style-lab/round4/build.py`). Next: on "done", read the newest `submissions`, update STYLE.md; when nothing is left on Maybe, write the locked rules into the agents.
-- **Effects added (2026-11-19)**: x-ray hit and film-strip flash cut recipes in `docs/effects/`, Director standing answer 13. Waiting on his selfies for the flash cut and on enough credits (balance 10).
+- **Effects added (2026-11-19)**: x-ray hit and film-strip flash cut recipes in `docs/effects/`, Director standing answer 13. Waiting on his selfies for the flash cut (balance 908 on 2026-11-20).
 - **"Full Send" (2026-11-18)**: NOT APPROVED by Alfonso (2026-11-19), not exported, not posted. Files kept in output/ and output/archive/.
 - **"Shh" (2026-11-18)**: NOT APPROVED by Alfonso (2026-11-19), not exported, not posted. Files kept in output/ and output/archive/.
 - **New standing answer 11**: gold title back word always behind him, unreadable is fine (config `titles.max_back_cover` 0.95).
@@ -49,7 +49,7 @@ Branch `claude/blissful-hamilton-k7clws` (push only there, no PRs). All code is 
 - **Current job**: `output/` (`job.json`, `storyboard.json`, `staged/`, `qa_report.md`). The saved Flow top-down clip is at `input/flow_topdown_dbcurl_alfonso.mp4`.
 
 ## Key decisions
-- **AI angles = Higgsfield Kling 3.0 Omni image-reference 720p** (`kling_o3_image_reference`, std, 3 s, silent) on his credits; Director runs it (standing answer 12). Balance 2026-11-19: 10 credits (free plan) = 3 clips. (Alfonso's standing rules)
+- **AI angles = Higgsfield Kling 3.0 Omni image-reference 720p** (`kling_o3_image_reference`, std, 3 s, silent) on his credits; Director runs it (standing answer 12). Balance 2026-11-20: 908 credits (plus plan). (Alfonso's standing rules)
 - **90 seconds, hard rule.** Every video is 90s ±1s (`config.yaml` `video_length`).
 - **Footage and music**: all footage he gives is his. Only his own songs. The footage's baked-in music is always muted; his chosen song never is.
 - **Exercises**: name guesses are fine; sets x reps are made up. Every lift gets a gold layered title (Montserrat Black; `front_only` when no back word can read behind him) **and** the pop-up cards.

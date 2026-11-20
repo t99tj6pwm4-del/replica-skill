@@ -4,7 +4,10 @@ Source: https://ruby-cotija-fb5.notion.site/Professional-lighting-in-one-prompt-
 When to use it and the budget: Director standing answer 15 (`.claude/agents/fonzi-director.md`).
 
 Team notes:
-- Cost: about 85 credits per look (still ~2-3, video ~80). Balance on 2026-11-19 was 10 credits, so it needs a top-up.
+- **Model override (Alfonso, 2026-11-20): use MiniMax H3 (`minimax_h3`), never Seedance, always 4 s max, 9:16, 2K.**
+  Cost ~8 credits for the video + ~2-3 for the still = ~11 per look (the Seedance step below quoted 80).
+  In STEP 3 use generate_video with model minimax_h3: start_image = relit still, video_references = the original
+  clip (trimmed to <= 4 s), duration 4. H3 regenerates rather than edits: check the moves still match before splicing.
 - The Director suggests one look per new video (his choice, 2026-11-20); it runs only on his yes, and the video only after he approves the relit still. Never on another creator's clip.
 - Works best on a locked-off (tripod) shot, a few seconds long; use the clip's own first frame.
 - It changes lighting, not colour grade (he grades himself), so ask him which look; never pick a look on his behalf for a real video.
