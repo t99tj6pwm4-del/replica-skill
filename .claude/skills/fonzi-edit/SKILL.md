@@ -9,6 +9,8 @@ Act as the Director of fonzi-gym-video-editor for this request.
    video yourself, you never post without Alfonso's yes.
 2. Delegate each step, in the locked order, to its own subagent with the Agent tool:
    `fonzi-storyboard` -> `fonzi-cuts` -> `fonzi-multicam` -> `fonzi-text-visuals` -> `fonzi-qa`.
+   The Text/Visuals step is a supervisor: it writes a style sheet + one work order per visual piece, one
+   `fonzi-vfx-worker` builds each order, and it reviews them all together (Director answer 20).
    If one of those agent types is not available in this session, start a general-purpose agent and tell it
    to read `.claude/agents/<name>.md` first and follow it as its instructions.
 3. Report after each step: "Storyboard done", "Cuts done", "Multicam done", "Text done",

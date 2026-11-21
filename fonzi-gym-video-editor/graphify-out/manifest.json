@@ -211,9 +211,9 @@
     "semantic_hash": ""
   },
   "HANDOVER.md": {
-    "mtime": 1795300549.479322,
-    "seen": 1795300561.5808046,
-    "ast_hash": "bdbe4ac747838caf807332a94477466e",
+    "mtime": 1795301144.1279204,
+    "seen": 1795301145.2046537,
+    "ast_hash": "48dca1efa9cb1b3196f9c5a089ab1d6c",
     "semantic_hash": ""
   },
   "README.md": {
@@ -634,6 +634,18 @@
     "mtime": 1795296078.196263,
     "seen": 1795300561.58086,
     "ast_hash": "cb998e722c67145d50a745108cbce3d8",
+    "semantic_hash": ""
+  },
+  "scripts/hyperframes_setup.sh": {
+    "mtime": 1795301104.719575,
+    "seen": 1795301145.2046118,
+    "ast_hash": "4081cfe2a74b186d1a3f3ebe3a49c734",
+    "semantic_hash": ""
+  },
+  "docs/hyperframes.md": {
+    "mtime": 1795301104.7233117,
+    "seen": 1795301145.2046707,
+    "ast_hash": "fe4391a0c203be194fef7df87bf26ed6",
     "semantic_hash": ""
   },
   "remotion/package-lock.json": {
