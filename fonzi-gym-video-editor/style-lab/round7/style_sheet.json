@@ -4,124 +4,263 @@
  "owner": "Text/Visuals supervisor",
  "rule": "Workers use ONLY values in this file. Anything missing: stop and ask the supervisor. The locked production intro (scripts/style_fx.py intro, scripts/finish_fx.py) is NOT touched in this round.",
  "root": "/home/user/replica-skill/fonzi-gym-video-editor",
-
  "reference": {
   "locked_build": "style-lab/round6/build.py (r6-01 strobe, r6-03 burst + pulse); helpers in style-lab/round5/build.py",
-  "locked_outputs": ["output/style_lab/r6/r6-01_full.mp4", "output/style_lab/r6/r6-03_full.mp4", "output/style_lab/r6/r6-01.jpg"],
-  "production_frames": ["output/intro_test/frames/final_test_0.7s.jpg", "output/intro_test/frames/final_test_1.0s.jpg", "output/intro_test/frames/final_test_1.5s.jpg"],
+  "locked_outputs": [
+   "output/style_lab/r6/r6-01_full.mp4",
+   "output/style_lab/r6/r6-03_full.mp4",
+   "output/style_lab/r6/r6-01.jpg"
+  ],
+  "production_frames": [
+   "output/intro_test/frames/final_test_0.7s.jpg",
+   "output/intro_test/frames/final_test_1.0s.jpg",
+   "output/intro_test/frames/final_test_1.5s.jpg"
+  ],
   "production_intro_card": "output/work/intro_card.json",
   "round6_check_report": "output/style_lab/r6/check_report.json"
  },
-
  "output_format": {
-  "width": 1080, "height": 1920, "fps": 30, "frames": 90, "duration_s": 3.0,
-  "video": {"codec": "libx264", "crf": 16, "preset": "medium", "pix_fmt": "yuv420p"},
-  "audio": {"codec": "aac", "bitrate": "192k", "sample_rate": 48000},
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "frames": 90,
+  "duration_s": 3.0,
+  "video": {
+   "codec": "libx264",
+   "crf": 16,
+   "preset": "medium",
+   "pix_fmt": "yuv420p"
+  },
+  "audio": {
+   "codec": "aac",
+   "bitrate": "192k",
+   "sample_rate": 48000
+  },
   "movflags": "+faststart",
   "clip": "output/style_lab/r7/<id>/<id>.mp4",
-  "preview_jpg": {"path": "output/style_lab/r7/<id>/<id>.jpg", "frame": 30, "time_s": 1.0, "quality": 90},
-  "overlay": {"tool": "HyperFrames", "format": "png-sequence (RGBA)", "dir": "output/style_lab/r7/<id>/overlay/", "frames": 90, "size": "1080x1920", "fps": 30, "background": "transparent"}
+  "preview_jpg": {
+   "path": "output/style_lab/r7/<id>/<id>.jpg",
+   "frame": 30,
+   "time_s": 1.0,
+   "quality": 90
+  },
+  "overlay": {
+   "tool": "HyperFrames",
+   "format": "png-sequence (RGBA)",
+   "dir": "output/style_lab/r7/<id>/overlay/",
+   "frames": 90,
+   "size": "1080x1920",
+   "fps": 30,
+   "background": "transparent"
+  }
  },
-
  "source": {
   "video": "output/multicam_version.mp4",
-  "trim": {"start_s": 0.0, "end_s": 3.0, "first_frame": 0, "last_frame": 89},
+  "trim": {
+   "start_s": 0.0,
+   "end_s": 3.0,
+   "first_frame": 0,
+   "last_frame": 89
+  },
   "note": "Same hook shot and song window as round 6 (r5/r6 load_frames: first 90 frames of multicam_version.mp4, scaled 1080x1920). Production (intro_card.json) used the same opening, 0-2.0 s; the Style Lab shows 3 s like round 6.",
   "shots": [
-   {"name": "shot1_face", "frames": [0, 59], "time_s": [0.0, 2.0], "face_on_screen": true},
-   {"name": "shot2_legs", "frames": [60, 89], "time_s": [2.0, 3.0], "face_on_screen": false}
+   {
+    "name": "shot1_face",
+    "frames": [
+     0,
+     59
+    ],
+    "time_s": [
+     0.0,
+     2.0
+    ],
+    "face_on_screen": true
+   },
+   {
+    "name": "shot2_legs",
+    "frames": [
+     60,
+     89
+    ],
+    "time_s": [
+     2.0,
+     3.0
+    ],
+    "face_on_screen": false
+   }
   ],
   "shot_cut_frame": 60,
   "song": "his song = the audio track of output/multicam_version.mp4, 0.0-3.0 s, level untouched (0 dB)",
   "grade": "none (ungraded footage, as every Style Lab round)"
  },
-
  "beats": {
   "source": "output/work/cut_map.json beat (period 0.6675567, phase 0.6671816)",
-  "times_s": [0.667, 1.335, 2.002, 2.670],
-  "frames": [20, 40, 60, 80],
+  "times_s": [
+   0.667,
+   1.335,
+   2.002,
+   2.67
+  ],
+  "frames": [
+   20,
+   40,
+   60,
+   80
+  ],
   "beat1_frame": 20,
   "cross_check": "r7-00 runs `hf beats` on the 3 s song wav (his song, allowed); report its beats next to these. These cut_map values stay the law unless the supervisor changes them."
  },
-
  "fonts": {
-  "title": {"family": "Rubik Dirt", "file": "brand/fonts/RubikDirt-Regular.ttf", "license": "brand/fonts/RubikDirt-OFL.txt", "weight": 400},
-  "subtitle": {"family": "Montserrat", "file": "remotion/public/fonts/Montserrat.ttf", "variable": true, "weight": 800, "instance": "ExtraBold", "license": "remotion/public/fonts/OFL-Montserrat.txt"},
+  "title": {
+   "family": "Rubik Dirt",
+   "file": "brand/fonts/RubikDirt-Regular.ttf",
+   "license": "brand/fonts/RubikDirt-OFL.txt",
+   "weight": 400
+  },
+  "subtitle": {
+   "family": "Montserrat",
+   "file": "remotion/public/fonts/Montserrat.ttf",
+   "variable": true,
+   "weight": 800,
+   "instance": "ExtraBold",
+   "license": "remotion/public/fonts/OFL-Montserrat.txt"
+  },
   "hyperframes_rule": "Copy the .ttf into the option's own HF project (output/style_lab/r7/<id>/hf/assets/fonts/) and load it with @font-face from that local path. No CDN / Google / jsdelivr font, no Inter, no Geist (registry defaults must be replaced)."
  },
-
  "colours": {
   "gold": "#D4A017",
-  "gold_rgb": [212, 160, 23],
+  "gold_rgb": [
+   212,
+   160,
+   23
+  ],
   "gold_highlight_max": "#ECD497",
   "gold_highlight_note": "gold pushed 55 % toward white = the brightest the locked r6-03 pulse goes. Use only for a narrow moving sheen / pulse peak, never a full-title white, never on a beat as a flash.",
   "gold_split_red": "#D40000",
   "gold_split_cyan": "#00A017",
   "gold_split_note": "the gold's own channels split apart (R only / G+B only) for the RGB glitch option; max alpha 0.6, only during a glitch window.",
   "subtitle": "#FFFFFF",
-  "logo": "#FFFFFF at 85 % alpha",
+  "logo": "#FFFFFF at effective 72 % alpha (see logo.colour)",
   "logo_depth_side": "#FFFFFF at 30 % alpha (r7-04 extrusion sides only)",
-  "title_shadow": {"rgb": [8, 8, 10], "note": "the locked tight letter shadow (round5 shadow_of), follows the letters, not a scrim"}
+  "title_shadow": {
+   "rgb": [
+    8,
+    8,
+    10
+   ],
+   "note": "the locked tight letter shadow (round5 shadow_of), follows the letters, not a scrim"
+  }
  },
-
  "title": {
-  "lines": ["LOCKED", "IN"],
+  "lines": [
+   "LOCKED",
+   "IN"
+  ],
   "case": "upper",
   "font_size_px": 166,
   "fit": "LOCKED is 700 px wide (round5 TITLE_W = 700 -> Rubik Dirt 166 px)",
   "letter_spacing_px": 0,
   "align": "centre, x centre 540",
-  "line_centres_y": [1000, 1165],
-  "group_centre": [540, 1082],
-  "extent_px": {"x": [166, 913], "y": [916, 1353], "source": "intro_card.json title_extent (title + subtitle)"},
+  "line_centres_y": [
+   1000,
+   1165
+  ],
+  "group_centre": [
+   540,
+   1082
+  ],
+  "extent_px": {
+   "x": [
+    166,
+    913
+   ],
+   "y": [
+    916,
+    1353
+   ],
+   "source": "intro_card.json title_extent (title + subtitle)"
+  },
   "reference_alpha": "output/style_lab/r7/r7-00/ref/title_ref.png (PIL, round5 build_layers, exact locked placement). Every HF title at rest must match its alpha bbox within 6 px on each side.",
-  "shadow": {"maxfilter": 5, "blur_px": 10, "gain": 1.6, "opacity": 0.6, "offset_y_px": 6, "applied_by": "r7-00 composite.py, from the overlay alpha (the HF overlay itself has NO shadow)"},
+  "shadow": {
+   "maxfilter": 5,
+   "blur_px": 10,
+   "gain": 1.6,
+   "opacity": 0.6,
+   "offset_y_px": 6,
+   "applied_by": "r7-00 composite.py, from the overlay alpha (the HF overlay itself has NO shadow)"
+  },
   "drips": "never",
-  "max_scale": 1.30,
+  "max_scale": 1.3,
   "max_scale_note": "any slam / punch scale on the title group (around group_centre) must stay <= 1.30 so it never reaches the face box or the frame sides; the locked pulse peak is 1.06"
  },
-
  "subtitle": {
   "text": "5 LIFTS. ONE SONG.",
   "font_size_px": 46,
   "letter_spacing_px": 8,
   "centre_y": 1305,
   "colour": "#FFFFFF",
-  "in": {"start_frame": 28, "frames": 6, "rise_px": 18, "ease": "cubic ease-out (1-(1-t)^3)", "fade": "alpha 0 -> 1 with the same ease"},
+  "in": {
+   "start_frame": 28,
+   "frames": 6,
+   "rise_px": 18,
+   "ease": "cubic ease-out (1-(1-t)^3)",
+   "fade": "alpha 0 -> 1 with the same ease"
+  },
   "after": "steady to frame 89, never flickers, identical in all five options"
  },
-
  "logo": {
   "file": "brand/fonzi_logo.png",
-  "colour": "white, alpha 85 % of the png alpha",
+  "colour": "white; 85 % factor applied twice by round6/style_fx big_logo (alpha * 0.85, then pasted with itself as mask) = effective 72 % (max alpha 183/255). Production style_fx.py intro ships 72 %; Style Lab matches it (review 2026-11-21).",
   "art_width_px": 1000,
-  "box": [40, 490, 1040, 1430],
-  "size": [1000, 940],
+  "box": [
+   40,
+   490,
+   1040,
+   1430
+  ],
+  "size": [
+   1000,
+   940
+  ],
   "placement": "art cropped to its alpha bbox, fitted to 1000 px wide, centred in frame, whole logo inside the frame (round6 big_logo)",
   "layer": "BEHIND him: base -> logo -> his cut-out -> title",
-  "in": {"type": "linear fade-up", "start_frame": 16, "full_frame": 20, "formula": "a = clamp((k - 16) / 4, 0, 1)"},
-  "never": "flicker-on, strobe, colour other than white, any part outside the frame"
+  "in": {
+   "type": "linear fade-up",
+   "start_frame": 16,
+   "full_frame": 20,
+   "formula": "a = clamp((k - 16) / 4, 0, 1)"
+  },
+  "never": "flicker-on, strobe, colour other than white, any part outside the frame",
+  "effective_alpha": 0.718
  },
-
  "beat_behaviour": {
   "strobe": "title invisible before frame 20; snaps on at frame 20; off for 2 frames on each later beat (frames 40-41, 60-61, 80-81); solid otherwise (r6-01)",
   "burst_pulse": "title invisible before frame 20; frames 20-27 follow the locked burst [0,1,0,0,1,1,0,1] (1 = visible); on each later beat b, frames b..b+5 brightness toward #ECD497 by 0.55*e and scale 1 + 0.06*e around group_centre, e = [1, 0.8, 0.55, 0.3, 0.12, 0] (r6-03)"
  },
-
  "face_and_safe_area": {
-  "safe_area_y": [110, 1500],
+  "safe_area_y": [
+   110,
+   1500
+  ],
   "safe_note": "Instagram covers the top 110 px and bottom 420 px; every drawn pixel (alpha > 20) of title, subtitle and VISIBLE logo stays inside",
-  "face_box_shot1": [400, 170, 900, 730],
+  "face_box_shot1": [
+   400,
+   170,
+   900,
+   730
+  ],
   "face_box_source": "round5 FACE (cap + face + beard over all of shot 1, +20 px margin; head dips f45-59, chin to y ~710)",
   "face_max_y_production": 800,
-  "title_band_shot1_y": [860, 1380],
+  "title_band_shot1_y": [
+   860,
+   1380
+  ],
   "title_band_note": "every title/subtitle pixel on frames 0-59 must be inside this band (below face_max_y 800 + 60 px); this also holds for scattered glyphs, glitch copies and the sweep",
   "face_box_shot2": null,
   "shot2_note": "frames 60-89 are the leg shot with no face; safe area still applies",
   "logo_on_face_px_max": 2500,
   "logo_on_face_note": "round 6 measured 2087 px of logo on the soft mask edge near his face; options must not be worse than 2500"
  },
-
  "cutout": {
   "model": "birefnet-general-lite (config.yaml titles.cut_model)",
   "helpers": "scripts/layered_title.py cut_session(), raw_masks(), smooth_masks() exactly as round5 person_masks()",
@@ -130,24 +269,36 @@
   "masks_dir": "output/style_lab/r7/r7-00/masks/ (m0000.png .. m0089.png, 8-bit L, 1080x1920)",
   "cost": "~9 s a frame on CPU -> about 14 min for 90 frames, once, in r7-00 only"
  },
-
  "sounds": {
   "song": "his song, 0 dB, untouched",
   "sfx": [
-   {"name": "whoosh", "file": "sfx/whoosh.wav", "at_s": 0.367, "db": -14, "why": "into beat 1"},
-   {"name": "impact", "file": "sfx/impact.wav", "at_s": 0.647, "db": -5, "why": "on beat 1"}
+   {
+    "name": "whoosh",
+    "file": "sfx/whoosh.wav",
+    "at_s": 0.367,
+    "db": -14,
+    "why": "into beat 1"
+   },
+   {
+    "name": "impact",
+    "file": "sfx/impact.wav",
+    "at_s": 0.647,
+    "db": -5,
+    "why": "on beat 1"
+   }
   ],
   "mix": "amix normalize=0, alimiter limit=0.8 (-1.9 dB), trimmed to 3.000 s (round5 encode())",
   "shared_mix": "output/style_lab/r7/r7-00/audio_mix.wav: every option uses this exact file, so Alfonso compares the picture only",
   "extra_sounds": "none this round"
  },
-
  "hyperframes": {
   "setup": "source scripts/hyperframes_setup.sh (CLI 0.9.78, telemetry off) then hf ...",
   "project_per_option": "output/style_lab/r7/<id>/hf/ (hf init <dir> --example blank --non-interactive --skip-skills --skip-transcribe; hf add <block>)",
   "render": "hf render output/style_lab/r7/<id>/hf --format png-sequence --fps 30 --resolution portrait -o output/style_lab/r7/<id>/overlay",
   "composition": "1080x1920, 30 fps, data-duration 3, transparent background, no media elements (no <video>, <img> of footage, no <audio>)",
-  "images_allowed": ["brand/fonzi_logo.png (r7-04 only, copied into hf/assets/)"],
+  "images_allowed": [
+   "brand/fonzi_logo.png (r7-04 only, copied into hf/assets/)"
+  ],
   "blocks_checked_2026-11-21": {
    "headline-slam": "component, scale-down slam + 3-frame landing shake + drift + upward whip exit (exit and drift NOT used)",
    "char-slam-explode": "component, glyph scatter then overshooting reassemble + 3-frame shake",
@@ -164,7 +315,6 @@
   },
   "use_rule": "Only the motion code (timings, easings, transforms) of a block. Replace every registry colour token, font, demo text and demo asset with the values in this file."
  },
-
  "compositing": {
   "tool": "output/style_lab/r7/r7-00/composite.py (written once by r7-00, used unchanged by r7-01..r7-05)",
   "stack": "plate frame k (base + logo-behind) -> title shadow from overlay alpha -> HF overlay frame k",
@@ -172,12 +322,10 @@
   "audio": "r7-00/audio_mix.wav",
   "writes": "<id>.mp4, <id>.jpg (frame 30), check.json (safe area, title band, face box, ref bbox, logo checks, ffprobe)"
  },
-
  "rotation": {
   "file": "posted/style_rotation.json (not present 2026-11-21)",
   "note": "Style Lab options do not read or write the rotation. Each option names its beat behaviour (strobe or burst_pulse) explicitly."
  },
-
  "never": [
   "colour grade or LUT of any kind",
   "dark tint, scrim, vignette, box, stripes behind the title",
@@ -193,5 +341,8 @@
   "non-English text, hashtags",
   "touching style_fx.py, finish_fx.py, output/final_edit.mp4, output/staged/, exports/, posted/, the storyboard or any input",
   "writing anywhere but the order's own outputs; commits; posting"
+ ],
+ "review_notes": [
+  "2026-11-21 review: logo alpha is 72 % in round 6, in production and in r7-00..r7-05; STYLE.md says ~85 %. Not changed in production; Director to ask Alfonso if he wants true 85 %."
  ]
 }
