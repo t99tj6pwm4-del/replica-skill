@@ -1,0 +1,390 @@
+{
+ "round": "Style Lab round 7: HyperFrames intro options",
+ "style_sheet": "style-lab/round7/style_sheet.json",
+ "root": "/home/user/replica-skill/fonzi-gym-video-editor",
+ "dispatch": "r7-00 first (alone). When the supervisor has accepted r7-00, start r7-01..r7-05 in parallel. One fonzi-vfx-worker per order.",
+ "common_rules": [
+  "Read the style sheet and style-lab/STYLE.md rule 0 before anything. Use no value that is not in the style sheet.",
+  "graphify: fonzi-gym-video-editor/graphify-out/graph.json exists, so run `graphify query \"<question>\"` before grepping or reading source for any codebase question.",
+  "HyperFrames per docs/hyperframes.md: source scripts/hyperframes_setup.sh; allowed commands only; motion code only, no demo media, no remote fonts.",
+  "Write ONLY to your order's outputs. Never touch style_fx.py, finish_fx.py, output/final_edit.mp4, other orders' folders, or any input. No commits.",
+  "Report in the fonzi-vfx-worker shape: id, status, absolute output paths, style-sheet values used, ffprobe line, frames looked at."
+ ],
+ "orders": [
+  {
+   "id": "r7-00",
+   "piece": "SHARED BASE: source frames, his cut-out masks, clean base clip, logo-behind plate, shared audio mix, title reference, shared compositor",
+   "tool": "Python (PIL/numpy/ffmpeg) reusing style-lab/round5/build.py + style-lab/round6/build.py helpers via importlib (load_frames, person_masks, big_logo, build_layers, shadow_of, Checker, encode logic). Read-only import; never edit those files. hf beats for the beat cross-check.",
+   "inputs": [
+    "output/multicam_version.mp4",
+    "brand/fonzi_logo.png",
+    "brand/fonts/RubikDirt-Regular.ttf",
+    "remotion/public/fonts/Montserrat.ttf",
+    "sfx/whoosh.wav",
+    "sfx/impact.wav",
+    "output/work/cut_map.json",
+    "style-lab/round5/build.py",
+    "style-lab/round6/build.py",
+    "scripts/layered_title.py"
+   ],
+   "window": {
+    "in_s": 0.0,
+    "out_s": 3.0,
+    "frames": [
+     0,
+     89
+    ]
+   },
+   "outputs": [
+    "output/style_lab/r7/r7-00/src/f0000.png .. f0089.png (RGB source frames, 1080x1920)",
+    "output/style_lab/r7/r7-00/masks/m0000.png .. m0089.png (his cut-out, per shot 0-59 / 60-89)",
+    "output/style_lab/r7/r7-00/plate/p0000.png .. p0089.png (base -> logo fade-up f16-20 -> his cut-out on top; NO title)",
+    "output/style_lab/r7/r7-00/base_clean.mp4 (src frames + his song only, no graphics, no sfx)",
+    "output/style_lab/r7/r7-00/plate.mp4 (plate frames + audio_mix, for review)",
+    "output/style_lab/r7/r7-00/audio_mix.wav (song + whoosh 0.367 s -14 dB + impact 0.647 s -5 dB, limiter 0.8, 3.000 s, 48 kHz)",
+    "output/style_lab/r7/r7-00/song.wav (his song 0-3 s, for hf beats)",
+    "output/style_lab/r7/r7-00/ref/title_ref.png (RGBA, LOCKED IN at rest, exact locked placement, no shadow)",
+    "output/style_lab/r7/r7-00/ref/subtitle_ref.png (RGBA, subtitle at rest)",
+    "output/style_lab/r7/r7-00/ref/logo_layer.png (RGBA logo layer, full alpha 85 %)",
+    "output/style_lab/r7/r7-00/ref/r6-01_check.mp4 (locked r6-01 rebuilt from these plates + ref title with the strobe: proves the base reproduces round 6)",
+    "output/style_lab/r7/r7-00/composite.py (shared compositor, CLI below)",
+    "output/style_lab/r7/r7-00/base_report.json (beats cut_map vs hf beats, logo box, logo visible % at f24/40/59/75/89, logo edge px, logo-on-face px, mask model, ffprobe lines)"
+   ],
+   "composite_py_spec": "python3 output/style_lab/r7/r7-00/composite.py <id> [--plate-dir DIR]  -> reads output/style_lab/r7/<id>/overlay/*.png (exactly 90 RGBA 1080x1920 frames, sorted), stacks plate -> shadow_of(overlay alpha, style sheet title.shadow) -> overlay, encodes output/style_lab/r7/<id>/<id>.mp4 (style sheet output_format) with r7-00/audio_mix.wav, saves <id>.jpg from frame 30, and writes output/style_lab/r7/<id>/check.json: safe area y 110-1500, title band 860-1380 and face box [400,170,900,730] clear on frames 0-59 (overlay alpha > 20), overlay bbox vs ref/title_ref.png on frames 35, 50, 89 (rest frames; flag > 6 px), visible-logo checks (box inside frame, edge px 0, logo-on-face px <= 2500) on the plate used, max title pixel brightness (overlay pixels with y < 1260, i.e. above the white subtitle) vs #ECD497 on every frame and listed for beat frames 20/40/60/80 (+1), to catch a white flash, ffprobe line. Writes only inside output/style_lab/r7/<id>/.",
+   "style_sheet_keys": [
+    "output_format",
+    "source",
+    "beats",
+    "fonts",
+    "colours.gold",
+    "colours.subtitle",
+    "colours.logo",
+    "title",
+    "subtitle",
+    "logo",
+    "face_and_safe_area",
+    "cutout",
+    "sounds",
+    "compositing",
+    "never"
+   ],
+   "acceptance": [
+    "90 src, 90 masks, 90 plates, all 1080x1920",
+    "masks from birefnet-general-lite, computed per shot (0-59, 60-89), every frame",
+    "logo box == [40,490,1040,1430], logo edge px 0, logo-on-face px <= 2500, visible % close to round 6 (f24 ~24.8, f40 ~28.3, f59 ~30.9, f75 ~44.2, f89 ~45.1; within 3 points)",
+    "logo invisible f0-15, fade f16-20, steady after; no flicker",
+    "audio_mix.wav 3.000 s, 48 kHz, peaks <= -1.9 dBFS; base_clean.mp4 1080x1920 30 fps h264+aac 3.0 s",
+    "ref/r6-01_check.mp4 frame 50 matches output/style_lab/r6/r6-01.jpg visually (same title place, same logo, same cut-out)",
+    "hf beats result reported next to cut_map beats [0.667, 1.335, 2.002, 2.670]; a mismatch is reported, not 'fixed'",
+    "composite.py runs end to end on a dummy overlay (90 transparent PNGs in the scratchpad, not under output/) and produces a valid file in the scratchpad"
+   ],
+   "depends_on": [],
+   "what_alfonso_sees": "Nothing new: the shared base. plate.mp4 = his hook with the white Fonzi logo behind him and no title, the starting point of every option.",
+   "time_note": "The cut-out is ~14 min (90 frames x ~9 s). Say so before starting."
+  },
+  {
+   "id": "r7-01",
+   "piece": "Title SLAM on beat 1 (headline-slam motion) + locked strobe",
+   "tool": "HyperFrames: hf add headline-slam (component); keep its scale-down + expo.out landing + deterministic 3-frame landing shake; DROP its hold drift and upward whip exit. Composite with r7-00/composite.py.",
+   "inputs": [
+    "style-lab/round7/style_sheet.json",
+    "output/style_lab/r7/r7-00/ref/title_ref.png",
+    "output/style_lab/r7/r7-00/ref/subtitle_ref.png",
+    "output/style_lab/r7/r7-00/plate/",
+    "output/style_lab/r7/r7-00/audio_mix.wav",
+    "output/style_lab/r7/r7-00/composite.py",
+    "brand/fonts/RubikDirt-Regular.ttf",
+    "remotion/public/fonts/Montserrat.ttf"
+   ],
+   "window": {
+    "in_s": 0.0,
+    "out_s": 3.0,
+    "frames": [
+     0,
+     89
+    ],
+    "motion": "title invisible f0-15; slam f16-20: scale 1.30 -> 1.00 around group_centre, opacity 0 -> 1 by f17, lands EXACTLY on f20 (beat 1, on the impact); landing shake f20-22 (+-6 px x, +-3 px y, then 0); strobe after: off f40-41, f60-61, f80-81; subtitle per style sheet from f28"
+   },
+   "outputs": [
+    "output/style_lab/r7/r7-01/hf/ (HF project)",
+    "output/style_lab/r7/r7-01/overlay/ (90 RGBA png)",
+    "output/style_lab/r7/r7-01/r7-01.mp4",
+    "output/style_lab/r7/r7-01/r7-01.jpg",
+    "output/style_lab/r7/r7-01/check.json"
+   ],
+   "style_sheet_keys": [
+    "output_format",
+    "beats",
+    "fonts",
+    "colours.gold",
+    "colours.subtitle",
+    "title",
+    "title.max_scale",
+    "subtitle",
+    "beat_behaviour.strobe",
+    "face_and_safe_area",
+    "hyperframes",
+    "compositing",
+    "sounds.shared_mix",
+    "never"
+   ],
+   "acceptance": [
+    "check.json all OK (safe area, title band, face box, ref bbox <= 6 px at f35/50/89)",
+    "f19 scale > 1.0 and f20 scale == 1.0 (+-0.01): the landing is on beat 1",
+    "max scale <= 1.30, no frame where the title touches y < 860",
+    "no exit motion; title still present f82-89",
+    "blinks exactly at f40-41, f60-61, f80-81",
+    "gold only #D4A017, no white"
+   ],
+   "depends_on": [
+    "r7-00"
+   ],
+   "what_alfonso_sees": "LOCKED IN drops in big and slams into place right on the first beat with a tiny shake, then strobes to the beat like the locked one."
+  },
+  {
+   "id": "r7-02",
+   "piece": "Gold LIGHT SWEEP through the letters (text-shimmer motion) + locked strobe",
+   "tool": "HyperFrames: hf add text-shimmer (component); its specular gradient band, recoloured: base #D4A017, peak #ECD497 (no white). Composite with r7-00/composite.py.",
+   "inputs": [
+    "style-lab/round7/style_sheet.json",
+    "output/style_lab/r7/r7-00/ref/title_ref.png",
+    "output/style_lab/r7/r7-00/ref/subtitle_ref.png",
+    "output/style_lab/r7/r7-00/plate/",
+    "output/style_lab/r7/r7-00/audio_mix.wav",
+    "output/style_lab/r7/r7-00/composite.py",
+    "brand/fonts/RubikDirt-Regular.ttf",
+    "remotion/public/fonts/Montserrat.ttf"
+   ],
+   "window": {
+    "in_s": 0.0,
+    "out_s": 3.0,
+    "frames": [
+     0,
+     89
+    ],
+    "motion": "locked strobe (snap on f20, off f40-41, f60-61, f80-81); one sheen sweep left -> right through LOCKED IN over 12 frames after landing (f22-33) and one more after beat 2 (f42-53); band ~12 % of the title width, 20 deg diagonal, clipped to the glyphs; subtitle per style sheet (no sheen on it)"
+   },
+   "outputs": [
+    "output/style_lab/r7/r7-02/hf/",
+    "output/style_lab/r7/r7-02/overlay/",
+    "output/style_lab/r7/r7-02/r7-02.mp4",
+    "output/style_lab/r7/r7-02/r7-02.jpg",
+    "output/style_lab/r7/r7-02/check.json"
+   ],
+   "style_sheet_keys": [
+    "output_format",
+    "beats",
+    "fonts",
+    "colours.gold",
+    "colours.gold_highlight_max",
+    "colours.subtitle",
+    "title",
+    "subtitle",
+    "beat_behaviour.strobe",
+    "face_and_safe_area",
+    "hyperframes",
+    "compositing",
+    "sounds.shared_mix",
+    "never"
+   ],
+   "acceptance": [
+    "check.json all OK",
+    "no title pixel brighter than #ECD497 on any frame; on beat frames 20/40/60/80 (+1) no sheen at all (the sheen runs between beats, never a flash on the hit)",
+    "at most ~20 % of the glyph pixels brightened on any frame",
+    "sheen stays inside the glyphs (no glow outside the letters)",
+    "preview jpg (f30) shows the sheen mid-word"
+   ],
+   "depends_on": [
+    "r7-00"
+   ],
+   "what_alfonso_sees": "Same locked strobe, but after the title lands a bright gold glint slides across LOCKED IN, like light catching metal, twice."
+  },
+  {
+   "id": "r7-03",
+   "piece": "Subtle RGB GLITCH on the beats (rgb-glitch-text motion), on the burst + pulse intro",
+   "tool": "HyperFrames: hf add rgb-glitch-text (component); its steps(1) offset jitter, inks replaced by the gold's own channel split (#D40000 / #00A017, alpha <= 0.6) under the solid gold title. Composite with r7-00/composite.py.",
+   "inputs": [
+    "style-lab/round7/style_sheet.json",
+    "output/style_lab/r7/r7-00/ref/title_ref.png",
+    "output/style_lab/r7/r7-00/ref/subtitle_ref.png",
+    "output/style_lab/r7/r7-00/plate/",
+    "output/style_lab/r7/r7-00/audio_mix.wav",
+    "output/style_lab/r7/r7-00/composite.py",
+    "brand/fonts/RubikDirt-Regular.ttf",
+    "remotion/public/fonts/Montserrat.ttf"
+   ],
+   "window": {
+    "in_s": 0.0,
+    "out_s": 3.0,
+    "frames": [
+     0,
+     89
+    ],
+    "motion": "locked burst f20-27 [0,1,0,0,1,1,0,1]; then on each later beat (f40, f60, f80) a 3-frame glitch: split copies offset -8/+8 px x (frame 1), -5/+5 (frame 2), -2/+2 (frame 3), then gone; the main gold title stays solid and in place (no blink, no pulse scale); subtitle per style sheet, never glitched"
+   },
+   "outputs": [
+    "output/style_lab/r7/r7-03/hf/",
+    "output/style_lab/r7/r7-03/overlay/",
+    "output/style_lab/r7/r7-03/r7-03.mp4",
+    "output/style_lab/r7/r7-03/r7-03.jpg",
+    "output/style_lab/r7/r7-03/check.json"
+   ],
+   "style_sheet_keys": [
+    "output_format",
+    "beats",
+    "fonts",
+    "colours.gold",
+    "colours.gold_split_red",
+    "colours.gold_split_cyan",
+    "colours.subtitle",
+    "title",
+    "subtitle",
+    "beat_behaviour.burst_pulse",
+    "face_and_safe_area",
+    "hyperframes",
+    "compositing",
+    "sounds.shared_mix",
+    "never"
+   ],
+   "acceptance": [
+    "check.json all OK (split copies included in the band / face / safe checks)",
+    "split colours only on f40-42, f60-62, f80-82; everywhere else the title is pure #D4A017",
+    "split alpha <= 0.6, offset <= 8 px",
+    "no white pixels, no scanline / noise over the footage (text only)",
+    "burst f20-27 matches the locked pattern"
+   ],
+   "depends_on": [
+    "r7-00"
+   ],
+   "what_alfonso_sees": "The locked flicker-on at beat 1, then on every beat the gold letters jolt with a quick red/green colour split, like a hit on a broken screen, and snap back clean."
+  },
+  {
+   "id": "r7-04",
+   "piece": "3D DEPTH LOGO behind him (extruded look on the PNG logo) + locked strobe title",
+   "tool": "HyperFrames composition with CSS 3D: the logo PNG stacked 14 times 1 px apart in depth (front face white 85 %, side copies white 30 %), perspective 1600 px; swing rotateY -8 deg -> 0 and rotateX 4 deg -> 0 from f16 to f30 with the extruded-logo block's settle easing (reference only: that block extrudes text, not a PNG). The logo is rendered as its OWN RGBA sequence, then a new plate is made from r7-00 src + masks (logo behind him) and the HF title overlay goes on top via composite.py --plate-dir.",
+   "inputs": [
+    "style-lab/round7/style_sheet.json",
+    "brand/fonzi_logo.png",
+    "output/style_lab/r7/r7-00/src/",
+    "output/style_lab/r7/r7-00/masks/",
+    "output/style_lab/r7/r7-00/ref/logo_layer.png",
+    "output/style_lab/r7/r7-00/ref/title_ref.png",
+    "output/style_lab/r7/r7-00/ref/subtitle_ref.png",
+    "output/style_lab/r7/r7-00/audio_mix.wav",
+    "output/style_lab/r7/r7-00/composite.py",
+    "brand/fonts/RubikDirt-Regular.ttf",
+    "remotion/public/fonts/Montserrat.ttf"
+   ],
+   "window": {
+    "in_s": 0.0,
+    "out_s": 3.0,
+    "frames": [
+     0,
+     89
+    ],
+    "motion": "logo: invisible f0-15, linear fade-up f16-20 (as locked, no flicker) while swinging in, settled at f30, steady after; title: locked strobe; subtitle per style sheet"
+   },
+   "outputs": [
+    "output/style_lab/r7/r7-04/hf_logo/",
+    "output/style_lab/r7/r7-04/hf/",
+    "output/style_lab/r7/r7-04/logo_seq/ (90 RGBA png)",
+    "output/style_lab/r7/r7-04/plate/ (90 png: src -> 3D logo -> his cut-out)",
+    "output/style_lab/r7/r7-04/overlay/",
+    "output/style_lab/r7/r7-04/r7-04.mp4",
+    "output/style_lab/r7/r7-04/r7-04.jpg",
+    "output/style_lab/r7/r7-04/check.json"
+   ],
+   "style_sheet_keys": [
+    "output_format",
+    "beats",
+    "fonts",
+    "colours.gold",
+    "colours.subtitle",
+    "colours.logo",
+    "colours.logo_depth_side",
+    "title",
+    "subtitle",
+    "logo",
+    "beat_behaviour.strobe",
+    "face_and_safe_area",
+    "cutout",
+    "hyperframes",
+    "hyperframes.images_allowed",
+    "compositing.alt_plate",
+    "sounds.shared_mix",
+    "never"
+   ],
+   "acceptance": [
+    "check.json all OK, logo checks run on r7-04's own plate",
+    "logo (with depth) bbox within 20 px of [40,490,1040,1430] at f30+, whole logo inside the frame every frame, edge px 0",
+    "logo-on-face px <= 2500; he is always in front of the logo (same masks as r7-00)",
+    "only white: face 85 %, sides 30 %; no chrome / gold / shading colours, no studio environment, no shadow under the logo",
+    "no flicker: logo alpha monotonic f16-20, steady after",
+    "title identical to the locked strobe (ref bbox <= 6 px)"
+   ],
+   "depends_on": [
+    "r7-00"
+   ],
+   "what_alfonso_sees": "The white Fonzi logo behind him now has real thickness: it swings in like a 3D sign and settles, with LOCKED IN strobing in front as before."
+  },
+  {
+   "id": "r7-05",
+   "piece": "Letters SCATTER and SLAM together on beat 1 (char-slam-explode motion) + locked pulse",
+   "tool": "HyperFrames: hf add char-slam-explode (component); deterministic seeded scatter, overshooting reassemble, 3-frame landing shake. Composite with r7-00/composite.py.",
+   "inputs": [
+    "style-lab/round7/style_sheet.json",
+    "output/style_lab/r7/r7-00/ref/title_ref.png",
+    "output/style_lab/r7/r7-00/ref/subtitle_ref.png",
+    "output/style_lab/r7/r7-00/plate/",
+    "output/style_lab/r7/r7-00/audio_mix.wav",
+    "output/style_lab/r7/r7-00/composite.py",
+    "brand/fonts/RubikDirt-Regular.ttf",
+    "remotion/public/fonts/Montserrat.ttf"
+   ],
+   "window": {
+    "in_s": 0.0,
+    "out_s": 3.0,
+    "frames": [
+     0,
+     89
+    ],
+    "motion": "f0-10 nothing; f11-15 the 8 glyphs (L O C K E D I N) fade in scattered (offsets <= 180 px x, <= 120 px y, rotation <= 12 deg, every glyph inside x 60-1020 / y 860-1380); f16-20 they fly home with overshoot and land EXACTLY on f20; shake f20-22 (+-6/+-3 px); then the locked pulse on f40, f60, f80 (brightness to <= #ECD497 x 0.55 e, scale 1 + 0.06 e); subtitle per style sheet"
+   },
+   "outputs": [
+    "output/style_lab/r7/r7-05/hf/",
+    "output/style_lab/r7/r7-05/overlay/",
+    "output/style_lab/r7/r7-05/r7-05.mp4",
+    "output/style_lab/r7/r7-05/r7-05.jpg",
+    "output/style_lab/r7/r7-05/check.json"
+   ],
+   "style_sheet_keys": [
+    "output_format",
+    "beats",
+    "fonts",
+    "colours.gold",
+    "colours.gold_highlight_max",
+    "colours.subtitle",
+    "title",
+    "title.max_scale",
+    "subtitle",
+    "beat_behaviour.burst_pulse",
+    "face_and_safe_area",
+    "hyperframes",
+    "compositing",
+    "sounds.shared_mix",
+    "never"
+   ],
+   "acceptance": [
+    "check.json all OK; scattered glyphs inside the title band (y 860-1380) and off the face box on every frame",
+    "glyphs at home position (ref bbox <= 6 px) from f23",
+    "landing on f20 (+-0 frames), on the impact",
+    "pulse peaks on 40/60/80 only, never brighter than #ECD497",
+    "no flash, no glyph leaves the frame"
+   ],
+   "depends_on": [
+    "r7-00"
+   ],
+   "what_alfonso_sees": "The letters of LOCKED IN float in scattered under his face, then smash together on the first beat with a little shake, and the title pulses on each beat after."
+  }
+ ]
+}
