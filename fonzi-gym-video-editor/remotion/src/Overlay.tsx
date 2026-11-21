@@ -39,8 +39,11 @@ const TitleCard: React.FC<{
   frames: number;
   animation?: string;
   offsetY?: number;
-}> = ({ text, subtitle, brand, frames, animation, offsetY = 0 }) => {
+  gold?: boolean;
+  stagger?: number;
+}> = ({ text, subtitle, brand, frames, animation, offsetY = 0, gold = false, stagger = 4 }) => {
   const frame = useCurrentFrame();
+  const accent = gold ? brand.popupColor ?? brand.color : brand.color;
   // CapCut library Animation > In for the hook: Flash In / Fade In / Zoom 1 / Focus
   const inFlash = animation === "Flash In" ? interpolate(frame, [0, 2, 6], [0, 0.9, 0], clamp) : 0;
   const inFade = animation === "Fade In" ? interpolate(frame, [0, 8], [0, 1], clamp) : 1;
@@ -95,7 +98,7 @@ const TitleCard: React.FC<{
               width: STRIPE_SAFE_RIGHT + 200,
               top: 590 + offsetY + i * 46,
               height: i === 0 ? 22 : 8,
-              backgroundColor: brand.color,
+              backgroundColor: accent,
               opacity: i === 0 ? 1 : 0.55,
               transform: `translateX(${stripe(i * 3)}%) rotate(-7deg)`,
             }}
@@ -120,7 +123,7 @@ const TitleCard: React.FC<{
         >
           {words.map((w, i) => {
             const s = spring({
-              frame: frame - 2 - i * 4,
+              frame: frame - 2 - i * stagger,
               fps,
               config: { damping: 11, stiffness: 190, mass: 0.6 },
             });
@@ -133,7 +136,7 @@ const TitleCard: React.FC<{
                   fontSize: size,
                   lineHeight: 1.02,
                   letterSpacing: 2,
-                  color: last ? brand.color : brand.textColor,
+                  color: gold || last ? accent : brand.textColor,
                   textShadow: SHADOW,
                   opacity: interpolate(s, [0, 0.3], [0, 1], clamp),
                   transform: `scale(${interpolate(s, [0, 1], [1.6, 1])})`,
@@ -157,7 +160,7 @@ const TitleCard: React.FC<{
                 whiteSpace: "normal",
                 lineHeight: 1.15,
                 padding: "14px 30px",
-                backgroundColor: brand.color,
+                backgroundColor: accent,
                 color: brand.darkColor,
                 fontFamily: BODY,
                 fontWeight: 800,
@@ -166,11 +169,11 @@ const TitleCard: React.FC<{
                 letterSpacing: 1,
                 borderRadius: 10,
                 transform: `translateY(${interpolate(
-                  spring({ frame: frame - 6 - words.length * 4, fps, config: { damping: 14 } }),
+                  spring({ frame: frame - 6 - words.length * stagger, fps, config: { damping: 14 } }),
                   [0, 1],
                   [70, 0]
                 )}px)`,
-                opacity: interpolate(frame - 6 - words.length * 4, [0, 5], [0, 1], clamp),
+                opacity: interpolate(frame - 6 - words.length * stagger, [0, 5], [0, 1], clamp),
               }}
             >
               {subtitle}
@@ -1283,6 +1286,8 @@ export const Overlay: React.FC<OverlayProps> = (p) => {
             frames={seq(p.title.from, p.title.to).durationInFrames}
             animation={p.title.animation}
             offsetY={p.layout.titleOffsetY ?? 0}
+            gold={p.title.gold}
+            stagger={p.title.stagger}
           />
         </Sequence>
       ) : null}

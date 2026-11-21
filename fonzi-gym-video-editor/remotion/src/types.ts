@@ -101,7 +101,9 @@ export type OverlayProps = {
   duration: number; // seconds
   brand: Brand;
   layout: { captionY: number; lowerThirdY: number; titleOffsetY?: number; progressY?: number };
-  title: { from: number; to: number; text: string; subtitle?: string; animation?: string } | null;
+  title: { from: number; to: number; text: string; subtitle?: string; animation?: string;
+    // gold: every word in brand.popupColor (the Style Lab gold); stagger: frames between words (default 4)
+    gold?: boolean; stagger?: number } | null;
   lowerThirds: LowerThird[];
   progress: ProgressSegment[];
   captions: CaptionPage[];

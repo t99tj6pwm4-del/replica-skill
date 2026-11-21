@@ -1,7 +1,7 @@
 # Graph Report - fonzi-gym-video-editor  (2026-11-21)
 
 ## Corpus Check
-- 42 files · ~67,289 words
+- 42 files · ~67,460 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 10 file(s) not represented in the graph (top: (none) 6, .ttf 3, .example 1)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `2be65f17`
+- Built from commit: `79bd2ea5`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -57,16 +57,16 @@
 10. `main()` - 19 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `validate()` --calls--> `resolve()`  [EXTRACTED]
-  scripts/storyboard_md.py → scripts/common.py
-- `main()` --calls--> `die()`  [EXTRACTED]
-  scripts/storyboard_md.py → scripts/common.py
-- `main()` --calls--> `load_json()`  [EXTRACTED]
-  scripts/storyboard_md.py → scripts/common.py
 - `contact_sheets()` --calls--> `run()`  [EXTRACTED]
   scripts/analyze_video.py → scripts/common.py
 - `detect()` --calls--> `run()`  [EXTRACTED]
   scripts/analyze_video.py → scripts/common.py
+- `main()` --calls--> `run()`  [EXTRACTED]
+  scripts/analyze_video.py → scripts/common.py
+- `main()` --calls--> `run()`  [EXTRACTED]
+  scripts/cut_video.py → scripts/common.py
+- `apply()` --calls--> `run()`  [EXTRACTED]
+  scripts/effects.py → scripts/common.py
 
 ## Import Cycles
 - None detected.

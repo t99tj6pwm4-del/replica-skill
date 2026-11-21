@@ -7,8 +7,8 @@
     "ast_empty": true
   },
   "config.yaml": {
-    "mtime": 1795077669.9875226,
-    "seen": 1795078939.42272,
+    "mtime": 1795220926.5268786,
+    "seen": 1795221838.7163732,
     "ast_hash": "b13172a5a7da28b2dda0467f5fddc335",
     "semantic_hash": ""
   },
@@ -37,9 +37,9 @@
     "semantic_hash": "44e99006b66bead538f03e43e103e683"
   },
   "remotion/src/Overlay.tsx": {
-    "mtime": 1795014208.367003,
-    "seen": 1795014274.2131689,
-    "ast_hash": "a9d0d59b5dd57fbc42b45fa08feea2e3",
+    "mtime": 1795221653.123901,
+    "seen": 1795221838.716388,
+    "ast_hash": "c9202a17163f210e9c87c9c6d2ebccb2",
     "semantic_hash": ""
   },
   "remotion/src/Root.tsx": {
@@ -61,9 +61,9 @@
     "semantic_hash": "c96add9e4c09d452ec267482e9d4629c"
   },
   "remotion/src/types.ts": {
-    "mtime": 1795014208.3674998,
-    "seen": 1795014274.2131748,
-    "ast_hash": "0b423fe6be80405bf7434734da23b6c9",
+    "mtime": 1795221653.1231415,
+    "seen": 1795221838.716395,
+    "ast_hash": "0c660efac6bdf16687430833580be726",
     "semantic_hash": ""
   },
   "remotion/tsconfig.json": {
@@ -211,9 +211,9 @@
     "semantic_hash": ""
   },
   "HANDOVER.md": {
-    "mtime": 1795217413.72611,
-    "seen": 1795220165.5151012,
-    "ast_hash": "2b673d54ba0e14e93cae5926707c4f2f",
+    "mtime": 1795221146.6408505,
+    "seen": 1795221838.7164466,
+    "ast_hash": "74c38c6bc2df7b25e31aa742737fc3be",
     "semantic_hash": ""
   },
   "README.md": {
