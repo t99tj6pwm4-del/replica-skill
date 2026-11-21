@@ -34,7 +34,7 @@ Branch `claude/blissful-hamilton-k7clws` (push only there, no PRs). All code is 
 - **New standing answer 11**: gold title back word always behind him, unreadable is fine (config `titles.max_back_cover` 0.95).
 
 ## Next step
-- **Hook effects (2026-11-21, `docs/effects/hook_effects.md`, standing answer 17):** first test = **Effect 3 Speed jump**: TEST BUILT (15x rep burst, drop on frame 46), staged at ~/workspace/upload_staging/2026-11-21_speed_test.mp4 + output/hooks/, build script scripts/hook_speed.py; WAITING FOR HIS YES. Was: on a NEW clip Alfonso will send (tripod, run/jump in and out of frame, 60 fps if possible). When the link arrives: download, build ONE 3 s hook test, stage `~/workspace/upload_staging/<day>_speed_test.mp4` (1080x1920, 30fps, H.264+AAC), ffprobe + frames, send file + frame, wait for his yes.
+- **Hook effects (2026-11-21, `docs/effects/hook_effects.md`, standing answer 17):** first test = **Effect 3 Speed jump**: TEST BUILT (15x rep burst, drop on frame 46), staged at ~/workspace/upload_staging/2026-11-21_speed_test.mp4 + output/hooks/, build script scripts/hook_speed.py. Alfonso: "test worked", not going live (stays unposted). Effect 3 is proven; use it as a hook in a future video only when he picks it. Was: on a NEW clip Alfonso will send (tripod, run/jump in and out of frame, 60 fps if possible). When the link arrives: download, build ONE 3 s hook test, stage `~/workspace/upload_staging/<day>_speed_test.mp4` (1080x1920, 30fps, H.264+AAC), ffprobe + frames, send file + frame, wait for his yes.
 - **On his "yes"**, from `fonzi-gym-video-editor/`:
   1. Run `python3 scripts/approve.py --alfonso-said-yes --own-footage-confirmed`.
   2. Run `python3 scripts/export_final.py`.
