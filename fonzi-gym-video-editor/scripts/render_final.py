@@ -1,0 +1,330 @@
+#!/usr/bin/env python3
+"""TEXT / VISUALS AGENT tool. Renders the animated graphics with Remotion and lays them over the cut.
+
+    python3 scripts/render_final.py            # -> output/final_edit.mp4 (+ output/carousel/ if 2+ exercises)
+    python3 scripts/render_final.py --preview 12.5 31   # just stills at those seconds, for a quick look
+    python3 scripts/render_final.py --title-style layered-gold   # Layered Title (Documentary Gold) only, no subtitles
+    python3 scripts/render_final.py --title-style layered-gold-plus   # layered title + the usual graphics (Alfonso asks)
+
+The picture itself is never changed: Remotion renders a transparent graphics layer and ffmpeg
+composites it on top of output/multicam_version.mp4 (or output/cut_version.mp4 if there is no multicam pass). Audio is copied through untouched.
+"""
+from __future__ import annotations
+
+import glob
+import json
+import os
+import re
+import shutil
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+from common import FPS, H, OUT, REMOTION, W, WORK, base_video, brand, die, load_json, probe, rel, run, save_json  # noqa: E402
+
+
+def browser_args() -> list[str]:
+    exe = os.environ.get("REMOTION_BROWSER")
+    if not exe:
+        found = sorted(glob.glob("/opt/pw-browsers/chromium_headless_shell-*/*/chrome-headless-shell"))
+        exe = found[-1] if found else None
+    return [f"--browser-executable={exe}"] if exe else []  # otherwise Remotion fetches its own
+
+
+def check_text(props: dict):
+    """English only, no hashtags: refuse to render anything else.
+    Approved exception (Alfonso, 2026-11-17): the Spanish lines of the pop-up cards (props.popups) may use
+    Spanish letters and the • separator. Still no hashtags anywhere."""
+    from add_popups import popup_text_ok
+    bad = []
+
+    def walk(node, path):
+        if isinstance(node, dict):
+            for k, v in node.items():
+                walk(v, f"{path}.{k}")
+        elif isinstance(node, list):
+            for i, v in enumerate(node):
+                walk(v, f"{path}[{i}]")
+        elif isinstance(node, str) and not path.endswith(("color", "Color", "kind")):
+            if path.startswith("props.popups"):
+                if not popup_text_ok(node):
+                    bad.append(f"{path}: {node!r}")
+            elif "#" in node or re.search(r"[^\x20-\x7E]", node):
+                bad.append(f"{path}: {node!r}")
+
+    walk({k: v for k, v in props.items() if k != "brand"}, "props")
+    if bad:
+        die("on-screen text must be English with no hashtags:\n  " + "\n  ".join(bad))
+
+
+def remotion(args: list[str]):
+    if not (REMOTION / "node_modules").exists():
+        die("Remotion is not installed. Run: bash scripts/setup.sh")
+    run(["npx", "remotion", *args, *browser_args(), "--log=error"], cwd=REMOTION)
+
+
+def render_carousel(sb: dict, cm: dict):
+    items = sb.get("carousel") or []
+    if len(items) < 2:
+        return None
+    b = brand()
+    cdir, pub = OUT / "carousel", WORK / "public"
+    shutil.rmtree(cdir, ignore_errors=True)
+    shutil.rmtree(pub, ignore_errors=True)
+    cdir.mkdir(parents=True)
+    shutil.copytree(REMOTION / "public", pub)
+    cut = base_video()
+
+    def still(name: str, t: float):
+        run(["ffmpeg", "-v", "error", "-y", "-ss", f"{t:.2f}", "-i", cut, "-frames:v", "1", "-q:v", "2", pub / name])
+        return name
+
+    slides = [{"kind": "cover", "title": sb["title"].upper(), "detail": f"{len(items)} EXERCISES",
+               "index": 0, "total": len(items),
+               "image": still("cover.jpg", min(cm["body_end"] * 0.5, cm["duration"] - 0.1))}]
+    for i, it in enumerate(items, 1):
+        seg = next((s for s in cm["segments"] if s.get("exercise") == it["exercise"]), None)
+        t = (seg["out_start"] + seg["out_end"]) / 2 if seg else cm["body_end"] * i / (len(items) + 1)
+        slides.append({"kind": "exercise", "title": it["exercise"].upper(), "detail": it.get("sets_reps", ""),
+                       "cue": it.get("cue", ""), "index": i, "total": len(items), "image": still(f"ex{i}.jpg", t)})
+    files = []
+    for i, slide in enumerate(slides):
+        pfile = WORK / f"carousel_{i}.json"
+        save_json(pfile, {"brand": {k: b[k] for k in ("name", "handle", "color", "textColor", "darkColor")}, "slide": slide})
+        out = cdir / f"slide_{i + 1:02d}.png"
+        remotion(["still", "src/index.ts", "CarouselSlide", str(out), f"--props={pfile}", f"--public-dir={pub}"])
+        files.append(rel(out))
+        pfile.unlink()
+    caption = sb.get("caption") or sb["title"]
+    lines = [caption, ""] + [f"{i}. {it['exercise']} - {it.get('sets_reps', '')}".rstrip(" -") for i, it in enumerate(items, 1)]
+    save_json(cdir / "carousel.json", {"title": sb["title"], "slides": files, "caption": "\n".join(lines),
+                                       "exercises": [{"exercise": it["exercise"], "sets_reps": it.get("sets_reps", ""),
+                                                      "cue": it.get("cue", "")} for it in items]})
+    shutil.rmtree(pub, ignore_errors=True)
+    return files
+
+
+def main():
+    if not (OUT / "cut_version.mp4").exists():
+        die("output/cut_version.mp4 is missing: the Cuts Agent has to run first")
+    cut = base_video()   # multicam_version.mp4 when the Multicam/B-Roll Agent ran
+    print(f"laying graphics over {rel(cut)}")
+    props_path = WORK / "overlay_props.json"
+    props = load_json(props_path)
+    check_text(props)
+    info = probe(cut)
+    if abs(info["duration"] - props["duration"]) > 0.25:
+        die("overlay_props.json was built for a different cut. Re-run scripts/build_overlay_props.py")
+
+    if "--preview" in sys.argv:
+        pdir = WORK / "preview"
+        pdir.mkdir(parents=True, exist_ok=True)
+        for t in sys.argv[sys.argv.index("--preview") + 1:]:
+            frame = min(int(float(t) * FPS), int(props["duration"] * FPS) - 1)
+            png, jpg = pdir / f"ov_{frame}.png", pdir / f"preview_{float(t):07.2f}.jpg"
+            remotion(["still", "src/index.ts", "Overlay", str(png), f"--frame={frame}", f"--props={props_path}"])
+            run(["ffmpeg", "-v", "error", "-y", "-ss", f"{frame / FPS:.3f}", "-i", cut, "-i", png, "-filter_complex",
+                 "[0:v][1:v]overlay,scale=-2:960", "-frames:v", "1", "-q:v", "3", jpg])
+            png.unlink()
+            print(rel(jpg))
+        return
+
+    # CapCut-library effects (filter, video effects, transitions, velocity) on the picture, audio untouched
+    import effects
+    video_name = load_json(OUT / "job.json", default={}).get("video", "")
+    fx_base = WORK / "effects_base.mp4"
+    fx = effects.apply(cut, fx_base, video_name)
+    if fx:
+        print(f"effects: filter {fx['filter']}, " + ", ".join(f"{i['name']} {i['dur']}s @{i['from']:.2f}s" for i in fx["items"]))
+        cut = fx_base
+    if fx and fx.get("title_animation") and props.get("title"):
+        props["title"]["animation"] = fx["title_animation"]
+        save_json(props_path, props)
+
+    # Layered Title (Documentary Gold): only when asked (--title-style layered-gold, or the storyboard says so).
+    # Then the video gets ONLY that title: no subtitles / captions, no lower-thirds, no title or end card.
+    style = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--title-style=")), None)
+    if "--title-style" in sys.argv:
+        style = sys.argv[sys.argv.index("--title-style") + 1]
+    style = style or load_json(OUT / "storyboard.json", default={}).get("title_style") or "normal"
+    if style == "layered-gold-plus":
+        # Alfonso's exception: the layered title baked into the picture, then the usual graphics on top
+        import layered_title
+        plan = layered_title.plan_from_storyboard()
+        if not plan:
+            die('--title-style layered-gold-plus needs "layered_title": {"at", "dur", "intro_line"} in storyboard.json')
+        lt_base = WORK / "layered_base.mp4"
+        lt = layered_title.build(cut, lt_base, plan["at"], plan["dur"], plan["first"], plan["last"], plan["intro"],
+                                 plan.get("ys"))
+        print(f"layered title (plus the usual graphics): {lt['first']} (behind) / {lt['intro_line']} / "
+              f"{lt['last']} (in front) at {lt['at']:.2f}s for {lt['dur']:.2f}s")
+        effects.log_title_style(video_name, lt)
+        cut = lt_base
+        props["title_style"] = "layered-gold-plus"
+        save_json(props_path, props)
+    elif style == "layered-gold":
+        import layered_title
+        plan = layered_title.plan_from_storyboard()
+        if not plan:
+            die('--title-style layered-gold needs "layered_title": {"at", "dur", "intro_line"} in storyboard.json')
+        lt_base = WORK / "layered_base.mp4"
+        lt = layered_title.build(cut, lt_base, plan["at"], plan["dur"], plan["first"], plan["last"], plan["intro"],
+                                 plan.get("ys"))
+        print(f"layered title: {lt['first']} (behind) / {lt['intro_line']} / {lt['last']} (in front) "
+              f"at {lt['at']:.2f}s for {lt['dur']:.2f}s")
+        effects.log_title_style(video_name, lt)
+        final = OUT / "final_edit.mp4"
+        run(["ffmpeg", "-v", "error", "-y", "-i", lt_base, "-map", "0:v", "-map", "0:a?", "-c:v", "libx264",
+             "-preset", "medium", "-crf", "18", "-profile:v", "high", "-pix_fmt", "yuv420p", "-r", str(FPS),
+             "-c:a", "copy", "-movflags", "+faststart", final])
+        lt_base.unlink(missing_ok=True)
+        fx_base.unlink(missing_ok=True)
+        props.update({"title": None, "captions": [], "lowerThirds": [], "callouts": [], "endCard": None,
+                      "progress": [], "title_style": "layered-gold"})
+        save_json(props_path, props)
+        out = probe(final)
+        print(f"wrote  {rel(final)}  {out['video']['width']}x{out['video']['height']}  {out['duration']:.2f}s "
+              "(layered title only, no subtitles)")
+        return
+    # Per-exercise layered titles (Alfonso, 2026-11-15): replace the lower-thirds when the storyboard has them
+    import layered_title as _lt
+    if _lt.exercise_plans():
+        ex_base = WORK / "exercise_base.mp4"
+        infos = _lt.build_exercise_titles(cut, ex_base)
+        for i in infos:
+            where = "in front, no word behind" if i.get("front_only") else "behind"
+            print(f"exercise title: {i['first']} ({where}) / {i['last']} (in front) at {i['at']:.2f}s for {i['dur']:.2f}s")
+        cut = ex_base
+        props["lowerThirds"] = []
+        props["exercise_titles"] = [{"at": i["at"], "dur": i["dur"], "text": f"{i['first']} {i['last']}".strip()}
+                                    for i in infos]
+        save_json(props_path, props)
+    overlay = WORK / "overlay.mov"
+    print(f"rendering {props['duration']:.1f}s of motion graphics with Remotion (a few minutes) ...")
+    remotion(["render", "src/index.ts", "Overlay", str(overlay), f"--props={props_path}",
+              "--codec=prores", "--prores-profile=4444", "--pixel-format=yuva444p10le", "--image-format=png",
+              f"--concurrency={os.cpu_count() or 2}"])
+    final = OUT / "final_edit.mp4"
+    # optional opener image (Alfonso's own thumbnail): full frame over everything from 0 to "to", audio untouched
+    opener = props.get("opener") or {}
+    extra, fc = [], f"[0:v][1:v]overlay=format=auto,fps={FPS},format=yuv420p[v]"
+    if opener.get("image"):
+        extra = ["-loop", "1", "-t", f"{info['duration']:.3f}", "-i", str(OUT.parent / opener["image"])]
+        fc = (f"[0:v][1:v]overlay=format=auto,fps={FPS}[g];"
+              f"[2:v]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},setsar=1,fps={FPS}[op];"
+              f"[g][op]overlay=enable='lt(t,{float(opener['to']):.3f})',format=yuv420p[v]")
+    run(["ffmpeg", "-v", "error", "-y", "-i", cut, "-i", overlay, *extra, "-filter_complex",
+         fc, "-map", "[v]", "-map", "0:a?",
+         "-t", f"{info['duration']:.3f}", "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-profile:v", "high",
+         "-pix_fmt", "yuv420p", "-r", str(FPS), "-c:a", "copy", "-movflags", "+faststart", final])
+    overlay.unlink(missing_ok=True)
+    fx_base.unlink(missing_ok=True)
+    (WORK / "layered_base.mp4").unlink(missing_ok=True)
+    (WORK / "exercise_base.mp4").unlink(missing_ok=True)
+    out = probe(final)
+    v = out["video"]
+    print(f"wrote  {rel(final)}  {v['width']}x{v['height']} {v['fps']}fps {v['codec']}+"
+          f"{out['audio']['codec'] if out['audio'] else 'NO AUDIO'}  {out['duration']:.2f}s")
+
+    mute_if_rule(final)
+    add_sfx(final, props)
+    slides = render_carousel(load_json(OUT / "storyboard.json"), load_json(WORK / "cut_map.json"))
+    if slides:
+        print(f"wrote  output/carousel/ ({len(slides)} slides + carousel.json)")
+    if (W, H) != (v["width"], v["height"]):
+        die(f"final is {v['width']}x{v['height']}, expected {W}x{H}")
+
+
+def sfx_events(props: dict) -> list[tuple[float, str]]:
+    """(time, kind) for every text move that gets a sound: hook card, gold exercise titles, pop-up cards."""
+    ev = []
+    t = props.get("title") or {}
+    if t.get("text") and t.get("from") is not None:
+        ev.append((float(t["from"]), "hook"))
+    for e in props.get("exercise_titles") or []:
+        ev.append((float(e["at"]), "title"))
+    pops = props.get("popups") or {}
+    for c in (pops.get("bars") or []) + (pops.get("checklists") or []) + ([pops["formTip"]] if pops.get("formTip") else []):
+        at = c.get("from", c.get("at"))
+        if at is not None:
+            ev.append((float(at), "popup"))
+    ev.sort()
+    out, last = [], -9.0
+    for at, kind in ev:          # two sounds closer than 0.25 s would smear: keep the first
+        if at - last >= 0.25:
+            out.append((at, kind))
+            last = at
+    return out
+
+
+def add_sfx(final: Path, props: dict) -> int:
+    """Alfonso (2026-11-19): a quiet whoosh / pop on every text move, mixed UNDER the existing sound (his voice
+    or his song). Never replaces or shifts the audio; the length stays the same. config.yaml sfx:"""
+    from common import load_config
+    cfg = load_config().get("sfx") or {}
+    if not cfg.get("enabled"):
+        return 0
+    ev = [(at, OUT.parent / cfg.get(kind, "")) for at, kind in sfx_events(props) if cfg.get(kind)]
+    ev = [(at, f) for at, f in ev if f.exists() and at < float(props["duration"]) - 0.05]
+    if not ev:
+        return 0
+    files = sorted({f for _, f in ev})
+    inputs = []
+    for f in files:
+        inputs += ["-i", str(f)]
+    vol = float(cfg.get("volume_db", -16))
+    fc, labels = [], []
+    for k, (at, f) in enumerate(ev):
+        idx = 1 + files.index(f)
+        fc.append(f"[{idx}:a]volume={vol}dB,adelay={int(at * 1000)}|{int(at * 1000)}[s{k}]")
+        labels.append(f"[s{k}]")
+    # split each sfx input as many times as it is used
+    uses = {}
+    for k, (at, f) in enumerate(ev):
+        uses.setdefault(1 + files.index(f), []).append(k)
+    splits = []
+    for idx, ks in uses.items():
+        if len(ks) > 1:
+            splits.append(f"[{idx}:a]asplit={len(ks)}" + "".join(f"[i{idx}_{j}]" for j in range(len(ks))))
+            for j, k in enumerate(ks):
+                fc[k] = fc[k].replace(f"[{idx}:a]", f"[i{idx}_{j}]", 1)
+    graph = ";".join(splits + fc + ["[0:a]" + "".join(labels) + f"amix=inputs={len(ev) + 1}:duration=first:"
+                                    "normalize=0:dropout_transition=0[a]"])
+    tmp = final.with_name("final_sfx.mp4")
+    run(["ffmpeg", "-v", "error", "-y", "-i", final, *inputs, "-filter_complex", graph, "-map", "0:v", "-map", "[a]",
+         "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", tmp])
+    if abs(probe(tmp)["duration"] - probe(final)["duration"]) > 0.05:
+        die("sound effects changed the video length: not passing it on")
+    tmp.replace(final)
+    save_json(WORK / "sfx_log.json", {"volume_db": vol, "events": [{"at": round(a, 3), "file": rel(f)} for a, f in ev]})
+    print(f"sound effects: {len(ev)} quiet hits under the audio ({vol} dB), log in output/work/sfx_log.json")
+    return len(ev)
+
+
+def mute_if_rule(final: Path) -> bool:
+    """Alfonso (2026-11-15): always mute music baked into his uploads. If the cut has no speech, the final's
+    sound is replaced by silence (same length, AAC). If he talks, his voice is kept (we cannot strip music
+    from under it cleanly) and QA tells him. A song he picks from songs/ is never muted."""
+    from common import load_config
+    cfg = load_config().get("audio", {})
+    if not cfg.get("mute_baked_music"):
+        return False
+    sb = load_json(OUT / "storyboard.json", default={})
+    if sb.get("song"):
+        return False
+    words = load_json(WORK / "transcript.json", default={"words": []}).get("words", [])
+    if len(words) >= 3:
+        save_json(WORK / "audio_rule.json", {"muted": False, "reason": "he speaks in the video: voice kept"})
+        return False
+    tmp = final.with_name("final_muted.mp4")
+    run(["ffmpeg", "-v", "error", "-y", "-i", final, "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo",
+         "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "128k", "-shortest",
+         "-movflags", "+faststart", tmp])
+    tmp.replace(final)
+    save_json(WORK / "audio_rule.json", {"muted": True, "reason": "no speech: baked-in music muted (Alfonso's rule)"})
+    print("audio: muted (no speech; Alfonso's rule: always mute baked-in music)")
+    return True
+
+
+if __name__ == "__main__":
+    main()

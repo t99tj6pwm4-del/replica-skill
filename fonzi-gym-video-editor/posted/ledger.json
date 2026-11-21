@@ -1,0 +1,108 @@
+{
+  "posted": [
+    {
+      "sha256": "339f524ff4eda810de080d9469279e9e00612fec8ce6c5f3987960dca4a664a4",
+      "source_sha256": "12ffdb805632857a5b042382fb3055adb1c704b9ac6b10d6bd61b902acbe43c8",
+      "fingerprint": [
+        "dc6e7c1c3b3f3030",
+        "fc746414e0503030",
+        "fee4842c60c04060",
+        "ff76640460603030",
+        "7f7b230a50123230",
+        "fff60613b5c0b030",
+        "fe7e6404f0203030",
+        "fe7e640ce6183030",
+        "fffe6614b6e06030",
+        "ffe6e40c2f8ae020",
+        "7feff266163b2030",
+        "7ffff44416e0c030",
+        "ef766406dab8b030",
+        "7f776c0cee703030",
+        "fb764616e0c0e030",
+        "fc6c4c179200c080"
+      ],
+      "title": "Heavy Curl Day",
+      "posted_at": "2026-11-13 13:16:36",
+      "reel": {},
+      "handed_to_alfonso": "exports/2026-11-13_heavy-curl-day.mp4"
+    },
+    {
+      "sha256": "116ee7532dd925c86837d1d9552af4b639757f27ac7232cdd76be1cbe3f8a565",
+      "source_sha256": "45b5adf2256faf16fa52ee7347923870034b7f837e3c782852b99177f2a80c09",
+      "fingerprint": [
+        "73311c4c3c070038",
+        "e0c2e05831f44840",
+        "732773713978f010",
+        "071ad3e72621282e",
+        "034e8acbe84c2c2e",
+        "3f1b3aeae0990866",
+        "3d2723f9b97900e6",
+        "dc62e0c1c1c00066",
+        "2c365cb9b95859ac",
+        "263c48b2b399f84d",
+        "069ab97469c5910b",
+        "061ab161e5c59123",
+        "037a5940c0c48612",
+        "bf7372bbd1d0c8c0",
+        "9d7373b9d1c8c4c0",
+        "b24dcc591f86c080"
+      ],
+      "title": "After Hours",
+      "posted_at": "2026-11-17 18:48:43",
+      "reel": {},
+      "handed_to_alfonso": "exports/2026-11-17_after-hours.mp4"
+    },
+    {
+      "sha256": "bfc674315bbc8af61a41edea0c578e4fb141c07f09f6713936b55ca5a308abeb",
+      "source_sha256": "ec1748329210415d270763172e961752f1d590c4e5c680cd31d3026fc72df736",
+      "fingerprint": [
+        "e1a90e96635d1c98",
+        "a4ac87031e3d737b",
+        "0f869eb8bc73f0b0",
+        "07139be668f82b33",
+        "83c7cfc353c3c274",
+        "07c7cde2f0c38372",
+        "0f33f3c8e860686c",
+        "0f37b3c86860706c",
+        "3919b9fcfcfaf8e6",
+        "3b39317860f0f8c6",
+        "3d39337868f0f4c6",
+        "3b3131f8e060f8c6",
+        "3f3f1b1e997d3676",
+        "1f1f1f1b52d59476",
+        "1f1f1b1bd9d53434",
+        "1c180a1e0ec00000"
+      ],
+      "title": "Locked In",
+      "posted_at": "2026-11-21 01:28:32",
+      "reel": {},
+      "handed_to_alfonso": "exports/2026-11-21_locked-in.mp4"
+    },
+    {
+      "sha256": "0f9ba42a4e6be77a6d0ed17c99efe99286f8be2afa88867f19e7d32d60617a28",
+      "source_sha256": "ec1748329210415d270763172e961752f1d590c4e5c680cd31d3026fc72df736",
+      "fingerprint": [
+        "e1a90e96635d1c98",
+        "a4ac87031e3d737b",
+        "0f869eb8bc33f090",
+        "0f1b9be878782b33",
+        "83c7cfc353c3c274",
+        "07c7cde2f0e38372",
+        "0f33f3c8f860686c",
+        "0f37b3c86860706c",
+        "3819b9fcfcfaf8e6",
+        "3b39317860f2f8c6",
+        "3f39337868f0f4c6",
+        "0c0c0f3941b0b80c",
+        "4f470f1b393f1717",
+        "1f1f1f1b52d594f4",
+        "1f1f1b1bd9d53434",
+        "1c180a1e0ec00000"
+      ],
+      "title": "Locked In",
+      "posted_at": "2026-11-21 03:25:30",
+      "reel": {},
+      "handed_to_alfonso": "exports/2026-11-21_locked-in.mp4"
+    }
+  ]
+}
