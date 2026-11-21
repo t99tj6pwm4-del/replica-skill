@@ -154,7 +154,10 @@ def render(sb: dict, total: float) -> str:
         if s["type"] == "hook":
             text = f"Title card: \"{sb['hook']['text']}\"" + (f" / \"{sb['hook']['subtitle']}\"" if sb["hook"].get("subtitle") else "")
         elif s["type"] == "exercise":
-            text = f"Lower third: \"{s['exercise'].upper()}" + (f" - {s['sets_reps']}\"" if s.get("sets_reps") else "\"")
+            kind = "Gold layered title" if sb.get("exercise_titles") else "Lower third"
+            text = f"{kind}: \"{s['exercise'].upper()}" + (f" - {s['sets_reps']}\"" if s.get("sets_reps") else "\"")
+            if sb.get("exercise_titles") and not any(t - 0.05 <= float(e["at"]) < t + length - 0.05 for e in sb["exercise_titles"]):
+                text = f"(title already shown; same lift, new angle)"
         else:
             text = s.get("text", "captions only")
         L.append(f"| {i} | {fmt(t)}-{fmt(t + length)} | {fmt(a)}-{fmt(b)} | {s.get('label', s['type'])} | "
@@ -162,12 +165,14 @@ def render(sb: dict, total: float) -> str:
         t += length
     ec = sb["end_card"]
     L.append(f"| {len(sb['segments']) + 1} | {fmt(t)}-{fmt(t + ec.get('duration', 2.5))} | freeze of last frame | End card | - | "
-             f"\"{ec['text']}\"" + (f" / \"{ec['subtitle']}\"" if ec.get("subtitle") else "") + " | animated bookmark end card |")
+             f"\"{ec['text']}\"" + (f" / \"{ec['subtitle']}\"" if ec.get("subtitle") else "") + f" | {ec.get('style', 'animated bookmark end card')} |")
     L += ["", "## Throughout", "",
-          "- Word-by-word captions, each word pops in as it is said; key words in the brand colour: "
+          ("- No running captions (captions: false); key words for the pop-ups / carousel: " if sb.get("captions") is False
+           else "- Word-by-word captions, each word pops in as it is said; key words in the brand colour: ")
           + (", ".join(sb.get("key_words", [])) or "(none listed)"),
           "- Segmented progress bar across the top",
           "- English only, no hashtags on screen", ""]
+    L += render_plan_extras(sb)
     if sb.get("carousel"):
         L += ["## Carousel post (2+ exercises)", "", "| Exercise | Sets x reps | Cue |", "|---|---|---|"]
         L += [f"| {c['exercise']} | {c.get('sets_reps', '')} | {c.get('cue', '')} |" for c in sb["carousel"]]
@@ -177,6 +182,55 @@ def render(sb: dict, total: float) -> str:
     if sb.get("notes"):
         L += ["## Notes for the editors", ""] + [f"- {n}" for n in sb["notes"]] + [""]
     return "\n".join(L)
+
+
+def render_plan_extras(sb: dict) -> list[str]:
+    """Optional plan keys (song section, gold titles, pop-ups, style fx, multicam, relight), straight from the JSON."""
+    L = []
+    ss = sb.get("song_section")
+    if ss:
+        L += ["## Song section", "", f"- Song {ss.get('start')}s-{ss.get('end')}s, {ss.get('beats', '')}",
+              f"- Why: {ss.get('why', '')}"]
+        L += [f"- Cut {k}: {v}" for k, v in (ss.get("energy_map_cut") or {}).items()] + [""]
+    if sb.get("exercise_titles"):
+        L += ["## Gold layered exercise titles (cut time)", "",
+              "| At | Dur | Behind him | In front | Intro line | y back / intro / front | Note |", "|---|---|---|---|---|---|---|"]
+        L += [f"| {fmt(t['at'])} | {fmt(t['dur'])} | {t['first']} | {t['last']} | {t.get('intro_line', '')} | "
+              f"{t.get('first_y')} / {t.get('intro_y')} / {t.get('last_y')} | {t.get('note', '')} |" for t in sb["exercise_titles"]]
+        L.append("")
+    if sb.get("lifts"):
+        L += ["## Pop-up cards", "", "| Lift | Sets x reps | Spanish | Cut span | Gold title ends | Placement |", "|---|---|---|---|---|---|"]
+        for x in sb["lifts"]:
+            pl = ", ".join(f"{k} {x[k]}" for k in ("bar_y", "checklist_y") if k in x) or "default"
+            L.append(f"| {x['name']} | {x.get('sets_reps', '')} | {x.get('spanish', '')} | {fmt(x['cut_start'])}-{fmt(x['cut_end'])} | "
+                     f"{fmt(x['gold_title_end']) if 'gold_title_end' in x else '-'} | {pl} |")
+        ft = sb.get("form_tip")
+        if ft:
+            L.append(f"\n- **Form tip** ({ft['lift']}, at {fmt(ft['at'])}, holds 5s): \"{ft['cue']}\" / \"{ft.get('cue_es', '')}\""
+                     + (f". {ft['note']}" if ft.get("note") else ""))
+        for w in sb.get("no_text_windows") or []:
+            L.append(f"- **No text** {fmt(w.get('cut_start', w.get('from', 0)))}-{fmt(w.get('cut_end', w.get('to', 0)))}: {w.get('why', '')}")
+        L.append("")
+    if sb.get("style_fx"):
+        L += ["## Fonzi style effects (style-lab/STYLE.md, scripts/style_fx.py)", "",
+              "| Cut time | Tool | Where | Built by | Command | Note |", "|---|---|---|---|---|---|"]
+        L += [f"| {fmt(f['cut'])} | {f['tool']} | {f.get('where', '')} | {f.get('who', '')} | `{f.get('cmd', '')}` | {f.get('note', '')} |"
+              for f in sb["style_fx"]]
+        if sb.get("plain_cuts"):
+            L += ["", f"- {sb['plain_cuts']}"]
+        L.append("")
+    if sb.get("multicam_room"):
+        L += ["## Multicam slots (clean, real-time stretches)", "", "| Slot | Cut time | Raw | Segment | Shot | Note |", "|---|---|---|---|---|---|"]
+        L += [f"| {m['slot']} | {fmt(m['cut_start'])}-{fmt(m['cut_end'])} | {m.get('raw', '')} | {m.get('segment', '')} | "
+              f"{m.get('shot', '')} | {m.get('note', '')} |" for m in sb["multicam_room"]]
+        L.append("")
+    r = sb.get("relight_suggestion")
+    if r:
+        L += ["## Suggested relight (for Alfonso to approve; nothing generated)", "",
+              f"- **Clip:** cut {fmt(r['cut_start'])}-{fmt(r['cut_end'])} (raw {r.get('raw', '')}): {r.get('clip', '')}",
+              f"- **Look:** {r.get('look', '')}" + (f"; alternative {r['alt_look']}" if r.get("alt_look") else ""),
+              f"- **Model / cost:** {r.get('model', '')}", f"- **Status:** {r.get('status', '')}", ""]
+    return L
 
 
 def main():

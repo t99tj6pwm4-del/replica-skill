@@ -1,17 +1,17 @@
-# Graph Report - fonzi-gym-video-editor  (2026-11-20)
+# Graph Report - fonzi-gym-video-editor  (2026-11-21)
 
 ## Corpus Check
-- 42 files · ~66,821 words
+- 42 files · ~67,289 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 10 file(s) not represented in the graph (top: (none) 6, .ttf 3, .example 1)
 
 ## Summary
-- 537 nodes · 1332 edges · 30 communities (26 shown, 4 thin omitted)
+- 539 nodes · 1336 edges · 29 communities (24 shown, 5 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 16 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `5a37c819`
+- Built from commit: `2be65f17`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -37,7 +37,6 @@
 - ltx-2.5
 - install_extras.sh
 - setup.sh
-- run
 - titles
 - higgsfield
 - generator
@@ -58,21 +57,21 @@
 10. `main()` - 19 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `remember()` --calls--> `save_json()`  [EXTRACTED]
-  scripts/post_to_meta.py → scripts/common.py
-- `grade()` --calls--> `run()`  [EXTRACTED]
-  scripts/film_grade.py → scripts/common.py
-- `main()` --calls--> `run()`  [EXTRACTED]
-  scripts/cut_video.py → scripts/common.py
-- `apply()` --calls--> `run()`  [EXTRACTED]
-  scripts/effects.py → scripts/common.py
-- `conform()` --calls--> `run()`  [EXTRACTED]
-  scripts/extend_footage.py → scripts/common.py
+- `validate()` --calls--> `resolve()`  [EXTRACTED]
+  scripts/storyboard_md.py → scripts/common.py
+- `main()` --calls--> `die()`  [EXTRACTED]
+  scripts/storyboard_md.py → scripts/common.py
+- `main()` --calls--> `load_json()`  [EXTRACTED]
+  scripts/storyboard_md.py → scripts/common.py
+- `contact_sheets()` --calls--> `run()`  [EXTRACTED]
+  scripts/analyze_video.py → scripts/common.py
+- `detect()` --calls--> `run()`  [EXTRACTED]
+  scripts/analyze_video.py → scripts/common.py
 
 ## Import Cycles
 - None detected.
 
-## Communities (30 total, 4 thin omitted)
+## Communities (29 total, 5 thin omitted)
 
 ### Community 0 - "effects.py"
 Cohesion: 0.19
@@ -83,12 +82,12 @@ Cohesion: 0.05
 Nodes (61): react, react-dom, remotion, @remotion/cli, @types/react, typescript, dependencies, react@18.3.1 (+53 more)
 
 ### Community 2 - "re"
-Cohesion: 0.11
-Nodes (19): caption_pages(), clean(), main(), boundaries(), main(), mid_word(), overlap(), parse_time() (+11 more)
+Cohesion: 0.10
+Nodes (20): contact_sheets(), detect(), intersect(), main(), motion_curve(), ranges_where(), song_tempo(), caption_pages() (+12 more)
 
 ### Community 3 - "common.py"
-Cohesion: 0.09
-Nodes (23): build_popups(), clip(), is_song_video(), main(), no_text_windows(), place(), summary(), walk_text() (+15 more)
+Cohesion: 0.07
+Nodes (41): build_popups(), clip(), is_song_video(), main(), no_text_windows(), place(), popup_text_ok(), summary() (+33 more)
 
 ### Community 4 - "multicam"
 Cohesion: 0.20
@@ -96,11 +95,11 @@ Nodes (10): multicam, broll_seconds, flow_prompt, local_shot_seconds, max_shot_s
 
 ### Community 5 - "die"
 Cohesion: 0.14
-Nodes (16): check_generator(), die(), resolve(), conform(), ltx_generate(), main(), main(), show() (+8 more)
+Nodes (15): check_generator(), resolve(), run(), conform(), ltx_generate(), main(), audio_md5(), env_key() (+7 more)
 
 ### Community 6 - "cut_video.py"
-Cohesion: 0.19
-Nodes (12): load_config(), atempo(), build_pieces(), keep_ranges(), main(), q(), video_filter(), english_only() (+4 more)
+Cohesion: 0.10
+Nodes (20): load_config(), atempo(), build_pieces(), keep_ranges(), main(), q(), video_filter(), description() (+12 more)
 
 ### Community 8 - "numpy"
 Cohesion: 0.06
@@ -113,10 +112,6 @@ Nodes (12): build(), cut_session(), depth_move(), drop_specks(), fit_font(), fon
 ### Community 10 - "google-flow"
 Cohesion: 0.13
 Nodes (15): api, aspect_ratio, broll_model, clip_seconds, daily_credits, if_blocked_at_peak, max_clip_seconds, min_clip_seconds (+7 more)
-
-### Community 11 - "Graph"
-Cohesion: 0.32
-Nodes (4): Graph, load_env(), main(), remember()
 
 ### Community 12 - "compilerOptions"
 Cohesion: 0.17
@@ -150,10 +145,6 @@ Nodes (7): api, generate_audio, key_env, max_clip_seconds, min_clip_seconds, mod
 Cohesion: 0.40
 Nodes (5): api, broll_only, key_env, model, ltx-2.5
 
-### Community 22 - "run"
-Cohesion: 0.10
-Nodes (22): popup_text_ok(), contact_sheets(), detect(), intersect(), main(), motion_curve(), ranges_where(), song_tempo() (+14 more)
-
 ### Community 23 - "titles"
 Cohesion: 0.20
 Nodes (10): back_push, drift_px, enabled, front_push, titles, cut_every, cut_model, max_back_cover (+2 more)
@@ -179,22 +170,22 @@ Cohesion: 0.50
 Nodes (3): video_length, target_seconds, tolerance_seconds
 
 ## Knowledge Gaps
-- **4 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **5 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `die()` connect `die` to `effects.py`, `re`, `common.py`, `cut_video.py`, `layered_title.py`, `Graph`, `run`?**
+- **Why does `die()` connect `common.py` to `effects.py`, `re`, `die`, `cut_video.py`, `layered_title.py`, `Graph`?**
   _High betweenness centrality (0.063) - this node is a cross-community bridge._
 - **Should `Overlay.tsx` be split into smaller, more focused modules?**
   _Cohesion score 0.05456095481670929 - nodes in this community are weakly interconnected._
 - **Why does `providers` connect `providers` to `google-flow`, `seedance-2.5`, `wan-free`, `kling-multicam`, `ltx-cheap`, `minimax-h3`, `ltx-2.5`, `config.yaml`?**
   _High betweenness centrality (0.037) - this node is a cross-community bridge._
 - **Should `re` be split into smaller, more focused modules?**
-  _Cohesion score 0.1051693404634581 - nodes in this community are weakly interconnected._
-- **Why does `run()` connect `run` to `effects.py`, `re`, `common.py`, `die`, `cut_video.py`, `numpy`, `layered_title.py`?**
+  _Cohesion score 0.09815078236130868 - nodes in this community are weakly interconnected._
+- **Why does `run()` connect `die` to `effects.py`, `re`, `common.py`, `cut_video.py`, `numpy`, `layered_title.py`?**
   _High betweenness centrality (0.030) - this node is a cross-community bridge._
 - **Should `common.py` be split into smaller, more focused modules?**
-  _Cohesion score 0.08846153846153847 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06907894736842106 - nodes in this community are weakly interconnected._
 - **Should `die` be split into smaller, more focused modules?**
-  _Cohesion score 0.14285714285714285 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.13911290322580644 - nodes in this community are weakly interconnected._
