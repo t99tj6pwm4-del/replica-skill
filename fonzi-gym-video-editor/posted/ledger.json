@@ -51,6 +51,32 @@
       "posted_at": "2026-11-17 18:48:43",
       "reel": {},
       "handed_to_alfonso": "exports/2026-11-17_after-hours.mp4"
+    },
+    {
+      "sha256": "bfc674315bbc8af61a41edea0c578e4fb141c07f09f6713936b55ca5a308abeb",
+      "source_sha256": "ec1748329210415d270763172e961752f1d590c4e5c680cd31d3026fc72df736",
+      "fingerprint": [
+        "e1a90e96635d1c98",
+        "a4ac87031e3d737b",
+        "0f869eb8bc73f0b0",
+        "07139be668f82b33",
+        "83c7cfc353c3c274",
+        "07c7cde2f0c38372",
+        "0f33f3c8e860686c",
+        "0f37b3c86860706c",
+        "3919b9fcfcfaf8e6",
+        "3b39317860f0f8c6",
+        "3d39337868f0f4c6",
+        "3b3131f8e060f8c6",
+        "3f3f1b1e997d3676",
+        "1f1f1f1b52d59476",
+        "1f1f1b1bd9d53434",
+        "1c180a1e0ec00000"
+      ],
+      "title": "Locked In",
+      "posted_at": "2026-11-21 01:28:32",
+      "reel": {},
+      "handed_to_alfonso": "exports/2026-11-21_locked-in.mp4"
     }
   ]
 }
