@@ -172,3 +172,9 @@ higgsfield:
   clip_seconds: 3                   # ~3 credits each (5 s ~6.25); slots are 2.5-3.5 s
   max_reference_images: 7
 
+
+# Alfonso 2026-11-21: OpenFilm installed for its free media library ONLY (scripts/openfilm_library.sh).
+# Sound effects + stickers allowed. Library music stays off until he says yes (his songs only).
+openfilm:
+  library_only: true
+  allow_music: false

@@ -228,3 +228,10 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
     rule 0: Rubik Dirt gold title (no drips), Fonzi logo big behind him, title flickering to the beat; rotate
     strobe / burst + pulse per video. It replaces the Montserrat hook card and the hook snap. Montserrat stays for
     exercise titles, pop-ups and the rest unless Alfonso says otherwise.
+19. **OpenFilm media library (2026-11-21).** Alfonso: "install and just use the media library only". Tool:
+    `fonzi-gym-video-editor/scripts/openfilm_library.sh` (sfx / sticker / music search, `take <id>`; it installs
+    OpenFilm into ~/tools/openfilm if missing). Allowed: its free CC0 sound effects (into `sfx/library/`) and stickers
+    (into `brand/stickers/`), always UNDER his song, never replacing or muting it. Not used: any other OpenFilm part
+    (Studio, generation, voice, stock footage search, paid services, keys). Library music is OFF
+    (`config.yaml openfilm.allow_music: false`) until Alfonso says yes; his songs stay the only music. Text/Visuals
+    owns it; QA checks every library sound is logged in output/work/sfx_log.json.

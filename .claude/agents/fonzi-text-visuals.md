@@ -168,6 +168,8 @@ word is hidden. Do not switch a title to `front_only` for readability; QA allows
   up, front words grow 5% and drift down. Turn off with `parallax.enabled: false` only if Alfonso asks.
 - render_final.py mixes a quiet whoosh (gold titles, hook) and pop (pop-up cards) UNDER the audio (config `sfx`,
   sounds made by scripts/make_sfx.py, no stock). It never mutes or shifts his voice or song. Log: output/work/sfx_log.json.
+- Since 2026-11-21 (Director answer 19) you may also pick CC0 sound effects and stickers from OpenFilm's library with
+  `scripts/openfilm_library.sh` (sfx / sticker search, `take <id>`). Library music only if config `openfilm.allow_music`.
 
 ## Fonzi style (Style Lab, locked 2026-11-20)
 Follow `fonzi-gym-video-editor/style-lab/STYLE.md`, section "Rules for every video". Effects come from
