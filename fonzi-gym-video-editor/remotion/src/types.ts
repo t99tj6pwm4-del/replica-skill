@@ -103,7 +103,10 @@ export type OverlayProps = {
   layout: { captionY: number; lowerThirdY: number; titleOffsetY?: number; progressY?: number };
   title: { from: number; to: number; text: string; subtitle?: string; animation?: string;
     // gold: every word in brand.popupColor (the Style Lab gold); stagger: frames between words (default 4)
-    gold?: boolean; stagger?: number } | null;
+    gold?: boolean; stagger?: number;
+    // style "fonzi_intro" (STYLE.md rule 0): the Rubik Dirt intro card is baked into the picture after the render
+    // (scripts/finish_fx.py -> style_fx.py intro); Remotion draws no TitleCard. Absent = the old TitleCard.
+    style?: string; introStyle?: string } | null;
   lowerThirds: LowerThird[];
   progress: ProgressSegment[];
   captions: CaptionPage[];

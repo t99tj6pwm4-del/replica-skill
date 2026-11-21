@@ -160,5 +160,12 @@ over his voice or the song.
 
 ## Fonzi style (Style Lab, locked 2026-11-20)
 Follow `fonzi-gym-video-editor/style-lab/STYLE.md`, section "Rules for every video". Effects come from
-`scripts/style_fx.py` (snap / zoom / cutout / logo); our own sounds only; never a colour grade (Alfonso grades
+`scripts/style_fx.py` (intro / zoom / cutout / logo; `snap` is retired for the hook); our own sounds only; never a colour grade (Alfonso grades
 himself). Most cuts stay plain and on the beat; one effect per cut at most; cut-out at most 1-2 per video.
+
+**Intro card (2026-11-21, STYLE.md rule 0).** The hook is no longer a Remotion title card + snap: it is the Fonzi
+intro (Rubik Dirt gold title, no drips, below his face; Fonzi logo behind him, whole logo in frame; title flickers
+to the beat, strobe or pulse). `qa_check.py` passes "intro card" only if `finish_fx.py` logged THIS file
+(output/work/finish_fx.json, same sha256) with a clean intro, and the same for the logo drip end card; an intro is
+still required. Look at a frame around 1.0 s: no text on his face, no dark scrim, no white flash, no snap.
+`qa_check.py --final <path>` checks a test render (frames go to <its folder>/qa/).

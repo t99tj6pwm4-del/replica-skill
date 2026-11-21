@@ -2,6 +2,8 @@
 """FINAL APPROVAL AGENT tool, step 1 of 2. Measures the final video. Edits nothing, posts nothing.
 
     python3 scripts/qa_check.py
+    python3 scripts/qa_check.py --final output/intro_test/final_edit_test.mp4   # check a test render instead;
+        # its frames + tech.json go to <that folder>/qa/ so output/qa/ (the staged video's QA) is untouched
 
 Checks output/final_edit.mp4 with ffprobe (streams, size, fps, codecs, length), audio level,
 on-screen text rules, duplicate-of-a-posted-video, and where the footage came from.
@@ -20,7 +22,10 @@ from common import (load_config, FPS, H, INPUT, OUT, W, WORK, find_duplicate, lo
 
 
 def main():
-    final = OUT / "final_edit.mp4"
+    final, qdir = OUT / "final_edit.mp4", OUT / "qa"
+    if "--final" in sys.argv:
+        final = Path(sys.argv[sys.argv.index("--final") + 1]).resolve()
+        qdir = final.parent / "qa"
     checks = []
 
     def add(name: str, ok: bool, detail: str, owner: str, soft: bool = False):
@@ -29,8 +34,8 @@ def main():
 
     if not final.exists():
         add("final video exists", False, "output/final_edit.mp4 is missing", "text_visuals")
-        save_json(OUT / "qa" / "tech.json", {"checks": checks, "frames": []})
-        print("FAIL: output/final_edit.mp4 is missing")
+        save_json(qdir / "tech.json", {"checks": checks, "frames": []})
+        print(f"FAIL: {rel(final)} is missing")
         sys.exit(0)
 
     sb = load_json(OUT / "storyboard.json", default={})
@@ -201,6 +206,30 @@ def main():
         if is_song_video(sb):   # song videos (Director): no lower-thirds or progress bar needed
             need.pop("lower-thirds"); need.pop("progress bar")
         missing = [k for k, x in need.items() if not x]
+        # Fonzi style (STYLE.md rule 0 / rule 3): the intro card and the logo end card are baked in by finish_fx.py
+        # after the render; they count only if finish_fx.py logged THIS file (same sha256) with a clean intro
+        fin = next((e for e in load_json(WORK / "finish_fx.json", default={"finished": []})["finished"]
+                    if e.get("sha256") == sha256(final)), None)
+        if (props.get("title") or {}).get("style") == "fonzi_intro":
+            ir = (fin or {}).get("intro") or {}
+            ok = bool(ir.get("ok"))
+            add("intro card (Rubik Dirt title, logo behind him, title on the beat)", ok,
+                (f"{ir['style']}: {' / '.join(ir['title'])} 0-{ir['dur']:.2f}s, beats {ir['beats_s']}, text y "
+                 f"{ir['text_y_range'][0]}-{ir['text_y_range'][1]} below his face (down to y={ir['face_max_y']}), "
+                 f"logo {ir['logo_size'][0]}x{ir['logo_size'][1]} fully in frame, {len(ir['shot_cuts'])} shot cut(s)"
+                 if ok else "title.style is fonzi_intro but finish_fx.py did not bake an intro into this file "
+                 "(render with scripts/render_final.py, it runs finish_fx.py itself)"), "text_visuals")
+            if not ok:
+                missing.append("intro card")
+        elif props.get("title") and not props.get("opener"):
+            add("intro card is the Fonzi intro (STYLE.md rule 0)", False, "the old Remotion hook card is used "
+                "(title.style is not fonzi_intro): fine only if Alfonso asked for it", "text_visuals", soft=True)
+        if (props.get("endCard") or {}).get("style") == "logo_drip":
+            ec = (fin or {}).get("end_card") or {}
+            add("logo end card with drips", bool(ec), f"{ec['drips']} drips from {ec['from']:.2f}s" if ec else
+                "endCard.style is logo_drip but finish_fx.py did not bake the logo card into this file", "text_visuals")
+            if not ec:
+                missing.append("logo end card")
         add("title card, lower-thirds, progress bar, end card present" if not is_song_video(sb) else "title card, end card present", not missing,
             "all present" if not missing else f"missing: {', '.join(missing)}", "text_visuals")
         n_words = sum(len(p["words"]) for p in props.get("captions", []))
@@ -393,7 +422,6 @@ def main():
     for frac in (0.3, 0.55, 0.8):
         if len(picks) < 3:
             picks.append(("mid-video", body_end * frac))
-    qdir = OUT / "qa"
     qdir.mkdir(parents=True, exist_ok=True)
     frames = []
     for i, (what, t) in enumerate(picks[:3], 1):

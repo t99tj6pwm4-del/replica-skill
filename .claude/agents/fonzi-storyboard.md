@@ -29,7 +29,7 @@ Work inside `fonzi-gym-video-editor/` (cd there first). The Director gives you t
 ## Planning rules
 
 - **Hook in the first 2 seconds.** The first segment is `type: "hook"`, about 2 seconds, the most eye-catching
-  moment or his opening line, with the title card text from the brief (e.g. brief "Form Fix Friday" ->
+  moment or his opening line, with the intro card text from the brief (e.g. brief "Form Fix Friday" ->
   hook text "FRIDAY FORM FIX").
 - Then each exercise in the order it happens. One `exercise` segment per exercise, with `exercise` name and
   `sets_reps` (e.g. "4 x 10"). Take sets/reps from what he says or from the brief; if neither gives it, leave
@@ -157,5 +157,11 @@ never in the bottom 420px). Use `front_only` only when he is not in the shot at 
 
 ## Fonzi style (Style Lab, locked 2026-11-20)
 Follow `fonzi-gym-video-editor/style-lab/STYLE.md`, section "Rules for every video". Effects come from
-`scripts/style_fx.py` (snap / zoom / cutout / logo); our own sounds only; never a colour grade (Alfonso grades
+`scripts/style_fx.py` (intro / zoom / cutout / logo; `snap` is retired for the hook); our own sounds only; never a colour grade (Alfonso grades
 himself). Most cuts stay plain and on the beat; one effect per cut at most; cut-out at most 1-2 per video.
+
+**Intro card (2026-11-21, STYLE.md rule 0).** The hook text (`hook.text`, `hook.subtitle`) is now drawn as the
+Fonzi intro card (Rubik Dirt gold title on beat 1, Fonzi logo behind him), not a Remotion title card, and there is
+no hook `snap`. Plan the hook shot so his face sits in the upper half and his chest is clear (the title goes
+below his face), keep the first gold exercise title at least ~1.5 s after 0, and optionally set
+`"intro": {"style": "strobe"|"pulse"}` only when Alfonso asks for one (otherwise it alternates per video).

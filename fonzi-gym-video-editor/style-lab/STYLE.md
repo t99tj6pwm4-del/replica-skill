@@ -65,6 +65,8 @@ Tool: `scripts/style_fx.py` (snap / zoom / cutout / logo). Our own sounds only (
    **burst + pulse** (round-2 flicker-on at beat 1, then brighter + 1.0->1.06 pulse on each beat). Whoosh into beat 1,
    impact on beat 1. Never: white flash on the beat, title drips, logo flicker-on, dark tint. Reference build:
    `style-lab/round6/build.py` (r6-01 strobe, r6-03 burst + pulse).
+   Production tool: `style_fx.py intro`, run automatically by `render_final.py` -> `scripts/finish_fx.py`
+   (overlay_props `title.style: "fonzi_intro"`; strobe / pulse alternate via `posted/style_rotation.json`).
 3. **Logo end card**: `style_fx.py logo` last 3-3.5 s: flicker on + real drips; rotate `--drips slow|heavy|wet`.
 4. **Never**: colour grade, flicker masks / light leaks, film burn, rise wipe, slow luma fade, cut-out with black
    or outline backgrounds, text over his face, hashtags, non-English (except the Spanish pop-up lines).

@@ -5,6 +5,12 @@
     python3 scripts/render_final.py --preview 12.5 31   # just stills at those seconds, for a quick look
     python3 scripts/render_final.py --title-style layered-gold   # Layered Title (Documentary Gold) only, no subtitles
     python3 scripts/render_final.py --title-style layered-gold-plus   # layered title + the usual graphics (Alfonso asks)
+    python3 scripts/render_final.py --out output/intro_test/final_edit_test.mp4   # a test render, final_edit.mp4 untouched
+
+After the composite it ALWAYS runs scripts/finish_fx.py (Fonzi style, STYLE.md rules 0 and 3): the Rubik Dirt intro
+card over the hook (props title.style "fonzi_intro", strobe / pulse by rotation) and the dripping logo end card
+(endCard.style "logo_drip"), baked into the picture in one pass. The --preview stills show only the Remotion layer:
+the intro and the logo card are not in them (look at output/work/intro_card.json and the final's frames instead).
 
 The picture itself is never changed: Remotion renders a transparent graphics layer and ffmpeg
 composites it on top of output/multicam_version.mp4 (or output/cut_version.mp4 if there is no multicam pass). Audio is copied through untouched.
@@ -63,12 +69,12 @@ def remotion(args: list[str]):
     run(["npx", "remotion", *args, *browser_args(), "--log=error"], cwd=REMOTION)
 
 
-def render_carousel(sb: dict, cm: dict):
+def render_carousel(sb: dict, cm: dict, cdir: Path | None = None):
     items = sb.get("carousel") or []
     if len(items) < 2:
         return None
     b = brand()
-    cdir, pub = OUT / "carousel", WORK / "public"
+    cdir, pub = cdir or OUT / "carousel", WORK / "public"
     shutil.rmtree(cdir, ignore_errors=True)
     shutil.rmtree(pub, ignore_errors=True)
     cdir.mkdir(parents=True)
@@ -102,6 +108,14 @@ def render_carousel(sb: dict, cm: dict):
                                                       "cue": it.get("cue", "")} for it in items]})
     shutil.rmtree(pub, ignore_errors=True)
     return files
+
+
+def target_path() -> Path:
+    """Where the finished video goes: output/final_edit.mp4, or --out PATH for a test render."""
+    if "--out" in sys.argv:
+        p = Path(sys.argv[sys.argv.index("--out") + 1])
+        return p if p.is_absolute() else (Path.cwd() / p).resolve()
+    return OUT / "final_edit.mp4"
 
 
 def main():
@@ -173,7 +187,8 @@ def main():
         print(f"layered title: {lt['first']} (behind) / {lt['intro_line']} / {lt['last']} (in front) "
               f"at {lt['at']:.2f}s for {lt['dur']:.2f}s")
         effects.log_title_style(video_name, lt)
-        final = OUT / "final_edit.mp4"
+        final = target_path()
+        final.parent.mkdir(parents=True, exist_ok=True)
         run(["ffmpeg", "-v", "error", "-y", "-i", lt_base, "-map", "0:v", "-map", "0:a?", "-c:v", "libx264",
              "-preset", "medium", "-crf", "18", "-profile:v", "high", "-pix_fmt", "yuv420p", "-r", str(FPS),
              "-c:a", "copy", "-movflags", "+faststart", final])
@@ -204,7 +219,8 @@ def main():
     remotion(["render", "src/index.ts", "Overlay", str(overlay), f"--props={props_path}",
               "--codec=prores", "--prores-profile=4444", "--pixel-format=yuva444p10le", "--image-format=png",
               f"--concurrency={os.cpu_count() or 2}"])
-    final = OUT / "final_edit.mp4"
+    final = target_path()
+    final.parent.mkdir(parents=True, exist_ok=True)
     # optional opener image (Alfonso's own thumbnail): full frame over everything from 0 to "to", audio untouched
     opener = props.get("opener") or {}
     extra, fc = [], f"[0:v][1:v]overlay=format=auto,fps={FPS},format=yuv420p[v]"
@@ -218,9 +234,6 @@ def main():
          "-t", f"{info['duration']:.3f}", "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-profile:v", "high",
          "-pix_fmt", "yuv420p", "-r", str(FPS), "-c:a", "copy", "-movflags", "+faststart", final])
     overlay.unlink(missing_ok=True)
-    fx_base.unlink(missing_ok=True)
-    (WORK / "layered_base.mp4").unlink(missing_ok=True)
-    (WORK / "exercise_base.mp4").unlink(missing_ok=True)
     out = probe(final)
     v = out["video"]
     print(f"wrote  {rel(final)}  {v['width']}x{v['height']} {v['fps']}fps {v['codec']}+"
@@ -228,9 +241,16 @@ def main():
 
     mute_if_rule(final)
     add_sfx(final, props)
-    slides = render_carousel(load_json(OUT / "storyboard.json"), load_json(WORK / "cut_map.json"))
+    # Fonzi finish (intro card + logo end card), always, exactly once per render, on the clean picture `cut`
+    import finish_fx
+    finish_fx.finish(final, cut, props)
+    fx_base.unlink(missing_ok=True)
+    (WORK / "layered_base.mp4").unlink(missing_ok=True)
+    (WORK / "exercise_base.mp4").unlink(missing_ok=True)
+    cdir = OUT / "carousel" if final == OUT / "final_edit.mp4" else final.parent / "carousel"
+    slides = render_carousel(load_json(OUT / "storyboard.json"), load_json(WORK / "cut_map.json"), cdir)
     if slides:
-        print(f"wrote  output/carousel/ ({len(slides)} slides + carousel.json)")
+        print(f"wrote  {rel(cdir)}/ ({len(slides)} slides + carousel.json)")
     if (W, H) != (v["width"], v["height"]):
         die(f"final is {v['width']}x{v['height']}, expected {W}x{H}")
 
@@ -239,7 +259,8 @@ def sfx_events(props: dict) -> list[tuple[float, str]]:
     """(time, kind) for every text move that gets a sound: hook card, gold exercise titles, pop-up cards."""
     ev = []
     t = props.get("title") or {}
-    if t.get("text") and t.get("from") is not None:
+    # the Fonzi intro card brings its own whoosh into beat 1 + impact on beat 1 (finish_fx.py)
+    if t.get("text") and t.get("from") is not None and t.get("style") != "fonzi_intro":
         ev.append((float(t["from"]), "hook"))
     for e in props.get("exercise_titles") or []:
         ev.append((float(e["at"]), "title"))

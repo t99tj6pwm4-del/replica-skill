@@ -1,6 +1,6 @@
 ---
 name: fonzi-text-visuals
-description: TEXT / VISUALS AGENT for fonzi-gym-video-editor. Text and motion graphics only. Takes output/cut_version.mp4, transcribes with Whisper, and builds animated word-by-word captions, title card, lower-thirds, progress bar, callouts and a "Save this" end card with Remotion, exporting output/final_edit.mp4. Never re-cuts the video and never posts.
+description: TEXT / VISUALS AGENT for fonzi-gym-video-editor. Text and motion graphics only. Takes output/cut_version.mp4, transcribes with Whisper, and builds animated word-by-word captions, lower-thirds, progress bar and callouts with Remotion, plus the Fonzi intro card and the dripping logo end card (finish_fx.py), exporting output/final_edit.mp4. Never re-cuts the video and never posts.
 tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 
@@ -22,7 +22,7 @@ ffmpeg is only used to lay the finished Remotion layer over the cut.
    this same cut; add `--retranscribe` to run Whisper again) and combines it with the storyboard, the cut
    map and the multicam map into `output/work/overlay_props.json`:
    - word-by-word captions: each word pops in as it is said, key words in the brand colour
-   - animated title card (the hook)
+   - the hook: the Fonzi intro card (baked in after the render by finish_fx.py; see "Fonzi style" below)
    - animated lower-third per exercise, e.g. "BENCH PRESS" + "4 x 10"
    - segmented progress bar
    - callouts, punch-in / slow-mo / speed accents, a camera tag on each multicam angle change
@@ -171,5 +171,20 @@ word is hidden. Do not switch a title to `front_only` for readability; QA allows
 
 ## Fonzi style (Style Lab, locked 2026-11-20)
 Follow `fonzi-gym-video-editor/style-lab/STYLE.md`, section "Rules for every video". Effects come from
-`scripts/style_fx.py` (snap / zoom / cutout / logo); our own sounds only; never a colour grade (Alfonso grades
+`scripts/style_fx.py` (intro / zoom / cutout / logo; `snap` is retired for the hook); our own sounds only; never a colour grade (Alfonso grades
 himself). Most cuts stay plain and on the beat; one effect per cut at most; cut-out at most 1-2 per video.
+
+**Intro card + logo end card (Alfonso, 2026-11-21, STYLE.md rule 0 / rule 3; replaces the Remotion hook TitleCard
+and the hook `snap`).** `build_overlay_props.py` sets `title.style: "fonzi_intro"` and `endCard.style: "logo_drip"`,
+so Remotion draws neither. `render_final.py` then ALWAYS runs `scripts/finish_fx.py` once after the composite: it
+bakes `style_fx.py intro` over the hook (Rubik Dirt gold title in front of him and below his face, Fonzi logo white
+85% ~1000 px behind him, title on the song's beat from cut_map "beat"; window = 0 to the hook end, never into the
+first gold exercise title, max 3 s) and the dripping logo card over the end-card window, in one encode, sfx under
+the song. Strobe / pulse alternates per video and drips rotate slow -> heavy -> wet (posted/style_rotation.json;
+a re-render of the same video keeps its picks; storyboard "intro": {"style"} / "end_card": {"drips"} override).
+It refuses a file it already finished, so never run `finish_fx.py` by hand after `render_final.py`, and never
+snap the hook or add a scrim / stripes / box. If it stops with "no clean spot for the title below his face", tell
+the Director the hook shot keeps his face too low (or pass `--title-y` / `--face-box` via a manual
+`style_fx.py intro` run). Check `output/work/intro_card.json` (beats, text y range, face bottom, logo box) and grab
+frames at ~0.7 / 1.0 / 1.5 s: `--preview` stills show the Remotion layer only, not the intro or logo card.
+Test renders: `render_final.py --out output/<dir>/x.mp4` leaves output/final_edit.mp4 alone (no rotation record).

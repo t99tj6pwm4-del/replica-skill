@@ -1277,7 +1277,9 @@ export const Overlay: React.FC<OverlayProps> = (p) => {
           <FormTipCard item={pops.formTip} brand={p.brand} frames={seq(pops.formTip.from, pops.formTip.to).durationInFrames} />
         </Sequence>
       ) : null}
-      {p.title ? (
+      {/* style "fonzi_intro": the intro card is baked into the picture after the render (finish_fx.py ->
+          style_fx.py intro); Remotion draws no hook TitleCard for it */}
+      {p.title && p.title.style !== "fonzi_intro" ? (
         <Sequence {...seq(p.title.from, p.title.to)}>
           <TitleCard
             text={p.title.text}

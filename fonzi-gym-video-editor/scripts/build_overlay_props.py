@@ -146,6 +146,13 @@ def main():
         "endCard": {"from": end["out_start"], "to": end["out_end"], "text": sb["end_card"]["text"].upper(),
                     "subtitle": sb["end_card"].get("subtitle", "")},
     }
+    # Fonzi style (STYLE.md rules 0 and 3): the hook is the Rubik Dirt intro card and the end card is the dripping
+    # logo, both baked into the picture by finish_fx.py after the Remotion render, so Remotion draws neither.
+    # Opt out per video only on Alfonso's word: storyboard hook.card / end_card.card = "remotion".
+    if (sb["hook"].get("card") or "").lower() != "remotion":
+        props["title"]["style"] = "fonzi_intro"
+    if (sb["end_card"].get("card") or "").lower() != "remotion":
+        props["endCard"]["style"] = "logo_drip"
     pops, pop_notes = build_popups(sb, cm["duration"], props)
     if pops:
         props["popups"] = pops
@@ -154,8 +161,10 @@ def main():
     n = sum(len(p["words"]) for p in props["captions"])
     print(f"captions   {n} words on {len(props['captions'])} pages, "
           f"{sum(w['highlight'] for p in props['captions'] for w in p['words'])} highlighted")
-    print(f"visuals    title card, {len(lower)} lower-thirds, {len(progress)}-part progress bar, "
-          f"{len(props['callouts'])} callouts, {len(events)} edit accents, end card")
+    hook_kind = "Fonzi intro card (baked by finish_fx.py)" if props["title"].get("style") == "fonzi_intro" else "title card"
+    end_kind = "logo drip end card (baked by finish_fx.py)" if props["endCard"].get("style") == "logo_drip" else "end card"
+    print(f"visuals    {hook_kind}, {len(lower)} lower-thirds, {len(progress)}-part progress bar, "
+          f"{len(props['callouts'])} callouts, {len(events)} edit accents, {end_kind}")
     print(f"pop-ups    {popup_summary(pops)}")
     for note in pop_notes:
         print(f"note       {note}")

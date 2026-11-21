@@ -7,9 +7,9 @@
     "ast_empty": true
   },
   "config.yaml": {
-    "mtime": 1795220926.5268786,
-    "seen": 1795221838.7163732,
-    "ast_hash": "b13172a5a7da28b2dda0467f5fddc335",
+    "mtime": 1795282544.9778705,
+    "seen": 1795286554.657989,
+    "ast_hash": "2c0736bb46a7831519afa612651d90aa",
     "semantic_hash": ""
   },
   "config/brand.json": {
@@ -37,9 +37,9 @@
     "semantic_hash": "44e99006b66bead538f03e43e103e683"
   },
   "remotion/src/Overlay.tsx": {
-    "mtime": 1795223881.5258126,
-    "seen": 1795232453.2764301,
-    "ast_hash": "c35615f4c98f75a904bdc71d42b744ac",
+    "mtime": 1795282412.5135891,
+    "seen": 1795286554.6580083,
+    "ast_hash": "ed18fca17ad559dc5e8e954b1403ff6c",
     "semantic_hash": ""
   },
   "remotion/src/Root.tsx": {
@@ -61,9 +61,9 @@
     "semantic_hash": "c96add9e4c09d452ec267482e9d4629c"
   },
   "remotion/src/types.ts": {
-    "mtime": 1795223881.5252073,
-    "seen": 1795232453.2764382,
-    "ast_hash": "a32d0c98cf7c11a358b1dc0a2eb4c5fd",
+    "mtime": 1795282412.5140142,
+    "seen": 1795286554.658027,
+    "ast_hash": "f4c94d2125040755ea0704515a589c52",
     "semantic_hash": ""
   },
   "remotion/tsconfig.json": {
@@ -85,9 +85,9 @@
     "semantic_hash": "845c833c6da4676b891e92028e11f860"
   },
   "scripts/build_overlay_props.py": {
-    "mtime": 1794935084.17524,
-    "seen": 1794935431.4806194,
-    "ast_hash": "4e4dc2f358112a665828b750d3d5bb83",
+    "mtime": 1795282426.1308806,
+    "seen": 1795286554.6580389,
+    "ast_hash": "ba010bbdabb8c7d5d0cfb4e8958b9efb",
     "semantic_hash": ""
   },
   "scripts/common.py": {
@@ -163,9 +163,9 @@
     "semantic_hash": "90980883d9c12ebcdea6637dcf20d52c"
   },
   "scripts/qa_check.py": {
-    "mtime": 1795032924.447761,
-    "seen": 1795075132.8873782,
-    "ast_hash": "9d2b3314fcc5d696223b82717b7e5839",
+    "mtime": 1795282540.7160234,
+    "seen": 1795286554.65808,
+    "ast_hash": "b3d05f87b2a22623375502a963e5a9fb",
     "semantic_hash": ""
   },
   "scripts/qa_verdict.py": {
@@ -175,9 +175,9 @@
     "semantic_hash": "c973d8d30c0fab05785a8c7ccb10bc6d"
   },
   "scripts/render_final.py": {
-    "mtime": 1795074545.7918835,
-    "seen": 1795075132.8873823,
-    "ast_hash": "d0a66b603135e3aa5d4f9e0f87b0737e",
+    "mtime": 1795282511.9442194,
+    "seen": 1795286554.6580846,
+    "ast_hash": "1ba29ceaa3be4b9791beec107558f7cc",
     "semantic_hash": ""
   },
   "scripts/setup.sh": {
@@ -211,9 +211,9 @@
     "semantic_hash": ""
   },
   "HANDOVER.md": {
-    "mtime": 1795233976.464412,
-    "seen": 1795271481.297688,
-    "ast_hash": "de801f276187e8bb7c7f70b4e26d87ff",
+    "mtime": 1795282008.569811,
+    "seen": 1795286554.6581154,
+    "ast_hash": "92ddf35a7f342780362c9d58d14e6b1c",
     "semantic_hash": ""
   },
   "README.md": {
@@ -517,9 +517,9 @@
     "semantic_hash": ""
   },
   "style-lab/STYLE.md": {
-    "mtime": 1795217413.7258418,
-    "seen": 1795220165.5151381,
-    "ast_hash": "8dedfa90a9c32cd5be38482eb3936385",
+    "mtime": 1795282620.4513354,
+    "seen": 1795286554.6581583,
+    "ast_hash": "ebc2d43f1c5e2917599947c6de474d4d",
     "semantic_hash": ""
   },
   "style-lab/style-lab.html": {
@@ -559,9 +559,9 @@
     "semantic_hash": ""
   },
   "scripts/style_fx.py": {
-    "mtime": 1795217235.130127,
-    "seen": 1795217364.1319377,
-    "ast_hash": "6995e0e2dec1089503309f508cfc966d",
+    "mtime": 1795283970.6096277,
+    "seen": 1795286554.6580946,
+    "ast_hash": "f398e517e2cdc6de4c2199291bceb58f",
     "semantic_hash": ""
   },
   "style-lab/round2/build.py": {
@@ -610,6 +610,18 @@
     "mtime": 1795270683.7838006,
     "seen": 1795271481.297692,
     "ast_hash": "f9b99845cdeecf00d4b0ec579a7dce5e",
+    "semantic_hash": ""
+  },
+  "scripts/finish_fx.py": {
+    "mtime": 1795285251.0771756,
+    "seen": 1795286554.6580558,
+    "ast_hash": "bcd72d79a4f59564b02a79d788339a00",
+    "semantic_hash": ""
+  },
+  "style-lab/round6/build.py": {
+    "mtime": 1795272477.841761,
+    "seen": 1795286554.6581109,
+    "ast_hash": "421c839b1193da2c42f73bc28a6da197",
     "semantic_hash": ""
   },
   "remotion/package-lock.json": {
