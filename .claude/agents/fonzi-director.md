@@ -233,5 +233,5 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
     OpenFilm into ~/tools/openfilm if missing). Allowed: its free CC0 sound effects (into `sfx/library/`) and stickers
     (into `brand/stickers/`), always UNDER his song, never replacing or muting it. Not used: any other OpenFilm part
     (Studio, generation, voice, stock footage search, paid services, keys). Library music is OFF
-    (`config.yaml openfilm.allow_music: false`) until Alfonso says yes; his songs stay the only music. Text/Visuals
+    (`config.yaml openfilm.allow_music: false`) until Alfonso says yes (2026-11-21: "we'll use my music unless I say so"); his songs stay the only music. Text/Visuals
     owns it; QA checks every library sound is logged in output/work/sfx_log.json.
