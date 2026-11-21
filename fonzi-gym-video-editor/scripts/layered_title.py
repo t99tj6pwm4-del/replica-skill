@@ -213,8 +213,14 @@ def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, i
     shutil.rmtree(tmp, ignore_errors=True)
     (tmp / "in").mkdir(parents=True)
     (tmp / "out").mkdir()
-    run(["ffmpeg", "-v", "error", "-y", "-ss", f"{at:.3f}", "-i", base, "-t", f"{dur:.3f}",
-         "-vf", f"scale={W}:{H},fps={FPS}", tmp / "in" / "f%04d.png"])
+    # frame-exact window (a time seek + fps filter at an off-grid "at" can drop a frame and shift the picture
+    # ahead of the audio): snap to the 30 fps grid and cut by frame index
+    k0, nf = int(round(at * FPS)), max(1, int(round(dur * FPS)))
+    nf = min(nf, int(round(total * FPS)) - k0)
+    at = k0 / FPS
+    run(["ffmpeg", "-v", "error", "-y", "-i", base, "-vf",
+         f"trim=start_frame={k0}:end_frame={k0 + nf},setpts=PTS-STARTPTS,scale={W}:{H}",
+         "-fps_mode", "passthrough", tmp / "in" / "f%04d.png"])
     frames = sorted((tmp / "in").glob("f*.png"))
     if not frames:
         die("layered title: could not read frames from the video")
@@ -265,15 +271,16 @@ def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, i
     seg = tmp / "seg.mp4"
     run(["ffmpeg", "-v", "error", "-y", "-framerate", str(FPS), "-i", tmp / "out" / "f%04d.png",
          "-c:v", "libx264", "-preset", "medium", "-crf", "15", "-pix_fmt", "yuv420p", seg])
-    seg_len = probe(seg)["duration"]
-    # splice the rebuilt window back in, picture only; audio copied from the base untouched
-    parts = []
-    for name, a, b in (("pre", 0.0, at), ("post", at + seg_len, total)):
-        if b - a > 0.5 / FPS:
+    seg_len = len(frames) / FPS
+    # splice the rebuilt window back in by frame index (frame-exact), picture only; audio copied untouched
+    parts, k1 = [], k0 + len(frames)
+    for name, trim in (("pre", f"trim=end_frame={k0}" if k0 > 0 else None),
+                       ("post", f"trim=start_frame={k1}" if k1 < int(round(total * FPS)) else None)):
+        if trim:
             p = tmp / f"{name}.mp4"
-            run(["ffmpeg", "-v", "error", "-y", "-ss", f"{a:.4f}", "-i", base, "-t", f"{b - a:.4f}", "-an",
-                 "-vf", f"setpts=PTS-STARTPTS,fps={FPS},format=yuv420p", "-c:v", "libx264", "-preset", "medium",
-                 "-crf", "15", p])
+            run(["ffmpeg", "-v", "error", "-y", "-i", base, "-an",
+                 "-vf", f"{trim},setpts=PTS-STARTPTS,format=yuv420p", "-r", str(FPS), "-c:v", "libx264",
+                 "-preset", "medium", "-crf", "15", p])
             parts.append((name, p))
     order = [p for n, p in parts if n == "pre"] + [seg] + [p for n, p in parts if n == "post"]
     (tmp / "list.txt").write_text("".join(f"file '{p}'\n" for p in order))
