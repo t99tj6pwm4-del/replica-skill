@@ -224,3 +224,7 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
     H.264+AAC), verify with ffprobe + frames, send the file + a frame, wait for his yes. Needs tripod footage with an
     empty plate (Spiderweb: a hand-held pan). If the cut-out fails on gym equipment, say so and stop that effect; never
     alter his body or face. Text English, Montserrat, #D4A017, safe area, never over his face. His song / gym audio only.
+18. **New intro card (2026-11-21, Style Lab rounds 5-6).** Every video opens with the intro in `style-lab/STYLE.md`
+    rule 0: Rubik Dirt gold title (no drips), Fonzi logo big behind him, title flickering to the beat; rotate
+    strobe / burst + pulse per video. It replaces the Montserrat hook card and the hook snap. Montserrat stays for
+    exercise titles, pop-ups and the rest unless Alfonso says otherwise.

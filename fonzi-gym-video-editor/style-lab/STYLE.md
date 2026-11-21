@@ -56,6 +56,15 @@ Tool: `scripts/style_fx.py` (snap / zoom / cutout / logo). Our own sounds only (
    - `zoom`: between sets / exercises, into a dark object (his black tank by default) with zoom blur. Whoosh + impact.
    - `cutout --to black`: the hype moment (heaviest set, the drop): freeze, cut out, black strobe, punch-in.
      At most 1-2 per video. Now and then (about one video in four) use `--to white` instead, never mixed.
+0. **Intro card** (locked 2026-11-21, Style Lab rounds 5-6; replaces the old Montserrat hook card, its stripes,
+   gold box, dark scrim and the hook `snap`): first ~2-3 s. Title (e.g. "LOCKED IN") in **Rubik Dirt**
+   (`brand/fonts/RubikDirt-Regular.ttf`, OFL), gold #D4A017, **no drips ever**, in front of him and off his face;
+   small white letter-spaced subtitle under it. **Fonzi logo** (`brand/fonzi_logo.png`, white ~85%) **behind him**
+   (rembg cut-out), as big as fits (~1000 px wide), whole logo always inside the frame. The title **flickers to the
+   beat** of his song: rotate per video between **strobe** (snaps on at beat 1, blinks off 2 frames on each beat) and
+   **burst + pulse** (round-2 flicker-on at beat 1, then brighter + 1.0->1.06 pulse on each beat). Whoosh into beat 1,
+   impact on beat 1. Never: white flash on the beat, title drips, logo flicker-on, dark tint. Reference build:
+   `style-lab/round6/build.py` (r6-01 strobe, r6-03 burst + pulse).
 3. **Logo end card**: `style_fx.py logo` last 3-3.5 s: flicker on + real drips; rotate `--drips slow|heavy|wet`.
 4. **Never**: colour grade, flicker masks / light leaks, film burn, rise wipe, slow luma fade, cut-out with black
    or outline backgrounds, text over his face, hashtags, non-English (except the Spanish pop-up lines).
