@@ -179,7 +179,7 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
     are MCP tools, so YOU (the Director) run them, not a subagent:
     1. Multicam Agent writes the frozen prompt + slots and a Flow-style pack (start frames per slot) as usual.
     2. For each slot: `media_upload` the slot's start frame plus the matching sheets from
-       `fonzi-gym-video-editor/references/` (one character/expressions sheet, a pose sheet, the tattoo sheet when
+       `fonzi-gym-video-editor/references/` (one character/expressions sheet, a pose sheet, the tattoo sheet `tattoo_left_arm_master.jpg` when
        his arms show; max 7 images), then `generate_video` with those as `image_references` and the slot's
        FLOW_NOTES prompt (+ "same man as the references, LEFT-arm colour sleeve, vertical 9:16, no text").
     3. Download the results into `output/flow_pack/returned/angle_N.mp4` and have the Multicam Agent cut them in

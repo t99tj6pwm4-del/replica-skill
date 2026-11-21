@@ -154,6 +154,9 @@ side/forward reach, hand behind head, 90-degree bend, across chest: pick the pos
 pick the one matching the shot's camera height; close-ups: deltoid edges, biceps to elbow,
 elbow from below, thumb-side forearm, little-finger-side wrist) (his real LEFT-arm full sleeve: shark at the shoulder, princess on the upper arm,
 "LOVE" text, Power Rangers coin mid-arm, Majin Buu on the forearm, green dragon in flames at the wrist).
+**Master tattoo sheet** (Alfonso, 2026-11-21): `tattoo_left_arm_master.jpg` = outer/front/inner/back views, 360°
+turn, close-ups of every piece (shark, princess, Power Rangers, Majin Buu, green dragon with halo) and the colour
+palette. Use it as THE tattoo sheet by default; add one of the pose/angle sheets above only when the lift needs it.
 In every Flow pack: copy one character sheet (pick the face closest to the start frame) and, when his arms show,
 the tattoo sheet into `output/flow_pack/`, tell Alfonso to add them as ingredients/references next to the start
 frame, and add to each FLOW_NOTES prompt: "Same man as the reference sheet; full colour tattoo sleeve on his LEFT
