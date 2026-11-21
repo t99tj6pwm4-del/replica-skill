@@ -47,7 +47,7 @@ Branch `claude/blissful-hamilton-k7clws` (push only there, no PRs). All code is 
 ## Key files
 - **Moving to another account**: `MOVE_TO_NEW_ACCOUNT.md` (fork, environment + setup script, secrets, first prompt).
 - **Identity references**: `references/` (9 character sheets + `tattoo_left_arm_sleeve.jpg`, LEFT-arm sleeve). Used in every Flow pack.
-- **Agents and skill**: `.claude/agents/fonzi-*.md` (director standing answers 1-16), `.claude/skills/fonzi-edit/SKILL.md`, `.claude/settings.json`.
+- **Agents and skill**: `.claude/agents/fonzi-*.md` (director standing answers 1-17), `.claude/skills/fonzi-edit/SKILL.md`, `.claude/settings.json`.
 - **Config**: `fonzi-gym-video-editor/config.yaml`, `config/brand.json`.
 - **Scripts** (`scripts/`): `job.py`, `cut_video.py`, `multicam_prompt.py`, `multicam_generate.py`, `layered_title.py`, `add_popups.py`, `build_overlay_props.py`, `render_final.py`, `qa_check.py`, `qa_verdict.py`, `approve.py`, `export_final.py`.
 - **Overlay**: `remotion/src/Overlay.tsx`, `types.ts`, `fonts.ts`.

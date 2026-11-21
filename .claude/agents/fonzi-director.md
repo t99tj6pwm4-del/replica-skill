@@ -217,3 +217,10 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
     ("Rules for every video"). Storyboard plans where they go; Cuts builds the transitions with `scripts/style_fx.py`
     (`zoom` between sets, `cutout --to black` on 1-2 hype moments; `--to white` instead about one video in four); Text/Visuals adds the gold titles (`snap` on the
     big name moment) and the dripping logo end card (`style_fx.py logo`, rotate slow/heavy/wet). QA checks them.
+17. **Hook effects, 3-second openers (2026-11-21).** Recipes: `fonzi-gym-video-editor/docs/effects/hook_effects.md`
+    (1 Flash white silhouette, 2 Float clones, 3 Speed jump, 4 Spiderweb fall). @futurist__'s method only, never his
+    footage. Only as the first 3 s of Alfonso's own gym videos, one effect per video. Ask him which effect + which clip,
+    build ONE test, stage it unposted as `~/workspace/upload_staging/<day>_<effect>_test.mp4` (1080x1920, 30fps,
+    H.264+AAC), verify with ffprobe + frames, send the file + a frame, wait for his yes. Needs tripod footage with an
+    empty plate (Spiderweb: a hand-held pan). If the cut-out fails on gym equipment, say so and stop that effect; never
+    alter his body or face. Text English, Montserrat, #D4A017, safe area, never over his face. His song / gym audio only.
