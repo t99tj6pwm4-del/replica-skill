@@ -1295,7 +1295,7 @@ export const Overlay: React.FC<OverlayProps> = (p) => {
       <Sequence from={0} durationInFrames={Math.max(1, fr(end))}>
         <ProgressBar segments={p.progress} brand={p.brand} showLabel={p.progressLabels !== false && !textHidden} top={p.layout.progressY ?? 118} />
       </Sequence>
-      {p.endCard ? (
+      {p.endCard && p.endCard.style !== "logo_drip" ? (
         <Sequence {...seq(p.endCard.from, p.endCard.to)}>
           <EndCard text={p.endCard.text} subtitle={p.endCard.subtitle} brand={p.brand} />
         </Sequence>

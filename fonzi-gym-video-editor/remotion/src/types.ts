@@ -109,7 +109,10 @@ export type OverlayProps = {
   captions: CaptionPage[];
   callouts: Callout[];
   events: TimedEvent[];
-  endCard: { from: number; to: number; text: string; subtitle?: string } | null;
+  endCard: { from: number; to: number; text: string; subtitle?: string;
+    // style "logo_drip": the dripping logo card is baked into the picture after the render (style_fx.py logo);
+    // Remotion draws nothing for it. Absent = the usual SAVE THIS card.
+    style?: string } | null;
   lists?: ListCardItem[];
   /** cut-time windows where the clip has its own baked-in text: nothing but a bare progress bar is drawn */
   noTextWindows?: { from: number; to: number }[];
