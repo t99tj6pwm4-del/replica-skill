@@ -21,7 +21,11 @@ Branch `claude/blissful-hamilton-k7clws` (push only there, no PRs). All code is 
 
 ## Left to do
 - **90s "After Hours" re-cut: NOT APPROVED** (Alfonso, 2026-11-19). Not exported. The 41.8s version stays the only After Hours export.
-- **Nothing is waiting for approval.** Next: a new `/fonzi-edit` job.
+- **Current job "Locked In" (2026-11-21, `/fonzi-edit`)**: iCloud video `input/icloud_0241S7yc.mov` (raw 114.3-234.7 is an old edit with a copyrighted rap track: excluded) + his song `songs/alfonso_music_063BT4Xb.mp3`.
+  - Storyboard done, Cuts done (`output/cut_version.mp4` 89.467 s). Multicam working.
+  - 3 Kling angles submitted on Higgsfield (job ids 94067b1c-20fb-44cb-a313-c5ef8dd4b26c, ce7a9a55-41c4-48ca-ad02-7628ef327ab4, f0488184-142e-42f0-9579-8f6f14458df6; ~9 credits). Slots: 17.30 #91 low hero, 36.57 #13 top-down, 55.87 #28 left profile (3 s each). Media ids in the scratchpad `hf_ids.json`.
+  - Left: download to `output/flow_pack/returned/angle_1..3.mp4` -> multicam agent `--use-clips` (+ log shots in `output/multicam_shots_log.md`) -> Text/Visuals (gold titles, snap on LOCKED IN hook at 0.668, pop-ups, logo end card `--drips heavy` over 86.1-89.467) -> QA -> Waiting for approval.
+  - Hand-off must suggest a relight: Top light on the deadlift, raw 239-243, Wan 3.0 480p 4 s, ~6 credits; only on his yes.
 - **Style Lab (2026-11-19)**: published at https://claude.ai/artifact/Xez5Sv5JbCzCsqC7oz1Chc (db/user/assets). Steps in `style-lab/SETUP_PROMPT.md`, brief in `style-lab/STYLE.md`. Brief done (`style-lab/STYLE.md`, `GRADE_AND_TRANSITIONS.md`). Round 1 loaded (15 cards: grade, title, transitions, logo; built by `style-lab/round1/build.py`, outputs in `output/style_lab/r1/`). Style locked after round 4 (rules in `style-lab/STYLE.md`, tool `scripts/style_fx.py`, Director answer 16). White-flicker cut-out = occasional alternate (about 1 video in 4). Nothing open.
 - **Effects added (2026-11-19)**: x-ray hit and film-strip flash cut recipes in `docs/effects/`, Director standing answer 13. Waiting on his selfies for the flash cut (balance 908 on 2026-11-20).
 - **"Full Send" (2026-11-18)**: NOT APPROVED by Alfonso (2026-11-19), not exported, not posted. Files kept in output/ and output/archive/.
@@ -42,7 +46,7 @@ Branch `claude/blissful-hamilton-k7clws` (push only there, no PRs). All code is 
 ## Key files
 - **Moving to another account**: `MOVE_TO_NEW_ACCOUNT.md` (fork, environment + setup script, secrets, first prompt).
 - **Identity references**: `references/` (9 character sheets + `tattoo_left_arm_sleeve.jpg`, LEFT-arm sleeve). Used in every Flow pack.
-- **Agents and skill**: `.claude/agents/fonzi-*.md` (director standing answers 1-13), `.claude/skills/fonzi-edit/SKILL.md`, `.claude/settings.json`.
+- **Agents and skill**: `.claude/agents/fonzi-*.md` (director standing answers 1-16), `.claude/skills/fonzi-edit/SKILL.md`, `.claude/settings.json`.
 - **Config**: `fonzi-gym-video-editor/config.yaml`, `config/brand.json`.
 - **Scripts** (`scripts/`): `job.py`, `cut_video.py`, `multicam_prompt.py`, `multicam_generate.py`, `layered_title.py`, `add_popups.py`, `build_overlay_props.py`, `render_final.py`, `qa_check.py`, `qa_verdict.py`, `approve.py`, `export_final.py`.
 - **Overlay**: `remotion/src/Overlay.tsx`, `types.ts`, `fonts.ts`.
