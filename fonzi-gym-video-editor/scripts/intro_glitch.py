@@ -28,6 +28,8 @@ OFFSETS = (8, 5, 2)                         # px, frames b, b+1, b+2
 SPLIT_ALPHA_MAX = 0.6
 GRIT_MAX = 500                              # px: enclosed transparent specks smaller than this count as glyph
 HOLE_A = 20                                 # alpha > 20 = ink when finding the enclosed holes (as r7-03)
+SIL_IOU_MIN = 0.96                          # selftest golden compare (Director, R7P-01 Option A)
+RAW_IOU_MARGIN = 0.02                       # raw alpha IoU floor = title_ref-vs-golden limit - this
 PAD = 16                                    # crop margin round the title ink (> max offset 8 + dilation 1)
 
 
@@ -156,7 +158,7 @@ def _selftest(out_dir):
     tl, _sub, _ = spec.layers()
     hi = np.array([0xEC, 0xD4, 0x97])
     gfr = set(glitch_frames(beats, N))
-    rows, fails, iou_fails, mine, gold = {}, [], [], {}, {}
+    rows, fails, mine, gold = {}, [], {}, {}
     for k in range(N):
         t = glitch_title(tl, k, beats)
         t = t if t is not None else Image.new("RGBA", tl.size, (0, 0, 0, 0))
@@ -182,8 +184,8 @@ def _selftest(out_dir):
                        golden_bbox=[gb[0], gb[2], gb[1] + 1, gb[3] + 1], bbox_dev_px=dev)
             if dev > 3:
                 fails.append(f"f{k}: bbox dev {dev}")
-            if iou < 0.97:
-                iou_fails.append(f"f{k}: alpha IoU {iou:.4f}")
+            if row["silhouette_iou"] < SIL_IOU_MIN:
+                fails.append(f"f{k}: silhouette IoU {row['silhouette_iou']:.4f} < {SIL_IOU_MIN}")
         # split colour present: pixel (alpha > 20) far from gold, i.e. a red or cyan fringe
         def split_px(arr):
             a = arr[..., 3] > 20
@@ -238,7 +240,20 @@ def _selftest(out_dir):
     tl_eq_ref = bool((np.asarray(tl)[:SPLIT_Y, :, 3] == ref).all())
     floor = float(((ref > 20) & (g35 > 20)).sum() / ((ref > 20) | (g35 > 20)).sum())
     fr_iou = [r["split_fringe_iou"] for r in rows.values() if "split_fringe_iou" in r]
-    summary = {"ok": not fails and not iou_fails, "fails": fails, "alpha_iou_fails": iou_fails,
+    if not tl_eq_ref:
+        fails.append("title layer differs from r7-00/ref/title_ref.png (production title)")
+    raw_floor = round(floor - RAW_IOU_MARGIN, 4)
+    for name, r in rows.items():
+        if "alpha_iou" in r and r["alpha_iou"] < raw_floor:
+            fails.append(f"{name}: raw alpha IoU {r['alpha_iou']:.4f} < floor {raw_floor}")
+    summary = {"ok": not fails, "fails": fails,
+               "golden_check": {
+                   "rule": f"silhouette IoU (alpha > {HOLE_A}, grit holes < {GRIT_MAX} px filled, same rule as the "
+                           f"edge mask) >= {SIL_IOU_MIN} and bbox dev <= 3 px on every visible frame; raw alpha "
+                           f"IoU reported, must be >= (title_ref vs golden f35 limit) - {RAW_IOU_MARGIN}",
+                   "reason": "rasteriser difference: PIL vs Chrome; title layer must equal production title_ref",
+                   "decision": "Director, R7P-01 Option A (replaces alpha_iou_min 0.97 for this compare)",
+                   "silhouette_iou_min_required": SIL_IOU_MIN, "raw_alpha_iou_floor": raw_floor},
                "title_layer_equals_title_ref": tl_eq_ref,
                "golden_rest_vs_title_ref_alpha_iou_f35": round(floor, 4),
                "silhouette_iou_min": min(r["silhouette_iou"] for r in vis),
