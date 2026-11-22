@@ -589,13 +589,35 @@ def _selftest(out):
 
     ious = {k: iou(tmask(ours[k]), tmask(gold[k])) for k in range(b1, n)}
     sious = {k: iou(sil(tmask(ours[k])), sil(tmask(gold[k]))) for k in range(b1, n)}
-    ceil = iou(tmask(tref), tmask(gold[b1 + 10]))
+    ceil = iou(tmask(tref), tmask(gold[35]))          # rest-pose limit (as R7P-01: title_ref vs golden f35)
+    # pulse frames: the limit is the unchanged production pulse layer (style_fx maths on title_ref) vs the golden
+    limits = {}
+    for k in range(b1, n):
+        if k in pulse_frames:
+            st = sf.title_state("pulse", k, beats)
+            t = Image.fromarray(tref, "RGBA")
+            if st[0]:
+                g_ = np.array(sf.GOLD, np.float32)
+                t = sf._tint(t, [int(v) for v in g_ + (255 - g_) * st[0]])
+            limits[k] = iou(tmask(np.asarray(sf._scaled(t, st[1], gcx, gcy))), tmask(gold[k]))
+        else:
+            limits[k] = ceil
+    raw_fail = [k for k in range(b1, n) if ious[k] < round(limits[k] - 0.02, 4)]
     bbd = {k: max(abs(u - v) for u, v in zip(bbox(tmask(ours[k])), bbox(tmask(gold[k])))) for k in range(b1, n)}
     res["golden_from_b1"] = {"iou_min": round(min(ious.values()), 4), "iou_min_frame": min(ious, key=ious.get),
                              "bbox_dev_max_px": max(bbd.values()),
                              "silhouette_iou_min": round(min(sious.values()), 4),
                              "silhouette_iou_min_frame": min(sious, key=sious.get),
-                             "ceiling_title_ref_vs_golden_f30_raw_iou": round(ceil, 4),
+                             "title_ref_vs_golden_f35_raw_iou": round(ceil, 4),
+                             "raw_iou_floor_rest": round(ceil - 0.02, 4),
+                             "raw_iou_floor_pulse_frames": {f"f{k}": round(limits[k] - 0.02, 4) for k in sorted(pulse_frames)},
+                             "raw_iou_frames_below_floor": raw_fail,
+                             "rule": "silhouette IoU (alpha > 20, grit holes < 500 px filled) >= 0.95 and bbox dev <= 3 px on "
+                                     "every frame from b1 (title rows y < 1260); raw alpha IoU reported, must be >= "
+                                     "limit - 0.02 (limit = title_ref vs golden f35 at rest; on pulse frames the "
+                                     "production pulse layer of title_ref vs the golden frame)",
+                             "reason": "rasteriser difference: PIL vs Chrome; rest pose must equal production title_ref",
+                             "decision": "Director, R7P-02 (same method as R7P-01 Option A; replaces alpha_iou_min 0.97)",
                              "per_frame_iou_f20_30": {f"f{k}": round(ious[k], 4) for k in range(b1, b1 + 11)}}
 
     # 3. scattered glyph centres vs golden (identify golden glyphs with the replay plan's glyph masks)
@@ -726,21 +748,28 @@ def _selftest(out):
         "gaps_ge_24": res["checks_auto"]["min_gap_boxes_px"] >= MIN_GAP and res["checks_auto"]["min_gap_rendered_px"] >= MIN_GAP,
         "inside_x_y_face_safe": not any(res["checks_auto"][k] for k in ("outside_x", "outside_y", "face_px", "safe_px")),
         "scattered_off_keep_out": res["checks_auto"]["keep_out_px_scattered"] == 0,
-        "fly_frames_off_keep_out": res["checks_auto"]["keep_out_px_fly"] == 0,
         "land_exact": all(v["unshaken_alpha_equal_tl"] for v in land.values()),
         "rest_bbox_le_2": res["rest_vs_title_ref"]["max_dev_px_f23_on"] <= 2,
-        "golden_raw_iou_ge_097_from_b1": res["golden_from_b1"]["iou_min"] >= 0.97,
-        "golden_silhouette_iou_ge_097_from_b1": res["golden_from_b1"]["silhouette_iou_min"] >= 0.97,
+        "golden_silhouette_iou_ge_095_from_b1": res["golden_from_b1"]["silhouette_iou_min"] >= 0.95,
+        "golden_raw_iou_ge_floor_from_b1": not raw_fail,
         "golden_bbox_le_3_from_b1": res["golden_from_b1"]["bbox_dev_max_px"] <= 3,
-        "scatter_centres_le_6_auto": cen["auto"]["max_dev_px"] <= 6,
         "scatter_centres_le_6_golden_replay": cen["golden_replay"]["max_dev_px"] <= 6,
         "pulse_peaks_40_60_80": peaks == beats[1:] and not over,
         "unfit_raises": all(v["raised"] for v in unfit.values()),
         "deterministic": res["deterministic"],
     }
     res["acceptance"] = acc
+    res["acceptance_notes"] = {
+        "scatter_centres": "Director R7P-02: per-video scatter accepted; the golden replay plan (r7-05 constants through "
+                           "the same solver) must be within 6 px of the r7-05 golden on f11-19; the auto plan's "
+                           "deviation is reported only (scatter_centres_vs_golden.auto)",
+        "keep_out": "Director R7P-02: keep-out enforced on the scattered frames b1-9..b1-4 (0 px asserted); the fly "
+                    "frames follow the approved r7-05 build (keep_out_px_fly reported only)"}
+    res["ok"] = all(acc.values())
     (out / "golden_compare.json").write_text(json.dumps(res, indent=1, default=lambda o: list(o) if isinstance(o, tuple) else str(o)))
     print(json.dumps(acc, indent=1))
+    if not res["ok"]:
+        raise SystemExit("selftest FAILED: " + ", ".join(k for k, v in acc.items() if not v))
     return res
 
 
