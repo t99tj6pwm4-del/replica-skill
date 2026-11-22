@@ -21,6 +21,66 @@ from common import (load_config, FPS, H, INPUT, OUT, W, WORK, find_duplicate, lo
                     save_json, sha256)
 
 
+INTRO_STYLES = ("strobe", "pulse", "glitch", "smash")   # finish_fx.ALL_INTRO_STYLES (Round 7, 2026-11-22)
+LOGO_STYLES = ("flat", "3d")
+TITLE_MAX_RGB = (0xEC, 0xD4, 0x97)                      # style sheet: the title is never brighter than #ECD497
+SPLIT_ALPHA_MAX = 0.6                                   # glitch split copies
+SMASH_MIN_GAP = 24                                      # smash scatter: never a glyph gap < 24 px
+LOGO_ON_FACE_SOFT = 2500                                # soft: a window sum (3 s windows go over it)
+
+
+def intro_checks(ir: dict, fin: dict | None = None) -> list[dict]:
+    """The Round 7 intro checks from the finish_fx.json entry (fin) and its intro report (ir). Hard unless soft.
+    Entries from before round 7 lack the new keys: missing logo_style = flat, glitch / smash missing = not used,
+    logo_box_max / title_max_rgb missing = not measured (pass)."""
+    fin = fin or {}
+    out = []
+
+    def c(name, ok, detail, soft=False):
+        out.append({"check": name, "pass": bool(ok), "detail": detail, "soft": soft})
+
+    style, logo = ir.get("style"), ir.get("logo_style") or "flat"
+    c("intro title style is one of the 4", style in INTRO_STYLES, f"{style} ({' | '.join(INTRO_STYLES)})")
+    c("intro logo style is flat or 3d", logo in LOGO_STYLES, f"{logo} ({' | '.join(LOGO_STYLES)})")
+    box = ir.get("logo_box_max")
+    inside = box is None or (len(box) == 4 and box[0] >= 0 and box[1] >= 0 and box[2] <= W and box[3] <= H)
+    c("intro logo fully inside the frame", ir.get("logo_edge_px", 0) == 0 and inside,
+      f"edge px {ir.get('logo_edge_px', 0)}, logo box over the window {box if box else 'not logged (pre round 7)'}"
+      f" in {W}x{H}, scale {ir.get('logo_scale', 1.0)}")
+    gl = ir.get("glitch")
+    if style == "glitch" or gl:
+        ok = bool(gl) and gl.get("split_px_inside_letters", 1) == 0 and \
+            float(gl.get("split_alpha_max", 1)) <= SPLIT_ALPHA_MAX
+        c("glitch split on the letter edges only", ok,
+          f"split px inside the letters {gl.get('split_px_inside_letters')}, split alpha max "
+          f"{gl.get('split_alpha_max')} (<= {SPLIT_ALPHA_MAX}), offset max {gl.get('split_offset_max_px')} px, "
+          f"frames {gl.get('frames')}" if gl else "style glitch but no glitch stats logged")
+    sm = ir.get("smash")
+    if style == "smash" or sm:
+        ok = bool(sm) and sm.get("min_glyph_gap_px") is not None and float(sm["min_glyph_gap_px"]) >= SMASH_MIN_GAP
+        c(f"smash letters never closer than {SMASH_MIN_GAP} px", ok,
+          f"min glyph gap {sm.get('min_glyph_gap_px')} px, keep-out {sm.get('keep_out')} "
+          f"({sm.get('keep_out_source')}), scatter shrink {sm.get('scatter_shrink')}, lands on frame "
+          f"{sm.get('land_frame')}" if sm else "style smash but no smash stats logged")
+    rgb = ir.get("title_max_rgb")
+    if rgb is not None:
+        ok = all(int(v) <= m for v, m in zip(rgb, TITLE_MAX_RGB))
+        # hard only for glitch (no pulse frames in the window); smash / strobe / pulse windows include pulse tint
+        # frames, which style_fx.intro already checks per frame (it refuses to write a brighter smash frame)
+        c("title never brighter than #ECD497", ok,
+          f"brightest title pixel {list(rgb)} ({'ok' if ok else 'over #ECD497'}"
+          f"{'' if style == 'glitch' else ', window max incl. pulse frames: note only'})", soft=style != "glitch")
+    face = ir.get("logo_on_face_px_max")
+    if face is not None:
+        c(f"logo on his face edge <= {LOGO_ON_FACE_SOFT} px (window sum)", face <= LOGO_ON_FACE_SOFT,
+          f"{face} px over the window (report only)", soft=True)
+    fb = fin.get("fallback_reason")
+    if fb or (fin.get("intro_planned") and fin.get("intro_planned") != style):
+        c("intro style as planned by the rotation", False,
+          f"planned {fin.get('intro_planned')}, rendered {style}: {fb or 'fallback'}", soft=True)
+    return out
+
+
 def main():
     final, qdir = OUT / "final_edit.mp4", OUT / "qa"
     if "--final" in sys.argv:
@@ -214,11 +274,15 @@ def main():
             ir = (fin or {}).get("intro") or {}
             ok = bool(ir.get("ok"))
             add("intro card (Rubik Dirt title, logo behind him, title on the beat)", ok,
-                (f"{ir['style']}: {' / '.join(ir['title'])} 0-{ir['dur']:.2f}s, beats {ir['beats_s']}, text y "
+                (f"{ir['style']} title, {ir.get('logo_style') or 'flat'} logo: {' / '.join(ir['title'])} "
+                 f"0-{ir['dur']:.2f}s, beats {ir['beats_s']}, text y "
                  f"{ir['text_y_range'][0]}-{ir['text_y_range'][1]} below his face (down to y={ir['face_max_y']}), "
                  f"logo {ir['logo_size'][0]}x{ir['logo_size'][1]} fully in frame, {len(ir['shot_cuts'])} shot cut(s)"
                  if ok else "title.style is fonzi_intro but finish_fx.py did not bake an intro into this file "
                  "(render with scripts/render_final.py, it runs finish_fx.py itself)"), "text_visuals")
+            if ok:
+                for ic in intro_checks(ir, fin):
+                    add(ic["check"], ic["pass"], ic["detail"], "text_visuals", soft=ic["soft"])
             if not ok:
                 missing.append("intro card")
         elif props.get("title") and not props.get("opener"):

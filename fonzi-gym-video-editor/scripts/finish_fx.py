@@ -4,8 +4,8 @@ render_final.py calls it automatically, so it cannot be forgotten; it refuses a 
 cannot run twice.
 
     python3 scripts/finish_fx.py                       # finish output/final_edit.mp4 in place (normally not needed)
-    python3 scripts/finish_fx.py --final F.mp4 --base CLEAN.mp4 [--out G.mp4] [--intro strobe|pulse]
-                                 [--drips slow|heavy|wet] [--no-record]
+    python3 scripts/finish_fx.py --final F.mp4 --base CLEAN.mp4 [--out G.mp4] [--intro strobe|pulse|glitch|smash]
+                                 [--logo flat|3d] [--drips slow|heavy|wet] [--no-record]
 
 What it does (STYLE.md "Rules for every video"):
   - overlay_props title.style == "fonzi_intro": the intro card (rule 0) over the first seconds, via
@@ -16,9 +16,14 @@ What it does (STYLE.md "Rules for every video"):
     end-card window, on the clean picture of those seconds.
   - one splice + one encode: picture = intro | the rendered final | logo card; audio = the final's own track
     with the intro sfx and the logo sfx (-6 dB) mixed UNDER it (peak limiter at -1 dBFS, nothing below it changes).
-Rotation: the intro style alternates strobe <-> pulse per video and the logo drips rotate slow -> heavy -> wet,
-recorded per video in posted/style_rotation.json (a re-render of the same video keeps its picks). Storyboard
-overrides: "intro": {"style", "title", "subtitle", "dur"}, "end_card": {"drips"}.
+Rotation (Round 7, 2026-11-22): the intro title style cycles strobe -> pulse -> glitch -> smash per video (config
+intro.title_styles), the intro logo alternates flat <-> 3d on its own (config intro.logo_styles) and the logo drips
+rotate slow -> heavy -> wet, recorded per video in posted/style_rotation.json (a re-render of the same video keeps
+its picks; no history = strobe / flat; entries from before round 7 without a logo count as flat). A glitch / smash
+that cannot be drawn cleanly (style_fx.IntroStyleUnfit) is rendered as pulse instead; the entry keeps
+intro_planned = the planned style + fallback_reason, and the next video continues the cycle after the planned one.
+Storyboard overrides: "intro": {"style", "logo", "smash_keep_out", "face_box", "title", "subtitle", "dur"},
+"end_card": {"drips"}. Only the real render (out = output/final_edit.mp4) is recorded.
 Every finish is logged in output/work/finish_fx.json by the finished file's sha256 (qa_check.py reads it).
 """
 from __future__ import annotations
@@ -35,39 +40,79 @@ from common import (FPS, OUT, POSTED, ROOT, WORK, base_video, die, load_config, 
 
 LOG = WORK / "finish_fx.json"
 ROTATION = POSTED / "style_rotation.json"
-INTRO_STYLES = ["strobe", "pulse"]
+ALL_INTRO_STYLES = ["strobe", "pulse", "glitch", "smash"]   # style_fx.TITLE_STYLES
+ALL_LOGO_STYLES = ["flat", "3d"]                            # style_fx.LOGO_STYLES
 DRIPS = ["slow", "heavy", "wet"]
+FALLBACK = "pulse"          # style_sheet title_styles.fallback: an unfit glitch / smash is rendered as pulse
 
 
 def cfg() -> dict:
-    return {"max_dur": 3.0, "min_dur": 1.2, "logo_sfx_db": -6, **(load_config().get("intro") or {})}
+    return {"max_dur": 3.0, "min_dur": 1.2, "logo_sfx_db": -6, "title_styles": ALL_INTRO_STYLES,
+            "logo_styles": ALL_LOGO_STYLES, **(load_config().get("intro") or {})}
 
 
-def picks(video: str, sb: dict) -> tuple[str, str]:
-    """(intro style, logo drips) for this video: the storyboard's word wins, then this video's earlier pick
-    (re-renders stay the same), else the next one after the last video's."""
+def _cycle(key: str, known: list[str]) -> list[str]:
+    got = [str(v) for v in (cfg().get(key) or known)]
+    bad = [v for v in got if v not in known]
+    if bad or len(set(got)) != len(got):
+        die(f"config.yaml intro.{key}: {got} (allowed: {', '.join(known)}, each once)")
+    return got
+
+
+INTRO_STYLES = _cycle("title_styles", ALL_INTRO_STYLES)    # fixed cycle: strobe -> pulse -> glitch -> smash
+LOGO_STYLES = _cycle("logo_styles", ALL_LOGO_STYLES)       # flat <-> 3d
+
+
+def _planned(e: dict) -> str | None:
+    """The style the cycle asked for in a rotation entry (intro_planned; entries before round 7: intro)."""
+    v = e.get("intro_planned") or e.get("intro")
+    return v if v in INTRO_STYLES else None
+
+
+def picks(video: str, sb: dict) -> tuple[str, str, str]:
+    """(intro style, intro logo, logo drips) for this video (style_sheet rotation rules): the storyboard's word
+    wins (intro.style / intro.logo / end_card.drips), then this video's earlier entry (intro_planned, so a re-render
+    keeps its picks even after a fallback), else the next one after the last OTHER video's; no history = strobe /
+    flat; an entry without a logo key counts as flat (every video before round 7 shipped flat)."""
     hist = load_json(ROTATION, default={"videos": []})["videos"]
     mine = next((e for e in hist if e.get("video") == video), None)
     others = [e for e in hist if e.get("video") != video]
     last = others[-1] if others else {}
-    intro = (sb.get("intro") or {}).get("style") or (mine or {}).get("intro")
+    last_intro = next((e for e in reversed(others) if _planned(e)), None)    # last other video WITH an intro card
+    ov = sb.get("intro") or {}
+    intro = ov.get("style") or (mine and _planned(mine))
     if not intro:
-        intro = INTRO_STYLES[(INTRO_STYLES.index(last["intro"]) + 1) % 2] if last.get("intro") in INTRO_STYLES \
+        intro = INTRO_STYLES[(INTRO_STYLES.index(_planned(last_intro)) + 1) % len(INTRO_STYLES)] if last_intro \
             else INTRO_STYLES[0]
+    logo = ov.get("logo") or (mine and _planned(mine) and (mine.get("logo") or "flat"))
+    if not logo:
+        prev = (last_intro.get("logo") or "flat") if last_intro else None
+        logo = LOGO_STYLES[(LOGO_STYLES.index(prev) + 1) % len(LOGO_STYLES)] if prev in LOGO_STYLES \
+            else LOGO_STYLES[0]
     drips = (sb.get("end_card") or {}).get("drips") or (mine or {}).get("drips")
     if not drips:
         drips = DRIPS[(DRIPS.index(last["drips"]) + 1) % 3] if last.get("drips") in DRIPS else "heavy"
-    if intro not in INTRO_STYLES or drips not in DRIPS:
-        die(f"finish: unknown intro style {intro!r} / drips {drips!r}")
-    return intro, drips
+    if intro not in INTRO_STYLES or logo not in LOGO_STYLES or drips not in DRIPS:
+        die(f"finish: unknown intro style {intro!r} ({' | '.join(INTRO_STYLES)}) / logo {logo!r} "
+            f"({' | '.join(LOGO_STYLES)}) / drips {drips!r} ({' | '.join(DRIPS)})")
+    return intro, logo, drips
 
 
-def record(video: str, intro: str | None, drips: str | None):
+def record(video: str, intro: str | None, drips: str | None, planned: str | None = None, logo: str | None = None,
+           fallback_reason: str | None = None):
+    """One entry per video, in render order: intro = rendered, intro_planned = what the cycle asked for."""
     data = load_json(ROTATION, default={"videos": []})
-    data["note"] = ("Fonzi style rotation (finish_fx.py): intro strobe <-> pulse, logo drips slow -> heavy -> wet; "
-                    "one entry per video, in render order")
+    data["note"] = ("Fonzi style rotation (finish_fx.py, Round 7): intro title strobe -> pulse -> glitch -> smash "
+                    "(intro = rendered, intro_planned = what the cycle asked for; an unfit glitch / smash renders "
+                    "pulse with fallback_reason), intro logo flat <-> 3d (no logo key = flat), logo drips slow -> "
+                    "heavy -> wet; one entry per video, in render order")
     hist = [e for e in data["videos"] if e.get("video") != video]
-    hist.append({"video": video, "intro": intro, "drips": drips, "updated": time.strftime("%Y-%m-%d %H:%M")})
+    e = {"video": video, "intro": intro, "intro_planned": (planned or intro) if intro else None,
+         "logo": logo if intro else None, "drips": drips}
+    if intro and e["intro_planned"] != intro:
+        e["fallback_reason"] = fallback_reason or f"{e['intro_planned']} unfit"
+    e["updated"] = time.strftime("%Y-%m-%d %H:%M")
+    hist.append(e)
     data["videos"] = hist
     save_json(ROTATION, data)
 
@@ -98,8 +143,32 @@ def intro_window(props: dict, sb: dict) -> float:
     return round(round(dur * FPS) / FPS, 3)
 
 
+def _box(v, what: str):
+    """Storyboard [x0,y0,x1,y1] -> tuple (or None)."""
+    if v is None:
+        return None
+    try:
+        b = tuple(int(x) for x in v)
+    except (TypeError, ValueError):
+        b = ()
+    if len(b) != 4:
+        die(f"finish: storyboard intro.{what} {v!r} must be [x0, y0, x1, y1]")
+    return b
+
+
+def _keep_out(v):
+    """Storyboard intro.smash_keep_out: left | right | none | [x0,y0,x1,y1] (None = auto)."""
+    if v is None or (isinstance(v, str) and v.lower() in ("left", "right", "none")):
+        return v.lower() if isinstance(v, str) else None
+    if isinstance(v, str):
+        if v.count(",") == 3:
+            return _box(v.split(","), "smash_keep_out")
+        die(f"finish: storyboard intro.smash_keep_out {v!r} (left | right | none | [x0, y0, x1, y1])")
+    return _box(v, "smash_keep_out")
+
+
 def finish(final: Path, base: Path, props: dict, out: Path | None = None, intro_style: str | None = None,
-           drips: str | None = None, rec: bool | None = None) -> dict:
+           drips: str | None = None, rec: bool | None = None, logo_style: str | None = None) -> dict:
     import style_fx
     out = out or final
     sb = load_json(OUT / "storyboard.json", default={})
@@ -119,8 +188,11 @@ def finish(final: Path, base: Path, props: dict, out: Path | None = None, intro_
     if not (want_intro or want_logo):
         print("finish: nothing to bake (no fonzi_intro title, no logo_drip end card)")
         return {}
-    style, drp = picks(video, sb)
-    style, drp = intro_style or style, drips or drp
+    style, logo, drp = picks(video, sb)
+    style, logo, drp = intro_style or style, logo_style or logo, drips or drp
+    if style not in ALL_INTRO_STYLES or logo not in ALL_LOGO_STYLES:
+        die(f"finish: unknown intro style {style!r} / logo {logo!r}")
+    planned, fallback = style, None
     info = probe(final)
     nf = int(round(info["duration"] * FPS))
     total = nf / FPS          # the picture's exact length (the container can carry a few ms of AAC tail)
@@ -135,8 +207,19 @@ def finish(final: Path, base: Path, props: dict, out: Path | None = None, intro_
         dur = intro_window(props, sb)
         bts, bpm, phase = beats(cm, sb)
         piece = tmp / "intro_piece.mp4"
-        rep = style_fx.intro(final, piece, ov.get("title") or t["text"], ov.get("subtitle", t.get("subtitle", "")),
-                             style, bts, bpm, phase, dur, piece=True, mask_src=base, report=WORK / "intro_card.json")
+        args = (final, piece, ov.get("title") or t["text"], ov.get("subtitle", t.get("subtitle", "")))
+        kw = dict(piece=True, mask_src=base, report=WORK / "intro_card.json", face_box=_box(ov.get("face_box"),
+                  "face_box"), logo=logo, smash_keep_out=_keep_out(ov.get("smash_keep_out")))
+        try:
+            rep = style_fx.intro(*args, style, bts, bpm, phase, dur, **kw)
+        except style_fx.IntroStyleUnfit as e:
+            if style == FALLBACK:
+                raise
+            fallback = f"{getattr(e, 'style', style)} unfit: {getattr(e, 'reason', e)}"
+            print(f"finish: intro {style} cannot be drawn cleanly for this video ({getattr(e, 'reason', e)}); "
+                  f"rendering {FALLBACK} instead (recorded: intro {FALLBACK}, planned {style})")
+            style = FALLBACK
+            rep = style_fx.intro(*args, style, bts, bpm, phase, dur, **kw)
         ni = rep["frames"]
         inputs += ["-i", str(piece)]
         k = len(inputs) // 2 - 1
@@ -182,32 +265,39 @@ def finish(final: Path, base: Path, props: dict, out: Path | None = None, intro_
     import shutil
     shutil.rmtree(tmp, ignore_errors=True)
     entry.update(output=rel(out), sha256=sha256(out), intro_style=style if want_intro else None,
+                 intro_planned=planned if want_intro else None, logo_style=logo if want_intro else None,
                  drips=drp if want_logo else None)
+    if want_intro and fallback:
+        entry["fallback_reason"] = fallback
     log["finished"] = (log["finished"] + [entry])[-30:]
     save_json(LOG, log)
     real = out.resolve() == (OUT / "final_edit.mp4").resolve()
     if rec if rec is not None else real:
-        record(video, style if want_intro else None, drp if want_logo else None)
+        record(video, style if want_intro else None, drp if want_logo else None, planned, logo, fallback)
         import effects
-        effects.log_title_style(video, {"style": f"Fonzi intro card ({style})" if want_intro else "no intro card",
-                                        "at": 0.0, "dur": ni / FPS})
-    print(f"finish: {'intro ' + style + f' 0-{ni / FPS:.2f}s' if want_intro else 'no intro'}; "
+        name = f"Fonzi intro card ({style} title, {logo} logo" + (f", planned {planned}: fell back" if fallback
+                                                                   else "") + ")"
+        effects.log_title_style(video, {"style": name if want_intro else "no intro card", "at": 0.0, "dur": ni / FPS})
+    print(f"finish: {'intro ' + style + ' / logo ' + logo + f' 0-{ni / FPS:.2f}s' if want_intro else 'no intro'}"
+          f"{f' (planned {planned}, fell back to {FALLBACK})' if want_intro and fallback else ''}; "
           f"{'logo end card (' + drp + f' drips) {f0 / FPS:.2f}s-end' if want_logo else 'no logo card'}; "
           f"wrote {rel(out)} ({got['duration']:.3f}s), logged in {rel(LOG)}")
     return entry
 
 
 def main():
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description="Bake the Fonzi intro card + logo end card into a rendered final "
+                                 "(normally run by render_final.py).")
     ap.add_argument("--final", type=Path, default=OUT / "final_edit.mp4")
     ap.add_argument("--base", type=Path, help="the clean picture the graphics were laid over (default: the cut)")
     ap.add_argument("--out", type=Path)
-    ap.add_argument("--intro", choices=INTRO_STYLES)
+    ap.add_argument("--intro", choices=ALL_INTRO_STYLES, help="intro title style (default: the rotation's pick)")
+    ap.add_argument("--logo", choices=ALL_LOGO_STYLES, help="intro logo style (default: the rotation's pick)")
     ap.add_argument("--drips", choices=DRIPS)
     ap.add_argument("--no-record", action="store_true")
     a = ap.parse_args()
     finish(a.final, a.base or base_video(), load_json(WORK / "overlay_props.json"), a.out, a.intro, a.drips,
-           False if a.no_record else None)
+           False if a.no_record else None, logo_style=a.logo)
 
 
 if __name__ == "__main__":

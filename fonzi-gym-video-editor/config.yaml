@@ -156,8 +156,12 @@ sfx:
   hook: sfx/whoosh.wav             # the hook title card
 
 # Alfonso 2026-11-21 (STYLE.md rule 0): the Fonzi intro card, baked in by scripts/finish_fx.py after the render
-# (style_fx.py intro). Style strobe / pulse alternates per video (posted/style_rotation.json).
+# (style_fx.py intro). Round 7, 2026-11-22: the title style cycles strobe -> pulse -> glitch -> smash per video and
+# the logo behind him alternates flat <-> 3d on its own (posted/style_rotation.json; storyboard intro.style /
+# intro.logo override; an unfit glitch / smash renders pulse and the cycle continues after the planned one).
 intro:
+  title_styles: [strobe, pulse, glitch, smash]   # fixed cycle order (style_fx.py intro --style)
+  logo_styles: [flat, 3d]                        # alternates per video (style_fx.py intro --logo)
   max_dur: 3.0                     # seconds from 0; also stops at the hook end and the first gold exercise title
   min_dur: 1.2                     # less room than this before the first title: finish_fx.py stops and says so
   logo_sfx_db: -6                  # the logo end card's clicks / crackle under the song

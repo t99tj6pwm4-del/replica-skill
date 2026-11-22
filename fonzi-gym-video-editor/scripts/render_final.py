@@ -6,9 +6,13 @@
     python3 scripts/render_final.py --title-style layered-gold   # Layered Title (Documentary Gold) only, no subtitles
     python3 scripts/render_final.py --title-style layered-gold-plus   # layered title + the usual graphics (Alfonso asks)
     python3 scripts/render_final.py --out output/intro_test/final_edit_test.mp4   # a test render, final_edit.mp4 untouched
+    python3 scripts/render_final.py --intro-style glitch --logo-style 3d   # force the intro title / logo style
+        # (strobe | pulse | glitch | smash, flat | 3d; passed to finish_fx.finish; default = the rotation's pick)
 
 After the composite it ALWAYS runs scripts/finish_fx.py (Fonzi style, STYLE.md rules 0 and 3): the Rubik Dirt intro
-card over the hook (props title.style "fonzi_intro", strobe / pulse by rotation) and the dripping logo end card
+card over the hook (props title.style "fonzi_intro"; title strobe -> pulse -> glitch -> smash and logo flat <-> 3d by
+rotation, an unfit glitch / smash falls back to pulse; only a render to output/final_edit.mp4 is recorded in
+posted/style_rotation.json, an --out test render never is) and the dripping logo end card
 (endCard.style "logo_drip"), baked into the picture in one pass. The --preview stills show only the Remotion layer:
 the intro and the logo card are not in them (look at output/work/intro_card.json and the final's frames instead).
 
@@ -118,7 +122,28 @@ def target_path() -> Path:
     return OUT / "final_edit.mp4"
 
 
+INTRO_STYLES = ("strobe", "pulse", "glitch", "smash")   # finish_fx.ALL_INTRO_STYLES
+LOGO_STYLES = ("flat", "3d")                            # finish_fx.ALL_LOGO_STYLES
+
+
+def flag(name: str, choices: tuple[str, ...]) -> str | None:
+    """--name VALUE or --name=VALUE, checked against choices (None when not given)."""
+    v = next((a.split("=", 1)[1] for a in sys.argv if a.startswith(name + "=")), None)
+    if name in sys.argv:
+        i = sys.argv.index(name)
+        v = sys.argv[i + 1] if i + 1 < len(sys.argv) else ""
+    if v is not None and v not in choices:
+        die(f"{name} {v!r}: use one of {' | '.join(choices)}")
+    return v
+
+
 def main():
+    if "-h" in sys.argv or "--help" in sys.argv:
+        print(__doc__.strip())
+        print("\nflags: --out PATH  --preview T [T ...]  --title-style normal|layered-gold|layered-gold-plus  "
+              f"--intro-style {'|'.join(INTRO_STYLES)}  --logo-style {'|'.join(LOGO_STYLES)}")
+        return
+    intro_style, logo_style = flag("--intro-style", INTRO_STYLES), flag("--logo-style", LOGO_STYLES)
     if not (OUT / "cut_version.mp4").exists():
         die("output/cut_version.mp4 is missing: the Cuts Agent has to run first")
     cut = base_video()   # multicam_version.mp4 when the Multicam/B-Roll Agent ran
@@ -243,7 +268,7 @@ def main():
     add_sfx(final, props)
     # Fonzi finish (intro card + logo end card), always, exactly once per render, on the clean picture `cut`
     import finish_fx
-    finish_fx.finish(final, cut, props)
+    finish_fx.finish(final, cut, props, intro_style=intro_style, logo_style=logo_style)
     fx_base.unlink(missing_ok=True)
     (WORK / "layered_base.mp4").unlink(missing_ok=True)
     (WORK / "exercise_base.mp4").unlink(missing_ok=True)
