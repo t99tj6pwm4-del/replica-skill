@@ -7,9 +7,9 @@
     "ast_empty": true
   },
   "config.yaml": {
-    "mtime": 1795300515.2404273,
-    "seen": 1795300561.5807219,
-    "ast_hash": "f8e50601d271571c5fd8e57a891e0c65",
+    "mtime": 1795321732.9097643,
+    "seen": 1795321967.0676901,
+    "ast_hash": "3f54f1ac741898631f71ae24144b7cb7",
     "semantic_hash": ""
   },
   "config/brand.json": {
@@ -163,9 +163,9 @@
     "semantic_hash": "90980883d9c12ebcdea6637dcf20d52c"
   },
   "scripts/qa_check.py": {
-    "mtime": 1795282540.7160234,
-    "seen": 1795286554.65808,
-    "ast_hash": "b3d05f87b2a22623375502a963e5a9fb",
+    "mtime": 1795321824.7520547,
+    "seen": 1795321967.0677526,
+    "ast_hash": "302740c270a7f948ae3d0be4b7863d22",
     "semantic_hash": ""
   },
   "scripts/qa_verdict.py": {
@@ -175,9 +175,9 @@
     "semantic_hash": "c973d8d30c0fab05785a8c7ccb10bc6d"
   },
   "scripts/render_final.py": {
-    "mtime": 1795282511.9442194,
-    "seen": 1795286554.6580846,
-    "ast_hash": "1ba29ceaa3be4b9791beec107558f7cc",
+    "mtime": 1795321695.4540339,
+    "seen": 1795321967.067755,
+    "ast_hash": "0f81a07ba6a112b7d6ab3ffa9c17e45d",
     "semantic_hash": ""
   },
   "scripts/setup.sh": {
@@ -211,9 +211,9 @@
     "semantic_hash": ""
   },
   "HANDOVER.md": {
-    "mtime": 1795301144.1279204,
-    "seen": 1795301145.2046537,
-    "ast_hash": "48dca1efa9cb1b3196f9c5a089ab1d6c",
+    "mtime": 1795319162.4218538,
+    "seen": 1795321967.0677764,
+    "ast_hash": "2d2284e97ae9de46f50e88209b82815f",
     "semantic_hash": ""
   },
   "README.md": {
@@ -517,9 +517,9 @@
     "semantic_hash": ""
   },
   "style-lab/STYLE.md": {
-    "mtime": 1795282620.4513354,
-    "seen": 1795286554.6581583,
-    "ast_hash": "ebc2d43f1c5e2917599947c6de474d4d",
+    "mtime": 1795321939.8375754,
+    "seen": 1795321967.067803,
+    "ast_hash": "4499a0cdddeec876e123a984dd401470",
     "semantic_hash": ""
   },
   "style-lab/style-lab.html": {
@@ -559,9 +559,9 @@
     "semantic_hash": ""
   },
   "scripts/style_fx.py": {
-    "mtime": 1795283970.6096277,
-    "seen": 1795286554.6580946,
-    "ast_hash": "f398e517e2cdc6de4c2199291bceb58f",
+    "mtime": 1795320539.0250933,
+    "seen": 1795321967.0677605,
+    "ast_hash": "fe6e7a5c159dc24da44f9d54033ae2ff",
     "semantic_hash": ""
   },
   "style-lab/round2/build.py": {
@@ -613,9 +613,9 @@
     "semantic_hash": ""
   },
   "scripts/finish_fx.py": {
-    "mtime": 1795285251.0771756,
-    "seen": 1795286554.6580558,
-    "ast_hash": "bcd72d79a4f59564b02a79d788339a00",
+    "mtime": 1795321680.2177103,
+    "seen": 1795321967.0677295,
+    "ast_hash": "b3147fe26ae875a94b4659ba4f4543b7",
     "semantic_hash": ""
   },
   "style-lab/round6/build.py": {
@@ -643,9 +643,45 @@
     "semantic_hash": ""
   },
   "docs/hyperframes.md": {
-    "mtime": 1795301104.7233117,
-    "seen": 1795301145.2046707,
-    "ast_hash": "fe4391a0c203be194fef7df87bf26ed6",
+    "mtime": 1795321947.6519196,
+    "seen": 1795321967.0677898,
+    "ast_hash": "b89888313b38c2844d13d2599904e853",
+    "semantic_hash": ""
+  },
+  "scripts/intro_glitch.py": {
+    "mtime": 1795319461.482342,
+    "seen": 1795321967.0677378,
+    "ast_hash": "0db58ce26002f8950f40e8f258991298",
+    "semantic_hash": ""
+  },
+  "scripts/intro_logo3d.py": {
+    "mtime": 1795319445.5423045,
+    "seen": 1795321967.0677397,
+    "ast_hash": "4877c2412b2c67eaa7c58b2c99eeb6ac",
+    "semantic_hash": ""
+  },
+  "scripts/intro_smash.py": {
+    "mtime": 1795320238.6408958,
+    "seen": 1795321967.0677414,
+    "ast_hash": "a0ede54d8025e7293a182608723c5914",
+    "semantic_hash": ""
+  },
+  "style-lab/round7/style_sheet.json": {
+    "mtime": 1795303306.40067,
+    "seen": 1795321967.0677724,
+    "ast_hash": "e1a1b0ac719544d2d573cfaee64b0e2a",
+    "semantic_hash": ""
+  },
+  "style-lab/round7/work_orders.json": {
+    "mtime": 1795301458.9468374,
+    "seen": 1795321967.0677736,
+    "ast_hash": "ca2c94cb0e7b9c0993cefbef60c150c8",
+    "semantic_hash": ""
+  },
+  "style-lab/round7/README.md": {
+    "mtime": 1795301471.7044613,
+    "seen": 1795321967.0678039,
+    "ast_hash": "0896f9a1866327324e1ae935511adb84",
     "semantic_hash": ""
   },
   "remotion/package-lock.json": {

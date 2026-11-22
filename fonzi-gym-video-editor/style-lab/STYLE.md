@@ -77,7 +77,9 @@ Tool: `scripts/style_fx.py` (snap / zoom / cutout / logo). Our own sounds only (
    effective (what round 6 and production ship). Reference builds: `output/style_lab/r7/r7-03|04|05/`,
    plan `style-lab/round7/`. Rejected in round 7: slam-in (r7-01), gold glint (r7-02).
    Production tool: `style_fx.py intro`, run automatically by `render_final.py` -> `scripts/finish_fx.py`
-   (overlay_props `title.style: "fonzi_intro"`; strobe / pulse alternate via `posted/style_rotation.json`).
+   (overlay_props `title.style: "fonzi_intro"`; the title cycles strobe -> pulse -> glitch -> smash and the logo
+   alternates flat / 3d per video via `posted/style_rotation.json`; storyboard `intro.style` / `intro.logo` /
+   `intro.smash_keep_out` override).
 3. **Logo end card**: `style_fx.py logo` last 3-3.5 s: flicker on + real drips; rotate `--drips slow|heavy|wet`.
 4. **Never**: colour grade, flicker masks / light leaks, film burn, rise wipe, slow luma fade, cut-out with black
    or outline backgrounds, text over his face, hashtags, non-English (except the Spanish pop-up lines).

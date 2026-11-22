@@ -182,8 +182,14 @@ so Remotion draws neither. `render_final.py` then ALWAYS runs `scripts/finish_fx
 bakes `style_fx.py intro` over the hook (Rubik Dirt gold title in front of him and below his face, Fonzi logo white
 85% ~1000 px behind him, title on the song's beat from cut_map "beat"; window = 0 to the hook end, never into the
 first gold exercise title, max 3 s) and the dripping logo card over the end-card window, in one encode, sfx under
-the song. Strobe / pulse alternates per video and drips rotate slow -> heavy -> wet (posted/style_rotation.json;
-a re-render of the same video keeps its picks; storyboard "intro": {"style"} / "end_card": {"drips"} override).
+the song. The intro title cycles strobe -> pulse -> glitch -> smash per video, the logo behind him alternates
+flat / 3d, and drips rotate slow -> heavy -> wet (posted/style_rotation.json; a re-render of the same video keeps
+its picks; storyboard "intro": {"style", "logo", "smash_keep_out"} / "end_card": {"drips"} override). A glitch or
+smash that cannot be drawn cleanly (IntroStyleUnfit) renders as pulse; the rotation entry keeps intro_planned +
+fallback_reason and the next video continues after the planned style. Test a style with
+`render_final.py --out output/<dir>/x.mp4 --intro-style strobe|pulse|glitch|smash --logo-style flat|3d`. For a
+smash, check frames b1-9 .. b1+3 (scattered fade-in, fly, land on beat 1, shake; never over his face or the
+dumbbell side); for a 3D logo, check frames b1-4 .. b1+10 (swing settles, fully in frame, behind him, white).
 It refuses a file it already finished, so never run `finish_fx.py` by hand after `render_final.py`, and never
 snap the hook or add a scrim / stripes / box. If it stops with "no clean spot for the title below his face", tell
 the Director the hook shot keeps his face too low (or pass `--title-y` / `--face-box` via a manual
