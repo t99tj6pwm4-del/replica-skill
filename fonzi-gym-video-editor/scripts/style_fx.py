@@ -530,18 +530,41 @@ def place_title(spec: TitleSpec, heads: list, visible: list[int], style: str, ti
                      "--dur, or --title-y by hand; not drawing over his face.")
 
 
+TITLE_STYLES = ("strobe", "pulse", "glitch", "smash")
+LOGO_STYLES = ("flat", "3d")
+GOLD_MAX = (236, 212, 151)                  # #ECD497, brightest a title pixel may be (glitch / smash hard check)
+LOGO_FIT_BOX = (4, 4, W - 4, H - 4)         # logo alpha > 8 bbox must stay inside on every frame
+
+
+def _pulse_window(k: int, beats: list[int]) -> bool:
+    return any(0 <= k - b < 6 for b in beats[1:])
+
+
 def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=None, bpm=None, phase=None,
           dur: float = 3.0, piece: bool = False, mask_src: Path | None = None, report: Path | None = None,
-          title_y: int | None = None, face_box: tuple | None = None) -> dict:
+          title_y: int | None = None, face_box: tuple | None = None, logo: str = "flat",
+          smash_keep_out=None, dump_layers: Path | None = None) -> dict:
     import json
     import shutil
     import tempfile
     import layered_title as lt
+    if style not in TITLE_STYLES:
+        raise SystemExit(f"intro: unknown style {style!r} ({' | '.join(TITLE_STYLES)})")
+    if logo not in LOGO_STYLES:
+        raise SystemExit(f"intro: unknown logo {logo!r} ({' | '.join(LOGO_STYLES)})")
     total = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
                                   str(inp)], capture_output=True, text=True, check=True).stdout.strip())
     n = int(round(min(dur, total) * FPS))
     bts = beat_frames(n, beats, bpm, phase)
     b1 = bts[0]
+    if style == "glitch":                                   # unfit checks before the slow cut-out
+        import intro_glitch as ig
+        if not ig.glitch_fits(bts, n):
+            raise IntroStyleUnfit(f"no later beat with all 3 glitch frames inside the {n}-frame window "
+                                  f"(beat frames {bts})", "glitch")
+    if style == "smash" and b1 < 10:
+        raise IntroStyleUnfit(f"beat 1 is on frame {b1}; the smash needs 10 frames before it (fade b1-9..b1-5, "
+                              "fly b1-3..b1-1)", "smash")
     tmp = Path(tempfile.mkdtemp(prefix=".intro_", dir=out.parent))
     try:
         pics = _extract(inp, n, tmp / "pic")
@@ -557,10 +580,28 @@ def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=Non
         visible = list(range(b1, n))
         spec = place_title(TitleSpec(title, subtitle, TITLE_W), heads, visible, style, title_y, face_box)
         tl, sub, (gcx, gcy) = spec.layers()
-        logo, box = big_logo()
-        logo_a = np.asarray(logo)[..., 3]
+        plan = None
+        if style == "smash":
+            import intro_smash as ism
+            try:
+                plan = ism.SmashPlan.build(spec.lines, TITLE_FONT, spec.size, spec.centres()[0], tl, heads, marr,
+                                           b1, n, keep_out=smash_keep_out, extra_face=face_box)
+            except ism.IntroUnfit as e:
+                raise IntroStyleUnfit(e.reason, "smash") from e
+        flat, box = big_logo()
+        logo_a = np.asarray(flat)[..., 3]
         art_px = float((logo_a > 20).sum())
+        lg = None
+        if logo == "3d":
+            from intro_logo3d import Logo3D
+            lg = Logo3D(flat, box)
+            lg.fit(b1, n)                                   # shrinks in 2 % steps until every frame fits
+        if dump_layers:
+            dump_layers = Path(dump_layers)
+            dump_layers.mkdir(parents=True, exist_ok=True)
+        empty = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         issues, edge_px, vis_pct = [], 0, {}
+        logo_max, logo_face, title_max = None, 0, None
         pic = tmp / "intro.pic.mp4"
         enc = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
                                 "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-crf", "14", "-preset", "medium",
@@ -570,31 +611,70 @@ def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=Non
             img = Image.open(pics[k]).convert("RGBA")
             la = min(1.0, max(0.0, (k - (b1 - 4)) / 4))     # logo fades up under beat 1 (never flickers)
             comp = img
+            lay = empty
             if la > 0:
-                comp = Image.alpha_composite(comp, _with_alpha(logo, la))
+                if lg is None:
+                    lay = _with_alpha(flat, la)
+                    fa = logo_a * la                        # flat: the round-6 measure, unchanged
+                    fpx = art_px
+                else:
+                    lay, _ = lg.frame(k, b1)
+                    fa = np.asarray(lay)[..., 3]
+                    fpx = float((fa > 20).sum()) or 1.0
+                comp = Image.alpha_composite(comp, lay)
                 person = img.copy()
                 person.putalpha(masks[k])
                 comp = Image.alpha_composite(comp, person)
-                vis = (logo_a * la > 20) & ~marr[k]
+                vis = (fa > 20) & ~marr[k]
                 edge_px += int(vis[0].sum() + vis[-1].sum() + vis[:, 0].sum() + vis[:, -1].sum())
                 if k in (b1, n // 2, n - 1):
-                    vis_pct[f"f{k}"] = round(100 * float(vis.sum()) / art_px, 1)
+                    vis_pct[f"f{k}"] = round(100 * float(vis.sum()) / fpx, 1)
+                lb = Image.fromarray((np.asarray(lay)[..., 3] > 8).astype(np.uint8) * 255).getbbox()
+                if lb:
+                    logo_max = list(lb) if logo_max is None else [min(logo_max[0], lb[0]), min(logo_max[1], lb[1]),
+                                                                  max(logo_max[2], lb[2]), max(logo_max[3], lb[3])]
+                    if (lb[0] < LOGO_FIT_BOX[0] or lb[1] < LOGO_FIT_BOX[1] or lb[2] > LOGO_FIT_BOX[2]
+                            or lb[3] > LOGO_FIT_BOX[3]):
+                        issues.append(f"f{k}: logo bbox {list(lb)} leaves the frame {list(LOGO_FIT_BOX)}")
+                if heads[k]:                                # round-6 measure: visible logo on the soft
+                    x0, y0, x1, y1 = heads[k]                   # mask edge (64 < mask <= 128) in his head box
+                    soft = np.asarray(masks[k])[y0:y1, x0:x1] > 64
+                    logo_face += int((vis[y0:y1, x0:x1] & soft).sum())
             txt = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-            st = title_state(style, k, bts)
-            if st:
-                amt, sc = st
-                t = tl
-                if amt:
-                    g = np.array(GOLD, np.float32)
-                    t = _tint(tl, [int(v) for v in g + (255 - g) * amt])
-                txt = Image.alpha_composite(txt, _scaled(t, sc, gcx, gcy))
+            t = None
+            if style in ("strobe", "pulse"):
+                st = title_state(style, k, bts)
+                if st:
+                    amt, sc = st
+                    t = tl
+                    if amt:
+                        g = np.array(GOLD, np.float32)
+                        t = _tint(tl, [int(v) for v in g + (255 - g) * amt])
+                    t = _scaled(t, sc, gcx, gcy)
+            elif style == "glitch":
+                t = ig.glitch_title(tl, k, bts)
+            else:
+                t = plan.title(k, tl, bts)
+            if t is not None:
+                txt = Image.alpha_composite(txt, t)
+                ta = np.asarray(t)
+                on = ta[..., 3] > 128
+                if on.any():
+                    mx = ta[..., :3][on].max(0)
+                    title_max = mx if title_max is None else np.maximum(title_max, mx)
+                    hard = style == "glitch" or (style == "smash" and not _pulse_window(k, bts))
+                    if hard and (mx > np.array(GOLD_MAX)).any():
+                        issues.append(f"f{k}: title pixel {mx.tolist()} brighter than #ECD497")
+            if dump_layers:
+                (t if t is not None else empty).save(dump_layers / f"title_{k:04d}.png")
+                lay.save(dump_layers / f"logo_{k:04d}.png")
             sd = k - (b1 + 8)
             if sd >= 0 and spec.sub:                        # subtitle eases up under the title, then holds
                 e = 1 - (1 - min(1.0, sd / 6)) ** 3
                 sl = Image.new("RGBA", (W, H), (0, 0, 0, 0))
                 sl.paste(sub, (0, int(18 * (1 - e))), sub)
                 txt = Image.alpha_composite(txt, _with_alpha(sl, e))
-            if txt.getbbox():
+            if txt.getbbox():                               # every style: title, split copies, glyphs, subtitle
                 comp = Image.alpha_composite(Image.alpha_composite(comp, _shadow(txt)), txt)
                 ys, xs = np.nonzero(np.asarray(txt.getchannel("A")) > 20)
                 yr = [min(yr[0], int(ys.min())), max(yr[1], int(ys.max()))]
@@ -612,6 +692,9 @@ def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=Non
             raise SystemExit("intro: ffmpeg failed writing the picture")
         if edge_px:
             issues.append(f"logo touches the frame edge ({edge_px} px)")
+        gl = ig.glitch_stats(tl, bts, n) if style == "glitch" else None
+        if gl and (gl["split_px_inside_letters"] or gl["split_alpha_max"] > ig.SPLIT_ALPHA_MAX):
+            issues.append(f"glitch split inside the letters / too strong: {gl}")
         if issues:
             raise SystemExit("intro: refusing to write it:\n  " + "\n  ".join(issues[:12]))
         sounds = [("whoosh", b1 / FPS - 0.30, -14), ("impact", b1 / FPS - 0.02, -5)]
@@ -623,10 +706,15 @@ def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=Non
                "logo_box": list(box), "logo_size": [box[2] - box[0], box[3] - box[1]], "logo_visible_pct": vis_pct,
                "logo_edge_px": edge_px, "face_max_y": max((h[3] for h in heads if h), default=None),
                "faces_found": sum(1 for h in heads if h), "sounds": [list(s) for s in sounds],
-               "piece": piece, "input": str(inp), "output": str(out)}
-        print(f"intro {style}: {' / '.join(spec.lines)} ({spec.size}px, line 1 at y={spec.y1}), logo "
-              f"{res['logo_size']} at {box}, beats {res['beats_s']}, shots {len(edges) - 1}, his face down to "
-              f"y={res['face_max_y']}, text y {yr[0]}-{yr[1]}: clear of his face in all {n} frames")
+               "piece": piece, "input": str(inp), "output": str(out),
+               "logo_style": logo, "logo_scale": lg.scale if lg else 1.0, "logo_box_max": logo_max,
+               "logo_on_face_px_max": logo_face,      # window total, as round 6 (2087)
+               "title_max_rgb": [int(v) for v in title_max] if title_max is not None else None,
+               "glitch": gl, "smash": plan.stats() if plan else None}
+        print(f"intro {style} / logo {logo}: {' / '.join(spec.lines)} ({spec.size}px, line 1 at y={spec.y1}), logo "
+              f"{res['logo_size']} at {box} (scale {res['logo_scale']}), beats {res['beats_s']}, shots "
+              f"{len(edges) - 1}, his face down to y={res['face_max_y']}, text y {yr[0]}-{yr[1]}: clear of his "
+              f"face in all {n} frames; title max rgb {res['title_max_rgb']}, logo on face {logo_face} px")
         if report:
             report.write_text(json.dumps(res, indent=1))
         return res
@@ -666,7 +754,7 @@ def _intro_out(pic: Path, inp: Path, out: Path, n: int, total: float, sounds, pi
 
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("snap"); s.add_argument("inp", type=Path); s.add_argument("out", type=Path)
     s.add_argument("--at", type=float, required=True)
@@ -678,7 +766,12 @@ if __name__ == "__main__":
     lo.add_argument("--drips", choices=["slow", "heavy", "wet"], default="heavy"); lo.add_argument("--dur", type=float, default=3.5)
     it = sub.add_parser("intro"); it.add_argument("inp", type=Path); it.add_argument("out", type=Path)
     it.add_argument("--title", required=True); it.add_argument("--subtitle", default="")
-    it.add_argument("--style", choices=["strobe", "pulse"], required=True)
+    it.add_argument("--style", choices=list(TITLE_STYLES), required=True,
+                    help="strobe | pulse (round 6, unchanged) | glitch (r7-03 edge split) | smash (r7-05 letters)")
+    it.add_argument("--logo", choices=list(LOGO_STYLES), default="flat",
+                    help="flat (round 6, unchanged) | 3d (r7-04 extruded white logo swinging to rest)")
+    it.add_argument("--smash-keep-out", help="smash only: left | right | none | x0,y0,x1,y1 (default: auto side)")
+    it.add_argument("--dump-layers", type=Path, help="test use: save each frame's title / logo RGBA here")
     it.add_argument("--beats", help="beat times in seconds, comma list (beat 1 = first one)")
     it.add_argument("--bpm", type=float); it.add_argument("--phase", type=float, default=0.0)
     it.add_argument("--dur", type=float, default=3.0)
@@ -692,7 +785,9 @@ if __name__ == "__main__":
         intro(a.inp, a.out, a.title, a.subtitle, a.style,
               [float(x) for x in a.beats.split(",") if x.strip()] if a.beats else None, a.bpm, a.phase, a.dur,
               a.piece, a.mask_src, a.report, a.title_y,
-              tuple(int(v) for v in a.face_box.split(",")) if a.face_box else None)
+              tuple(int(v) for v in a.face_box.split(",")) if a.face_box else None, a.logo,
+              (tuple(int(v) for v in a.smash_keep_out.split(",")) if "," in a.smash_keep_out else a.smash_keep_out)
+              if a.smash_keep_out else None, a.dump_layers)
     elif a.cmd == "snap":
         snap(a.inp, a.out, a.at)
     elif a.cmd == "zoom":
