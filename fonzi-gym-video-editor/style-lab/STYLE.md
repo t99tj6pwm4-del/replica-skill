@@ -31,6 +31,7 @@
 - **Logo end card: flicker on** (r1-l2, round 1): flickers on like a sign warming up, then a steady glow. Clicks. **With real drips** (round 2, all three kept): drips run down from the halo, letters and tail after the flicker. Allowed amounts: a few slow drips (6, drops fall now and then), heavy drips (14, drops falling), wet paint (14, creep down and stay). Rotate between them across videos.
 
 ## Rejected
+- **Intro slam-in and gold glint** (round 7, 2026-11-22).
 - **Cut out with the background flickering bright/overexposed** (round 4).
 - **Cut out with a black background, or with a white outline** (round 3).
 - **Flicker mask / light leak** (round 2, both versions dropped).
@@ -65,6 +66,16 @@ Tool: `scripts/style_fx.py` (snap / zoom / cutout / logo). Our own sounds only (
    **burst + pulse** (round-2 flicker-on at beat 1, then brighter + 1.0->1.06 pulse on each beat). Whoosh into beat 1,
    impact on beat 1. Never: white flash on the beat, title drips, logo flicker-on, dark tint. Reference build:
    `style-lab/round6/build.py` (r6-01 strobe, r6-03 burst + pulse).
+   **Round 7 (2026-11-22, HyperFrames, kept r7-03 / r7-04 / r7-05):** the title beat style now rotates per video
+   between FOUR: strobe, burst + pulse, **glitch** (round-6 burst at beat 1, then on beats 2-4 a 3-frame red/green
+   split, 8/5/2 px, alpha <= 0.6, on the letter EDGES only, never inside the letters, snaps back to clean gold; no
+   pulse) and **letters smash** (letters fade in scattered on his chest, never over his face or the dumbbell side,
+   >= 24 px apart, fly into a spaced LOCKED / IN row, smash together exactly on beat 1 with a decaying shake
+   +6/-3, -4/+2, +2/-1, then the pulse on each beat). The logo behind him alternates per video between **flat** and
+   **3D** (r7-04: white logo with 14 px depth, sides 30 % white, swings in rotateY -8 -> 0 / rotateX 4 -> 0 over
+   beat 1 -> +10 frames, cubic in-out, settled and still after; fully in frame, behind him). Logo white is 72 %
+   effective (what round 6 and production ship). Reference builds: `output/style_lab/r7/r7-03|04|05/`,
+   plan `style-lab/round7/`. Rejected in round 7: slam-in (r7-01), gold glint (r7-02).
    Production tool: `style_fx.py intro`, run automatically by `render_final.py` -> `scripts/finish_fx.py`
    (overlay_props `title.style: "fonzi_intro"`; strobe / pulse alternate via `posted/style_rotation.json`).
 3. **Logo end card**: `style_fx.py logo` last 3-3.5 s: flicker on + real drips; rotate `--drips slow|heavy|wet`.
