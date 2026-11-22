@@ -15,16 +15,26 @@
         Rotate slow / heavy / wet across videos. Background = CLIP blurred and darkened to 35 %.
 
     python3 scripts/style_fx.py intro IN.mp4 OUT.mp4 --title "LOCKED IN" --subtitle "5 LIFTS. ONE SONG."
-            --style strobe|pulse (--beats 0.667,1.335 | --bpm 89.88 --phase 0.667) [--dur 2.0] [--piece]
-            [--mask-src CLEAN.mp4] [--report intro.json]
-        Intro card (STYLE.md rule 0, locked 2026-11-21): Rubik Dirt gold title (no drips) IN FRONT of him and below
-        his face, small white letter-spaced subtitle, the Fonzi logo (white 85 %, ~1000 px, whole logo in frame)
-        BEHIND him (rembg cut-out per frame, per shot when there is a hard cut inside the window). The title comes
-        on at beat 1 and flickers to the beat: strobe (off 2 frames on each later beat) or pulse (round-2
-        flicker-on burst, then brighter + 1.0->1.06 on each later beat). Whoosh into beat 1, impact on beat 1.
-        No scrim, no box, no flash, no snap. Fails (exit 1) rather than draw on his face or clip the logo.
+            --style strobe|pulse|glitch|smash (--beats 0.667,1.335 | --bpm 89.88 --phase 0.667) [--dur 2.0]
+            [--logo flat|3d] [--smash-keep-out left|right|none|x0,y0,x1,y1] [--piece] [--mask-src CLEAN.mp4]
+            [--report intro.json] [--dump-layers DIR]
+        Intro card (STYLE.md rule 0, locked 2026-11-21, Round 7 styles 2026-11-22): Rubik Dirt gold title (no
+        drips) IN FRONT of him and below his face, small white letter-spaced subtitle, the Fonzi logo (white,
+        ~1000 px, whole logo in frame) BEHIND him (rembg cut-out per frame, per shot when there is a hard cut
+        inside the window). Four title styles, all landing on beat 1:
+          strobe  solid from beat 1, off 2 frames on each later beat (r6-01, unchanged)
+          pulse   round-2 flicker-on burst, then brighter + 1.0->1.06 on each later beat (r6-03, unchanged)
+          glitch  the pulse burst, then on beats 2-4 a 3-frame red / cyan split (8/5/2 px, alpha <= 0.6) on the
+                  letter edges only (scripts/intro_glitch.py, r7-03)
+          smash   letters fade in scattered below his face and off the dumbbell side, fly into a spaced row,
+                  smash home on beat 1 with a decaying shake, then the pulse (scripts/intro_smash.py, r7-05)
+        Two logos: flat (fades up b1-4 -> b1, unchanged) or 3d (14 px white extrusion swinging to rest by b1+10,
+        scripts/intro_logo3d.py, r7-04). Whoosh into beat 1, impact on beat 1, same for every style.
+        No scrim, no box, no flash, no snap. Fails (exit 1) rather than draw on his face or clip the logo; a
+        glitch or smash that cannot be drawn cleanly raises IntroStyleUnfit (finish_fx falls back to pulse).
         OUT = IN with the first --dur seconds replaced, IN's audio kept with the two sfx mixed under it.
         --piece: OUT is only the intro window, carrying only our sfx (like the other commands here).
+        --dump-layers DIR: also save every frame's title and logo RGBA (title_NNNN.png / logo_NNNN.png; tests).
 
 All inputs are scaled to 1080x1920 @ 30 fps. snap / zoom / cutout / logo drop the footage audio (the song goes on
 later) and carry only our own sfx (sfx/*.wav), so mix it under the song or keep picture only.
@@ -44,6 +54,17 @@ sys.path.insert(0, str(ROOT / "scripts"))
 W, H, FPS = 1080, 1920, 30
 SFX = ROOT / "sfx"
 LOGO = ROOT / "brand" / "fonzi_logo.png"
+
+from intro_smash import IntroUnfit as _IntroUnfit  # noqa: E402  (numpy / PIL only; no style_fx import there)
+
+
+class IntroStyleUnfit(_IntroUnfit):
+    """The glitch / smash title cannot be drawn cleanly for this video (intro_smash.IntroUnfit re-exported, so
+    `except IntroUnfit` and `except IntroStyleUnfit` both catch it). .style = the planned style, .reason = why.
+    A SystemExit: uncaught it exits 1 with the message; finish_fx catches it and renders pulse instead."""
+    def __init__(self, reason: str, style: str = "smash"):
+        self.reason, self.style = reason, style
+        SystemExit.__init__(self, f"IntroStyleUnfit: intro {style} unfit: {reason}")
 
 
 # ---------- io ----------
@@ -488,7 +509,7 @@ def place_title(spec: TitleSpec, heads: list, visible: list[int], style: str, ti
                 extra_face: tuple | None):
     """Put the title block below his face in every frame where it shows; shrink it if it does not fit; fail if
     there is no clean spot (never draw over his face)."""
-    pad = 1.06 if style == "pulse" else 1.0
+    pad = 1.06 if style in ("pulse", "smash") else 1.0      # smash ends in the same pulse (style sheet pad 1.06)
     boxes = [heads[k] for k in visible if heads[k]] + ([extra_face] if extra_face else [])
     for width in range(TITLE_W, 519, -20):
         s = TitleSpec(" ".join(spec.lines), spec.sub, width)
