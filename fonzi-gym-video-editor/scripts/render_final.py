@@ -104,7 +104,10 @@ def render_carousel(sb: dict, cm: dict, cdir: Path | None = None):
     for i, slide in enumerate(slides):
         pfile = WORK / f"carousel_{i}.json"
         import text_look
-        save_json(pfile, {"brand": {k: b[k] for k in ("name", "handle", "color", "textColor", "darkColor")}, "slide": slide,
+        cb = {k: b[k] for k in ("name", "handle", "color", "textColor", "darkColor")}
+        if not text_look.enabled():
+            cb["color"] = b.get("gold_color", "#FFD60A")
+        save_json(pfile, {"brand": cb, "slide": slide,
                           **({"textLook": text_look.for_remotion()} if text_look.enabled() else {})})
         out = cdir / f"slide_{i + 1:02d}.png"
         remotion(["still", "src/index.ts", "CarouselSlide", str(out), f"--props={pfile}", f"--public-dir={pub}"])
@@ -167,10 +170,13 @@ def main():
         props["textLook"] = text_look.for_remotion()
     else:
         props.pop("textLook", None)
-    props.setdefault("brand", {}).update({k: v for k, v in brand().items() if k in ("color", "textColor", "darkColor")})
-    props["brand"]["popupColor"] = brand().get("popup_color", "#D4A017")
+    b = brand()
+    props.setdefault("brand", {}).update({k: v for k, v in b.items() if k in ("color", "textColor", "darkColor")})
+    props["brand"]["popupColor"] = b.get("popup_color", "#FFFFFF")
+    if not text_look.enabled():          # the old gold look (history / --text-look gold)
+        props["brand"].update(color=b.get("gold_color", "#FFD60A"), popupColor=b.get("gold_popup_color", "#D4A017"))
     save_json(props_path, props)
-    print(f"text look: {'WHITE + glow (config text_look)' if text_look.enabled() else 'gold (shipped default)'}")
+    print(f"text look: {'white + glow (config text_look, round 8 A2)' if text_look.enabled() else 'old gold look'}")
     info = probe(cut)
     if abs(info["duration"] - props["duration"]) > 0.25:
         die("overlay_props.json was built for a different cut. Re-run scripts/build_overlay_props.py")
@@ -307,7 +313,8 @@ def measure_text_look(overlay: Path, props: dict, final: Path) -> dict:
     """Alfonso 2026-11-23 (answer 24): measure the Remotion layer itself (RGBA, before it is laid over the picture)
     at a frame inside every pop-up, CAM tag and the progress label: text pixels (alpha >= 50 %) must be white /
     neutral (R-G-B spread <= text_look.neutral_max_spread) and no dark pixel may be more opaque than
-    text_look.box_alpha_max (a card / bar / panel; the look's own shadow peaks at 35 %). Log for qa_check.py:
+    text_look.box_alpha_max (a card / bar / panel; the look's own shadow peaks at 35 %), except the configured
+    text_look.card behind the checklist / exercise bar (up to the card + the look's shadow over it, + 0.03). Log for qa_check.py:
     output/work/text_look_check.json."""
     import subprocess
     import numpy as np
@@ -335,11 +342,21 @@ def measure_text_look(overlay: Path, props: dict, final: Path) -> dict:
             ok = False
             continue
         a = np.frombuffer(raw[: W * H * 4], np.uint8).reshape(H, W, 4)
-        spread, box = text_look.tint_spread(a), text_look.box_pixels(a)
+        # the configured card (round 8 note) is allowed behind the checklist / bar, never stronger than configured
+        card = lk.get("card") or {}
+        beh = card.get("behind") or []
+        carded = any(x["from"] <= t < x["to"] for x in (pops.get("bars") or [] if "exercise_bar" in beh else [])) or \
+            any(x["from"] <= t < x["to"] for x in (pops.get("checklists") or [] if "checklist" in beh else []))
+        # the card with up to two overlapping line shadows over it: 1 - (1 - card) * (1 - shadow)^2 (+ 0.03 encode)
+        sh = max((float(l["opacity"]) for l in lk["layers"] if l["name"] == "shadow"), default=0.0)
+        lim = max(float(lk["box_alpha_max"]), 1 - (1 - float(card.get("opacity", 0))) * (1 - sh) ** 2 + 0.03) \
+            if carded else None
+        spread, box = text_look.tint_spread(a), text_look.box_pixels(a, lim)
         drawn = int((a[..., 3] >= 128).sum())
         good = spread <= int(lk["neutral_max_spread"]) and box == 0
         ok &= good
-        rows.append({"what": name, "t": round(t, 2), "text_px": drawn, "tint_spread": spread, "box_px": box, "ok": good})
+        rows.append({"what": name, "t": round(t, 2), "text_px": drawn, "tint_spread": spread, "box_px": box, "ok": good,
+                     "card_allowed": bool(carded)})
     rep = {"final": rel(final), "ok": ok, "text_look": text_look.for_remotion(),
            "neutral_max_spread": lk["neutral_max_spread"], "box_alpha_max": lk["box_alpha_max"], "samples": rows}
     save_json(WORK / "text_look_check.json", rep)

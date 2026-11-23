@@ -28,13 +28,14 @@ DEFAULT = {
     "color": "#FFFFFF",
     "layers": [
         {"name": "shadow", "color": "#000000", "blur": 40, "opacity": 0.35},
-        {"name": "wide_glow", "color": "#FFFFFF", "blur": 22, "opacity": 0.45},
-        {"name": "tight_glow", "color": "#FFFFFF", "blur": 6, "opacity": 0.80},
+        {"name": "wide_glow", "color": "#FFFFFF", "blur": 16, "opacity": 0.30},
+        {"name": "tight_glow", "color": "#FFFFFF", "blur": 4, "opacity": 0.60},
     ],
+    "card": {"color": "#000000", "opacity": 0.50, "radius": 44, "behind": ["checklist", "exercise_bar"]},
     "neutral_max_spread": 12,
     "box_alpha_max": 0.5,
     "pulse_glow_boost": 0.6,
-    "enabled": False,
+    "enabled": True,
 }
 
 
@@ -61,12 +62,12 @@ def look() -> dict:
     return out
 
 
-GOLD_RGB = (212, 160, 23)                   # the old look (#D4A017): still the shipped default until Alfonso picks
+GOLD_RGB = (212, 160, 23)                   # the old gold look (#D4A017): only when text_look.enabled is false
 
 
 def enabled() -> bool:
     """Is the white look ON? Env FONZI_TEXT_LOOK=white|gold (render_final.py --text-look sets it) wins over config
-    text_look.enabled (false = the shipped gold look until Alfonso picks in Style Lab round 8)."""
+    text_look.enabled (true since Alfonso picked round 8 A2 on 2026-11-23; false = the old gold look)."""
     import os
     env = os.environ.get("FONZI_TEXT_LOOK", "").strip().lower()
     if env in ("white", "gold"):
@@ -120,6 +121,7 @@ def white(layer: Image.Image) -> Image.Image:
 
 def stack(layer: Image.Image, boost: float = 0.0, keep_rgb: bool = False) -> Image.Image:
     """The full look for one text layer: shadow -> wide glow -> tight glow -> sharp white text, as ONE RGBA layer.
+    (config text_look.card is Remotion-only: the checklist / exercise bar; titles never get a card.)
     keep_rgb=True keeps the layer's own RGB on top (it is already white / neutral, e.g. glitch ghost copies)."""
     return Image.alpha_composite(under(layer, boost), layer if keep_rgb else white(layer))
 
@@ -127,8 +129,13 @@ def stack(layer: Image.Image, boost: float = 0.0, keep_rgb: bool = False) -> Ima
 def for_remotion() -> dict:
     """props.textLook for Overlay.tsx (<Glow>): the same numbers, nothing else."""
     lk = look()
-    return {"color": lk["color"], "layers": [{"name": l["name"], "color": l["color"], "blur": float(l["blur"]),
-                                              "opacity": float(l["opacity"])} for l in lk["layers"]]}
+    out = {"color": lk["color"], "layers": [{"name": l["name"], "color": l["color"], "blur": float(l["blur"]),
+                                             "opacity": float(l["opacity"])} for l in lk["layers"]]}
+    c = lk.get("card")
+    if c:                                       # round 8 note: translucent card behind the checklist + exercise bar
+        out["card"] = {"color": c["color"], "opacity": float(c["opacity"]), "radius": float(c.get("radius", 44)),
+                       "behind": list(c.get("behind") or [])}
+    return out
 
 
 def tint_spread(rgba: np.ndarray, min_alpha: int = 128) -> int:

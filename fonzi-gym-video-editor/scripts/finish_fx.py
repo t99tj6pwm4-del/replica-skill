@@ -171,14 +171,15 @@ def beats(cm: dict, sb: dict) -> tuple[list[float] | None, float | None, float]:
     return None, 100.0, 0.6
 
 
-def intro_end(props: dict, sb: dict, start: float = 0.0) -> float:
+def intro_end(props: dict, sb: dict, start: float = 0.0, max_dur: float | None = None) -> float:
     """Where the intro card must stop (seconds from 0) when it starts at `start`: the hook end (props title.to),
     at most intro.max_dur after its start (storyboard intro.dur = its own length), never into the first gold
     exercise title or the end card."""
     c = cfg()
     t = props.get("title") or {}
     own = (sb.get("intro") or {}).get("dur")
-    end = min(start + float(c["max_dur"]), start + float(own) if own else float(t.get("to") or start + c["max_dur"]))
+    mx = float(max_dur if max_dur is not None else c["max_dur"])     # video_text: its own cap (intro.video_text)
+    end = min(start + mx, start + float(own) if own else float(t.get("to") or start + mx))
     for e in props.get("exercise_titles") or []:          # never into the first gold exercise title
         if float(e["at"]) > 0.3:
             end = min(end, float(e["at"]))
@@ -194,7 +195,7 @@ def beat_grid(cm: dict, sb: dict) -> list[float]:
     return [t for t in (phase + i * per for i in range(-1, 400)) if t >= -0.02]
 
 
-def opener_plan(props: dict, sb: dict, cm: dict, need: float | None = None) -> dict:
+def opener_plan(props: dict, sb: dict, cm: dict, need: float | None = None, max_dur: float | None = None) -> dict:
     """Pick the logo opener: {"frames", "dur", "beats", "planned_beats", "intro_beats" (rel. to the intro window),
     "intro_dur", "end_beat_s"} or {"frames": 0, "fallback_reason": why}. The opener ends on a beat; the intro gets
     at least intro.min_dur and its beat 1 >= lead_frames after the opener."""
@@ -211,7 +212,7 @@ def opener_plan(props: dict, sb: dict, cm: dict, need: float | None = None) -> d
         o_t = next(t for t in grid if t >= nb * per - per / 2)       # the opener ends ON a beat
         of = int(round(o_t * FPS))
         o = of / FPS
-        end = intro_end(props, sb, o)
+        end = intro_end(props, sb, o, max_dur)
         nfr = int(round((end - o) * FPS))
         rel_b = [round(t - o, 4) for t in grid if (t - o) * FPS >= int(oc["lead_frames"]) and (t - o) * FPS < nfr - 8]
         if (need is not None and nfr / FPS >= need - 1e-3) or (need is None and nfr / FPS >= float(c["min_dur"]) and rel_b):
@@ -299,8 +300,9 @@ def finish(final: Path, base: Path, props: dict, out: Path | None = None, intro_
     if want_intro:
         t = props["title"]
         ov = sb.get("intro") or {}
-        vt_c = {"dur": 2.6, "min_dur": 1.6, **(cfg().get("video_text") or {})}
-        op = opener_plan(props, sb, cm, need=float(vt_c["dur"]) if style == VT else None) if opener is not False \
+        vt_c = {"dur": 2.6, "min_dur": 1.6, "max_dur": 3.5, **(cfg().get("video_text") or {})}
+        op = opener_plan(props, sb, cm, need=float(vt_c["dur"]) if style == VT else None,
+                         max_dur=float(vt_c["max_dur"]) if style == VT else None) if opener is not False \
             else {"frames": 0, "off": "--no-opener"}
         entry["opener_checked"] = True          # this finish knows the opener rule (qa_check: missing = hard fail)
         if op.get("fallback_reason"):
@@ -326,7 +328,8 @@ def finish(final: Path, base: Path, props: dict, out: Path | None = None, intro_
         else:
             entry["opener"] = None
             entry["opener_fallback_reason"] = op.get("fallback_reason") or op.get("off")
-            dur = intro_window(props, sb) if style != VT else round(round(intro_end(props, sb, 0.0) * FPS) / FPS, 3)
+            dur = intro_window(props, sb) if style != VT else \
+                round(round(intro_end(props, sb, 0.0, float(vt_c["max_dur"])) * FPS) / FPS, 3)
             bts, bpm, phase = beats(cm, sb)
         if style == VT:                                   # fixed 2.6 s (not beat-snapped), never over 3 s
             room = dur

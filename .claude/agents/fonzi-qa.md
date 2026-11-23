@@ -11,33 +11,38 @@ The only things you may run are `scripts/qa_check.py`, `scripts/qa_verdict.py`, 
 
 Work inside `fonzi-gym-video-editor/` (cd there first).
 
-## Video-inside-text intro (Alfonso, 2026-11-23, Director answer 25): PENDING HIS PICK in Style Lab round 8
+## Video-inside-text intro (Alfonso, 2026-11-23, Director answer 25): PENDING HIS PICK (round 8b B5 or B6)
 Built behind `config.yaml intro.default_style` (`rotation` = the round 7 strobe / pulse / glitch / smash cycle stays
 the default; `video_text` = this intro for every gym video, the rotation stops). One render can force it:
 `render_final.py --intro-style video_text`. Order: logo opener -> video-inside-text -> normal video. Black frame;
 0-1.2 s the title (hook / storyboard intro.title, 1-2 words, ALL CAPS, Montserrat Black, as big as fits, 2 words
 stacked) types on as holes in the black with a cursor, his real footage showing through; 1.2-1.8 s hold, cursor blinks
-twice; 1.8-2.6 s the black splits at the title's middle, halves slide off (ease out); 2.6 s fixed, never over 3 s, no
+twice; 1.8-2.6 s the black splits at the title's middle, halves slide off (ease out); 2.6 s fixed (timeline in config
+`intro.video_text` type_end / hold_end / dur; cap max_dur 3.5 s since his note "Slower open fine if it needs to go
+past 3 seconds"; round 8b B5 = 1.6 / 2.4 / 3.4 s, B6 = the same + force_gain 1.5), no
 subtitle / logo / glow / box. Only the footage inside the letters may be brightened when too dark.
 `style_fx.py intro --style video_text` (`scripts/intro_video_text.py`), spliced by `finish_fx.py` over the real
 footage after the opener (no jump, audio untouched). Report: `output/work/intro_card.json` (style video_text).
-QA (`qa_check.py`): 2.6 s / never over 3; black outside the letters 0-1.8 s; footage through the letters; split on
+QA (`qa_check.py`): config dur / never over max_dur (3.5); black outside the letters 0-1.8 s; footage through the letters; split on
 time and matte gone by the end; last frame = the footage (no jump); title 1-2 words, all caps.
 See `style-lab/STYLE.md` rule zero-B and `style-lab/round8/`.
 
-## White text look (Alfonso, 2026-11-23, Director answer 24): PENDING HIS PICK in Style Lab round 8
-Built behind `config.yaml text_look.enabled` (false = the shipped GOLD look stays the default until Alfonso picks a
-round 8 A card; one render can force it: `render_final.py --text-look white`). When it is on, it overrides every gold
-/ colour rule in this file:
+## White text look (Alfonso, 2026-11-23, Director answer 24): THE DEFAULT, he picked round 8 A2 "softer glow"
+`config.yaml text_look.enabled: true` (`render_final.py --text-look gold` = the old gold look, history only). It
+overrides every gold / colour rule in this file:
 Every piece of text is pure white #FFFFFF: no gold, no colour, no stroke, no outline, no box, no background bar.
 Under the sharp white text (100 %), bottom to top: dark shadow (black, blur 40 px, 35 %, no offset, hugs the text) ->
-wide glow (white, blur 22 px, 45 %) -> tight glow (white, blur 6 px, 80 %). Blur at 1080x1920; the glow is never tinted.
+wide glow (white, blur 16 px, 30 %) -> tight glow (white, blur 4 px, 60 %) (A2; his first spec was 22/45 + 6/80).
+Blur at 1080x1920; the glow is never tinted.
 The numbers live ONLY in config.yaml `text_look:` (Python: `scripts/text_look.py`; Remotion: `props.textLook`,
 injected by render_final.py, drawn by `<Glow>` in `remotion/src/look.tsx`). Fonts unchanged (Rubik Dirt intro,
-Montserrat everything else). Layered titles: the back word's glow + shadow are behind his cut-out too. Pop-ups: no
-card / #333 panel / gold heading / gold check; text floats, checks white. Progress bar = a thin white line in the
+Montserrat everything else). Layered titles: the back word's glow + shadow are behind his cut-out too. Pop-ups: his
+round 8 note ("the today's routine need a card ... gray or black and opacity along with work out set"): a translucent
+rounded card (config `text_look.card`, black 50 % until he picks between round 8b C1 black 50 % / C2 #333 55 %, no
+stroke, no gold) behind the Routine Checklist and the Exercise Bar ONLY; the Form Tip, CAM tags, titles and intro stay
+box-free; no gold heading / gold check, checks white. Progress bar = a thin white line in the
 glow look. Glitch intro = white-only 2-frame ghost + slice burst (no red / cyan). Pulse intro = the glow brightens.
-The logo stays as is; the CAM tag flash stays. QA: text neutral (no tint) and no box (`text_look_check.json`).
+The logo stays as is; the CAM tag flash stays. QA: text neutral (no tint) and no box except the configured card (`text_look_check.json`).
 Wherever this file says "gold" below, read "the white text look" (keys like `layered-gold`, `gold_title_end` stay).
 See `style-lab/STYLE.md` rule zero-A.
 

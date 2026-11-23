@@ -106,10 +106,12 @@ def video_text_checks(ir: dict, fin: dict | None = None) -> list[dict]:
     c("video-text intro: title 1-2 words, ALL CAPS", 1 <= len(words) <= 2 and all(w == w.upper() for w in words),
       " / ".join(words))
     d = float(ir.get("dur") or 0)
-    c("video-text intro is 2.6 s (never over 3 s)", abs(d - 2.6) < 0.04 or (ir.get("scaled_reason") and d <= 3.0),
-      f"{d:.2f}s{' (scaled: ' + ir['scaled_reason'] + ')' if ir.get('scaled_reason') else ''}",
+    vc = {"dur": 2.6, "max_dur": 3.5, **((load_config().get("intro") or {}).get("video_text") or {})}
+    want, cap = float(vc["dur"]), float(ir.get("max_dur") or vc["max_dur"])   # cap 3.5 s since his round 8 note
+    c(f"video-text intro is {want:g} s (config intro.video_text.dur)", abs(d - want) < 0.04 or
+      (ir.get("scaled_reason") and d <= cap), f"{d:.2f}s{' (scaled: ' + ir['scaled_reason'] + ')' if ir.get('scaled_reason') else ''}",
       soft=bool(ir.get("scaled_reason")))
-    c("video-text intro never over 3 s", d <= 3.0 + 1e-6, f"{d:.2f}s")
+    c(f"video-text intro never over {cap:g} s", d <= cap + 1e-6, f"{d:.2f}s")
     ob = ir.get("outside_letters_max_value_0_1_8")
     c("outside the letters is black during 0-1.8 s", ob is not None and ob <= 2, f"max pixel value outside {ob}")
     lu = ir.get("through_letters_luma_min")

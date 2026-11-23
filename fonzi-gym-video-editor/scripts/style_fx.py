@@ -844,7 +844,7 @@ def video_text(inp: Path, out: Path, title: str, dur: float = 2.6, piece: bool =
         raise SystemExit("video_text: --start needs --piece (finish_fx.py splices the piece in after the opener)")
     c = {**ivt.cfg(), **(variant or {})}
     n = int(round(min(float(dur), float(c["max_dur"]), total - s0 / FPS) * FPS))
-    if n / FPS < float(dur) - 1e-3:                       # a shorter window: scale the timeline (finish_fx fallback)
+    if n / FPS < float(c["dur"]) - 1e-3:                  # a shorter window: scale the timeline (finish_fx fallback)
         k = n / (float(c["dur"]) * FPS)
         c.update(type_end=c["type_end"] * k, hold_end=c["hold_end"] * k)
     raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(inp), "-vf",
@@ -876,8 +876,8 @@ def video_text(inp: Path, out: Path, title: str, dur: float = 2.6, piece: bool =
     _intro_out(pic, inp, out, n, total, sounds, piece)
     pic.unlink(missing_ok=True)
     rep.update(ok=True, start=round(s0 / FPS, 3), start_frame=s0, piece=piece, input=str(inp), output=str(out),
-               sounds=[list(x) for x in sounds], scaled_reason=None if n / FPS >= float(dur) - 1e-3 else
-               f"window {n / FPS:.2f}s < {dur}s: timeline scaled x{n / (float(c['dur']) * FPS):.2f}")
+               sounds=[list(x) for x in sounds], scaled_reason=None if n / FPS >= float(c["dur"]) - 1e-3 else
+               f"window {n / FPS:.2f}s < {c['dur']}s: timeline scaled x{n / (float(c['dur']) * FPS):.2f}")
     if report:
         Path(report).write_text(json.dumps(rep, indent=1))
     print(f"intro video_text: {' / '.join(rep['title'])} Montserrat Black {rep['size']}px, {rep['frames']} frames "

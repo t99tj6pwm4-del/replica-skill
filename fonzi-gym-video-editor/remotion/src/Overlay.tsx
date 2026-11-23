@@ -9,7 +9,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { BODY, DISPLAY, MONTSERRAT, WEIGHT, useFonts } from "./fonts";
-import { DEFAULT_LOOK, Glow, LookProvider } from "./look";
+import { DEFAULT_LOOK, Glow, LookProvider, cardFor, useLook } from "./look";
 import { OverlayLegacy } from "./OverlayLegacy";
 import type {
   Brand,
@@ -769,13 +769,15 @@ const ExerciseBar: React.FC<{ item: ExerciseBarPopup; brand: Brand; frames: numb
   const inner = 1080 - 2 * 54 - 2 * 44;
   const titleSize = Math.min(58, Math.floor(inner / (Math.max(1, item.title.length) * 0.8)));
   const detailSize = Math.min(38, Math.floor(inner / (Math.max(1, (item.detail || "").length) * 0.57)));
+  // round 8 note: a translucent card (config text_look.card) behind the bar; the text stays in the glow look
+  const card = cardFor(useLook(), "exercise_bar");
   return (
     <div
       style={{
         position: "absolute",
-        left: 98,
-        right: 98,
-        top: item.y + 22,
+        ...(card
+          ? { left: 54, right: 54, top: item.y, padding: "22px 44px 24px", ...card }
+          : { left: 98, right: 98, top: item.y + 22 }),
         transformOrigin: "50% 100%",
         ...pop,
       }}
@@ -846,14 +848,15 @@ const RoutineChecklist: React.FC<{ item: ChecklistPopup; brand: Brand; frames: n
   const fs = tight ? 30 : 34;
   const pitch = tight ? 52 : 62;
   // all white (no gold / grey): done = white check, current = arrow + bold + a touch bigger, still to come = dot
+  // round 8 note: a translucent card (config text_look.card) behind the checklist; the text stays in the glow look
+  const card = cardFor(useLook(), "checklist");
   return (
     <div
       style={{
         position: "absolute",
-        left: 100,
-        top: item.y + 40,
-        minWidth: 468,
-        maxWidth: 668,
+        ...(card
+          ? { left: 54, top: item.y, minWidth: 560, maxWidth: 760, padding: "40px 46px 44px", ...card }
+          : { left: 100, top: item.y + 40, minWidth: 468, maxWidth: 668 }),
         transformOrigin: "0% 50%",
         ...pop,
       }}

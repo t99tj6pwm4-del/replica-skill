@@ -7,15 +7,27 @@ import React, { createContext, useContext } from "react";
    below are the same numbers, used only for the Remotion Studio demo. CSS blur(N) = gaussian sigma N px, the same
    as PIL GaussianBlur(N) in scripts/text_look.py. */
 export type LookLayer = { name: string; color: string; blur: number; opacity: number };
-export type TextLook = { color: string; layers: LookLayer[] };
+/** Alfonso's round 8 note on A2: a translucent rounded card behind the Routine Checklist and the Exercise Bar only. */
+export type LookCard = { color: string; opacity: number; radius: number; behind: string[] };
+export type TextLook = { color: string; layers: LookLayer[]; card?: LookCard };
 
 export const DEFAULT_LOOK: TextLook = {
   color: "#FFFFFF",
   layers: [
     { name: "shadow", color: "#000000", blur: 40, opacity: 0.35 },
-    { name: "wide_glow", color: "#FFFFFF", blur: 22, opacity: 0.45 },
-    { name: "tight_glow", color: "#FFFFFF", blur: 6, opacity: 0.8 },
+    { name: "wide_glow", color: "#FFFFFF", blur: 16, opacity: 0.3 },
+    { name: "tight_glow", color: "#FFFFFF", blur: 4, opacity: 0.6 },
   ],
+  card: { color: "#000000", opacity: 0.5, radius: 44, behind: ["checklist", "exercise_bar"] },
+};
+
+/** The card style for `piece` ("checklist" | "exercise_bar"), or null when the look has no card for it. */
+export const cardFor = (look: TextLook, piece: string): React.CSSProperties | null => {
+  const c = look.card;
+  if (!c || !c.behind.includes(piece)) return null;
+  const h = c.color.replace("#", "");
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
+  return { backgroundColor: `rgba(${r},${g},${b},${c.opacity})`, borderRadius: c.radius, boxSizing: "border-box" };
 };
 
 const LookCtx = createContext<TextLook>(DEFAULT_LOOK);

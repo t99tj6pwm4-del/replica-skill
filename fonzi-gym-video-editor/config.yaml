@@ -215,17 +215,26 @@ sfx:
 # render_final.py) both read these numbers. Pure white #FFFFFF, no colour, no stroke / outline, no box, no bar.
 # Layers bottom -> top; blur = gaussian standard deviation in px at 1080x1920 (PIL GaussianBlur radius = CSS blur()).
 text_look:
-  # Alfonso 2026-11-23 ("Run both through Style Lab so I can help pick"): built and wired, NOT the default until he
-  # picks in Style Lab round 8. false = the shipped gold look; true = white everywhere. One render can force it:
-  # render_final.py --text-look white|gold (env FONZI_TEXT_LOOK).
-  enabled: false
+  # Alfonso PICKED round 8 card A2 "softer glow" (2026-11-23): the white look is THE default. false = the old gold
+  # look (history only). One render can still force either: render_final.py --text-look white|gold.
+  enabled: true
   color: "#FFFFFF"                 # sharp text on top, 100 %
-  layers:                          # under the sharp text, bottom first
+  layers:                          # under the sharp text, bottom first (A2; his first spec A1 was wide 22/45, tight 6/80)
     - {name: shadow,     color: "#000000", blur: 40, opacity: 0.35}   # hugs the text only, no offset
-    - {name: wide_glow,  color: "#FFFFFF", blur: 22, opacity: 0.45}
-    - {name: tight_glow, color: "#FFFFFF", blur: 6,  opacity: 0.80}
+    - {name: wide_glow,  color: "#FFFFFF", blur: 16, opacity: 0.30}
+    - {name: tight_glow, color: "#FFFFFF", blur: 4,  opacity: 0.60}
+  # Alfonso 2026-11-23 (round 8 note on A2): "The today's routine need a card that's like gray or back and opacity along
+  # with work out set": a translucent rounded card behind the Routine Checklist and the Exercise Bar ONLY (no stroke,
+  # no gold); the text on it stays in the white glow look. Everything else stays box-free. Round 8b C1 = black 50 %,
+  # C2 = #333 55 %; black 50 % until he picks.
+  card:
+    color: "#000000"
+    opacity: 0.50
+    radius: 44                     # px, like the old pop-up cards
+    behind: [checklist, exercise_bar]   # the only pieces that get it
   # QA (qa_check.py): text pixels must be neutral (max channel spread) and there must be no box / bar behind them:
-  # no dark pixel more opaque than box_alpha_max in the Remotion layer (the shadow alone peaks at 0.35).
+  # no dark pixel more opaque than box_alpha_max in the Remotion layer (the shadow alone peaks at 0.35); the checklist /
+  # bar frames may carry the configured card (up to the card with the text shadows over it + 0.03), never more.
   neutral_max_spread: 12
   box_alpha_max: 0.5
   # the intro pulse brightens the glow on the beat (white text cannot get whiter): glow opacity x (1 + boost * e)
@@ -247,16 +256,19 @@ intro:
   # Alfonso 2026-11-23 (Director answer 25): VIDEO-INSIDE-TEXT intro (style_fx.py intro --style video_text,
   # scripts/intro_video_text.py): after the logo opener, black frame, the title types on as holes in the black (his
   # footage shows through), cursor blinks twice, the black splits at the title's middle and slides off; 2.6 s fixed,
-  # never over 3 s. Built and wired, NOT the default until Alfonso picks in Style Lab round 8:
+  # never over 3.5 s (his round 8 note). Built and wired, NOT the default until Alfonso picks round 8b B5 or B6:
   # default_style: rotation = the round 7 cycle above (shipped); video_text = the new intro for every video (the
   # rotation then stops: nothing new is recorded for the title style). One render can force it:
   # render_final.py --intro-style video_text.
   default_style: rotation
+  # Round 8 (2026-11-23): B1 and B3 MAYBE, "Slower open fine if it needs to go past 3 seconds" -> max_dur 3.5; round 8b
+  # B5 = type 1.6 / hold 2.4 / dur 3.4, B6 = the same + force_gain 1.5. Drop his pick's numbers in here.
   video_text:
-    dur: 2.6                       # fixed seconds, not beat-snapped
-    type_end: 1.2                  # letters typed by here (cursor solid while typing)
-    hold_end: 1.8                  # hold; the cursor blinks twice; then the split (ease out cubic) to the end
-    max_dur: 3.0
+    dur: 2.6                       # total seconds, fixed (not beat-snapped); B5 / B6: 3.4
+    type_end: 1.2                  # letters typed by here (cursor solid while typing); B5 / B6: 1.6
+    hold_end: 1.8                  # hold; the cursor blinks twice; then the split (ease out cubic) to the end; B5 / B6: 2.4
+    max_dur: 3.5                   # hard cap (was 3.0 until his round 8 note)
+    force_gain: null               # null = only the automatic dark-footage boost; B6: 1.5 (letters only)
     margin: 80                     # px each side; Montserrat Black as big as fits, 2 words on 2 lines
     min_luma: 0.32                 # footage through the letters darker than this: brighten ONLY inside the letters
     max_gain: 1.9

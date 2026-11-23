@@ -10,7 +10,8 @@ Timeline (fixed seconds, not beat-snapped; config intro.video_text):
     0.0        full black frame over the video, which is already playing underneath
     0.0-1.2 s  the title types on letter by letter with a blinking text cursor at the end; the letters are cut OUT
                of the black, so his footage shows THROUGH them, everything else solid black
-    1.2-1.8 s  hold, the cursor blinks twice
+    1.2-1.8 s  hold, the cursor blinks twice   (all three times configurable: config intro.video_text type_end /
+               hold_end / dur, cap max_dur 3.5 s since his round 8 note "Slower open fine if it needs to go past 3 s")
     1.8-2.6 s  the black splits along a horizontal line through the middle of the title: the top half slides up off
                screen, the bottom half down, each taking its half of the letters; ease out (cubic). The last frame of
                the window has no matte left, so the next frame (normal video) continues with no cut and no jump
@@ -35,7 +36,7 @@ from PIL import Image, ImageDraw, ImageFont
 W, H, FPS = 1080, 1920, 30
 ROOT = Path(__file__).resolve().parent.parent
 FONT = ROOT / "remotion" / "public" / "fonts" / "Montserrat.ttf"
-DEFAULTS = {"dur": 2.6, "type_end": 1.2, "hold_end": 1.8, "max_dur": 3.0, "margin": 80, "line_gap": 0.06,
+DEFAULTS = {"dur": 2.6, "type_end": 1.2, "hold_end": 1.8, "max_dur": 3.5, "margin": 80, "line_gap": 0.06,
             "max_size": 420, "min_luma": 0.32, "max_gain": 1.9, "tick_db": -20, "whoosh_db": -14,
             "cursor_w": 0.10, "cursor_gap": 0.06, "blinks": 2, "ease": "cubic", "seam_frames": 0, "seam_px": 8,
             "force_gain": None}
@@ -237,7 +238,8 @@ def render(pics: list[np.ndarray], title: str, c: dict | None = None, cy: int | 
                 stats["through_luma_min"] = min(stats["through_luma_min"], float(_luma(g.astype(np.float32))[hole].mean()))
     last_diff = float(np.abs(out[-1].astype(np.int16) - pics[-1].astype(np.int16)).mean())
     t_end = int(round(c["type_end"] * FPS))
-    rep = {"style": "video_text", "title": words, "font": "Montserrat Black", "size": lay.size,
+    rep = {"style": "video_text", "max_dur": float(c["max_dur"]), "timeline": {"type_end": c["type_end"],
+           "hold_end": c["hold_end"], "dur": round(n / FPS, 3)}, "title": words, "font": "Montserrat Black", "size": lay.size,
            "line_centres_y": lay.centres, "split_y": lay.split_y, "text_box": list(lay.bbox()),
            "frames": n, "dur": round(n / FPS, 3), "type_end_s": c["type_end"], "hold_end_s": c["hold_end"],
            "split_from_s": round(h_end / FPS, 3), "matte_gone_frame": next((k for k in range(n) if stats["black_cover"][k] == 0), None),
@@ -258,8 +260,9 @@ def render(pics: list[np.ndarray], title: str, c: dict | None = None, cy: int | 
 def checks(rep: dict) -> list[str]:
     """Hard problems (empty = fine): used by style_fx before writing and repeated by qa_check."""
     bad = []
-    if rep["dur"] > 3.0 + 1e-6:
-        bad.append(f"intro {rep['dur']}s is over 3 s")
+    cap = float(rep.get("max_dur") or 3.5)
+    if rep["dur"] > cap + 1e-6:
+        bad.append(f"intro {rep['dur']}s is over the {cap} s cap")
     if rep["outside_letters_max_value_0_1_8"] > 2:
         bad.append(f"outside the letters is not black in 0-1.8 s (max value {rep['outside_letters_max_value_0_1_8']})")
     if rep["through_letters_luma_min"] is None or rep["through_letters_luma_min"] < 0.08:

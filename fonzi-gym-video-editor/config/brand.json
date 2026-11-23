@@ -2,11 +2,13 @@
   "name": "Fonzi Stays Fit",
   "handle": "@fonzi.stays.fit",
   "facebook_page": "Fonzi.stays.fit",
-  "color": "#FFD60A",
+  "color": "#FFFFFF",
   "textColor": "#FFFFFF",
   "darkColor": "#0B0B0F",
   "layered_title_top": "FONZI",
   "layered_title_bottom": "STAYS FIT",
-  "popup_color": "#D4A017",
-  "text_look_note": "color / popup_color = the GOLD look, still the shipped default (2026-11-23: Alfonso picks in Style Lab round 8). With config text_look.enabled: true (or render_final.py --text-look white) every text is white + glow instead (config.yaml text_look)."
+  "popup_color": "#FFFFFF",
+  "gold_color": "#FFD60A",
+  "gold_popup_color": "#D4A017",
+  "text_look_note": "White text look is the default since Alfonso picked Style Lab round 8 A2 (2026-11-23): config.yaml text_look (glow + shadow numbers, translucent card behind the checklist / exercise bar). gold_color / gold_popup_color are the old gold look, used only when text_look.enabled is false (render_final.py --text-look gold)."
 }
