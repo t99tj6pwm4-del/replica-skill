@@ -431,7 +431,7 @@ def finish(final: Path, base: Path, props: dict, out: Path | None = None, intro_
                                         "dur": ni / FPS})
     opn = f"logo opener 0-{no / FPS:.2f}s ({op.get('beats')} beats); " if no else ""
     print(f"finish: {opn}"
-          f"{'intro ' + style + ' / logo ' + logo + f' {no / FPS:.2f}-{(no + ni) / FPS:.2f}s' if want_intro else 'no intro'}"
+          f"{'intro ' + style + ('' if style == VT else ' / logo ' + logo) + f' {no / FPS:.2f}-{(no + ni) / FPS:.2f}s' if want_intro else 'no intro'}"
           f"{f' (planned {planned}, fell back to {FALLBACK})' if want_intro and fallback else ''}; "
           f"{'logo end card (' + drp + f' drips) {f0 / FPS:.2f}s-end' if want_logo else 'no logo card'}; "
           f"wrote {rel(out)} ({got['duration']:.3f}s), logged in {rel(LOG)}")

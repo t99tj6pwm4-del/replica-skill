@@ -117,8 +117,11 @@ def a_child(card: str):
     base = SRC / "multicam_version.mp4"
     ic = json.loads((SRC / "work" / "intro_card.json").read_text())
     # 1. intro title (strobe, the Grind Day pick) in this look, after the opener: production style_fx.intro
+    # cut-out from the same clean picture the white test finished on (its masks are cached: no 12 GB birefnet run)
+    msrc = SRC / "work" / "exercise_base.mp4"
     style_fx.intro(base, tmp / "s1.mp4", " ".join(ic["title"]), ic["subtitle"], "strobe", ic["beats_s"], None, None,
-                   ic["dur"], piece=True, mask_src=base, report=tmp / "intro.json", start=ic["start"])
+                   ic["dur"], piece=True, mask_src=msrc if msrc.exists() else base, report=tmp / "intro.json",
+                   start=ic["start"])
     # 2. exercise title SEATED / CALF RAISE: production layered_title helpers on its window (the full build()
     #    re-encodes the whole video; this composes the same layers on the window only)
     ex = json.loads((SRC / "work" / f"layered_title_ex{TITLE_EX}.json").read_text())
@@ -127,8 +130,8 @@ def a_child(card: str):
     run(["ffmpeg", "-v", "error", "-y", "-i", base, "-vf", f"trim=start_frame={k0}:end_frame={k0 + nf},"
          f"setpts=PTS-STARTPTS,scale={W}:{H}", "-fps_mode", "passthrough", tmp / "in" / "f%04d.png"])
     frs = sorted((tmp / "in").glob("f*.png"))
-    session, model = lt.cut_session()
-    masks = lt.smooth_masks(lt.raw_masks(session, model, frs))
+    model = lt.title_cfg().get("cut_model", "birefnet-general-lite")   # cached by --masks: no 2nd model session
+    masks = lt.smooth_masks(lt.raw_masks(None, model, frs))
     big1 = lt.fit_font(lt.SERIF, ex["first"], int(W * lt.WIDTH_FRAC))
     big2 = lt.fit_font(lt.SERIF, ex["last"], int(W * lt.WIDTH_FRAC))
     from PIL import ImageFont
@@ -201,6 +204,24 @@ def a_child(card: str):
     for p in tmp.glob("*.mov"):
         p.unlink()
     print(f"{card}: {d / 'card.mp4'}  {meta['ffprobe']}")
+
+
+def title_masks():
+    """Own process, once: the SEATED / CALF RAISE window's cut-out into the mask cache (birefnet needs ~12 GB; two
+    model sessions in one process do not fit, so the A cards only ever read the cache)."""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import layered_title as lt
+    ex = json.loads((SRC / "work" / f"layered_title_ex{TITLE_EX}.json").read_text())
+    tmp = OUTR / "_shared" / "title_in"
+    shutil.rmtree(tmp, ignore_errors=True)
+    tmp.mkdir(parents=True)
+    k0, nf = int(round(ex["at"] * FPS)), int(round(ex["dur"] * FPS))
+    run(["ffmpeg", "-v", "error", "-y", "-i", SRC / "multicam_version.mp4", "-vf", f"trim=start_frame={k0}:end_frame="
+         f"{k0 + nf},setpts=PTS-STARTPTS,scale={W}:{H}", "-fps_mode", "passthrough", tmp / "f%04d.png"])
+    session, model = lt.cut_session()
+    lt.raw_masks(session, model, sorted(tmp.glob("f*.png")))
+    shutil.rmtree(tmp, ignore_errors=True)
+    print("title masks cached")
 
 
 def a_segments():
@@ -299,10 +320,15 @@ def main():
     if args and args[0] == "--child":
         (a_child if args[1] in A_CARDS else b_child)(args[1])
         return
+    if args and args[0] == "--masks":
+        title_masks()
+        return
     want = list(A_CARDS) + list(B_CARDS) if not args or args == ["all"] else [f"r8-{a}" if not a.startswith("r8-") else a
                                                                              for a in args]
     if any(c in A_CARDS for c in want) and not (OUTR / "_shared" / "a_segments.json").exists():
         print(a_segments())
+    if any(c in A_CARDS for c in want):
+        run([sys.executable, __file__, "--masks"], env=env_for(None))
     for c in want:
         run([sys.executable, __file__, "--child", c], env=env_for(c))
     write_cards()
