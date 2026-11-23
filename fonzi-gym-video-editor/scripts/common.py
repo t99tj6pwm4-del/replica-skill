@@ -175,3 +175,48 @@ def load_config() -> dict:
 
 def brand() -> dict:
     return load_json(ROOT / "config" / "brand.json")
+
+
+# ---------- sound effects (Alfonso 2026-11-23: OpenFilm CC0 library first, our old wavs as the fallback) ----------
+LIBRARY_SFX = ROOT / "sfx" / "library" / "fonzi"      # prepared by scripts/library_sfx.py prep
+
+
+def sfx_info(role: str) -> dict:
+    """Where the sound for `role` (config.yaml sfx.roles) comes from: {"role", "file" (Path), "source"
+    ("library" | "fallback" | "own"), "library_id", "licence", "name"}. A missing library file falls back to the
+    role's old synthesised wav; source: own in config uses the old wavs everywhere. Dies on an unknown role."""
+    cfg = load_config().get("sfx") or {}
+    roles = cfg.get("roles") or {}
+    if role not in roles:
+        die(f"config.yaml sfx.roles has no '{role}' (known: {', '.join(roles) or 'none'})")
+    r = roles[role]
+    fb = ROOT / r["fallback"]
+    info = {"role": role, "file": fb, "source": "own", "library_id": None, "licence": "own (scripts/make_sfx.py)",
+            "name": fb.stem}
+    lib = (cfg.get("library") or {}).get(r.get("sound") or "")
+    if cfg.get("source", "library") == "library" and lib:
+        f = LIBRARY_SFX / f"{r['sound']}.wav"
+        if f.exists():
+            info.update(file=f, source="library", library_id=lib["id"], name=lib.get("name", r["sound"]),
+                        licence=cfg.get("licence", "CC0-1.0 (OpenFilm library)"))
+        else:
+            info["source"] = "fallback"
+            print(f"sfx: {rel(f)} missing (run scripts/library_sfx.py prep); {role} uses {rel(fb)}", file=sys.stderr)
+    if not info["file"].exists():
+        die(f"sfx: no sound file for {role}: {info['file']}")
+    return info
+
+
+def sfx_file(role: str) -> Path:
+    return sfx_info(role)["file"]
+
+
+def sfx_log_entry(role: str, at: float, db: float | None = None, by: str | None = None) -> dict:
+    i = sfx_info(role)
+    e = {"at": round(float(at), 3), "role": role, "file": rel(i["file"]), "source": i["source"],
+         "library_id": i["library_id"], "licence": i["licence"], "name": i["name"]}
+    if db is not None:
+        e["db"] = db
+    if by:
+        e["by"] = by
+    return e

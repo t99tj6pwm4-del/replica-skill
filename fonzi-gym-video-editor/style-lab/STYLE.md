@@ -15,7 +15,7 @@
 5. **Never:** non-English text except the Spanish pop-up lines, hashtags on screen, text over his face, stock or AI music, other creators' footage.
 6. **Already has:** Montserrat (Black for titles), Documentary Gold layered titles (back word behind him), the three pop-up cards, honey + salt opener. Colours: 5-step teal & orange film grade (see `GRADE_AND_TRANSITIONS.md`), titles mustard gold #D4A017, Montserrat. Logo: `brand/fonzi_logo.png` (white drip "Fonzi" with horns, halo, devil tail; transparent PNG). His animated logo clip `input/fonzi_logo_anim.mp4` carries a small moving badge that looks like a Sora watermark, so it is not used (no-Sora rule); we animate the PNG ourselves.
 7. **Movement:** cinematic, with the transitions above (match cuts, masks, wipes, luma/film-burn, cut-out zoom). Speed/feel: a mix: smooth cinematic moves between lifts, hard snaps on the big moments (titles, heaviest rep, beat drops).
-8. **Sound:** his own songs; our own synthesised whoosh + pop (`sfx/`). SFX: only sounds we synthesise ourselves (free, `scripts/make_sfx.py`): whoosh, pop, and new hits, risers, clicks, film-burn crackle as needed. No packs, no AI sounds.
+8. **Sound:** his own songs. SFX (Alfonso, 2026-11-23): from OpenFilm's free CC0 library (`scripts/openfilm_library.sh`), one pick per role in config.yaml `sfx.roles` / `sfx.library`, prepared by `scripts/library_sfx.py prep` into `sfx/library/fonzi/`; our synthesised `sfx/*.wav` (`scripts/make_sfx.py`) are only the fallback. Always UNDER his song, never replacing it. No library music, no paid packs, no AI sounds.
 9. **Build first:** TODO (ask).
 
 ## Locked

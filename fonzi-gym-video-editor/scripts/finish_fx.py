@@ -201,6 +201,7 @@ def finish(final: Path, base: Path, props: dict, out: Path | None = None, intro_
     entry = {"at": time.strftime("%Y-%m-%d %H:%M:%S"), "source": rel(final), "base": rel(base)}
     ni, f0 = 0, nf
     inputs, vparts, aparts, alabels = ["-i", str(final)], [], [], ["[0:a]"]
+    sounds: list[dict] = []     # every library / fallback sound baked in here -> output/work/sfx_log.json
     if want_intro:
         t = props["title"]
         ov = sb.get("intro") or {}
@@ -211,6 +212,7 @@ def finish(final: Path, base: Path, props: dict, out: Path | None = None, intro_
         kw = dict(piece=True, mask_src=base, report=WORK / "intro_card.json", face_box=_box(ov.get("face_box"),
                   "face_box"), logo=logo, smash_keep_out=_keep_out(ov.get("smash_keep_out")))
         try:
+            style_fx.SOUNDS_USED.clear()
             rep = style_fx.intro(*args, style, bts, bpm, phase, dur, **kw)
         except style_fx.IntroStyleUnfit as e:
             if style == FALLBACK:
@@ -219,7 +221,9 @@ def finish(final: Path, base: Path, props: dict, out: Path | None = None, intro_
             print(f"finish: intro {style} cannot be drawn cleanly for this video ({getattr(e, 'reason', e)}); "
                   f"rendering {FALLBACK} instead (recorded: intro {FALLBACK}, planned {style})")
             style = FALLBACK
+            style_fx.SOUNDS_USED.clear()
             rep = style_fx.intro(*args, style, bts, bpm, phase, dur, **kw)
+        sounds += [dict(e, piece="intro") for e in style_fx.SOUNDS_USED]
         ni = rep["frames"]
         inputs += ["-i", str(piece)]
         k = len(inputs) // 2 - 1
@@ -237,7 +241,10 @@ def finish(final: Path, base: Path, props: dict, out: Path | None = None, intro_
         run(["ffmpeg", "-v", "error", "-y", "-ss", f"{f0 / FPS:.3f}", "-i", base, "-t", f"{(n_logo + 2) / FPS:.3f}",
              "-an", "-c:v", "libx264", "-crf", "16", "-preset", "veryfast", bg])
         card = tmp / "logo_card.mp4"
+        style_fx.SOUNDS_USED.clear()
         style_fx.logo(card, bg, drp, (n_logo + 0.5) / FPS)
+        sounds += [dict(e, piece="logo_card", at=round(e["at"] + f0 / FPS, 3), db=e["db"] + cfg()["logo_sfx_db"])
+                   for e in style_fx.SOUNDS_USED]
         got = probe(card)
         if int(round(got["duration"] * FPS)) < n_logo:
             die(f"finish: logo card is {got['duration']:.2f}s, the end card window needs {n_logo / FPS:.2f}s")
@@ -269,6 +276,7 @@ def finish(final: Path, base: Path, props: dict, out: Path | None = None, intro_
                  drips=drp if want_logo else None)
     if want_intro and fallback:
         entry["fallback_reason"] = fallback
+    log_sounds(sounds, out)
     log["finished"] = (log["finished"] + [entry])[-30:]
     save_json(LOG, log)
     real = out.resolve() == (OUT / "final_edit.mp4").resolve()
@@ -283,6 +291,20 @@ def finish(final: Path, base: Path, props: dict, out: Path | None = None, intro_
           f"{'logo end card (' + drp + f' drips) {f0 / FPS:.2f}s-end' if want_logo else 'no logo card'}; "
           f"wrote {rel(out)} ({got['duration']:.3f}s), logged in {rel(LOG)}")
     return entry
+
+
+def log_sounds(sounds: list[dict], out: Path):
+    """Add the intro / logo-card sounds to output/work/sfx_log.json (render_final.add_sfx wrote the text-move hits
+    just before; an older finish_fx block is replaced, never doubled). Only for the real final."""
+    if out.resolve() != (OUT / "final_edit.mp4").resolve():
+        return
+    p = WORK / "sfx_log.json"
+    d = load_json(p) if p.exists() else {"events": []}
+    d["events"] = sorted([e for e in d.get("events") or [] if e.get("by") != "style_fx"] + sounds,
+                         key=lambda e: e["at"])
+    d["library_ids"] = sorted({e["library_id"] for e in d["events"] if e.get("library_id")})
+    d["fallbacks"] = sorted({e["role"] for e in d["events"] if e.get("source") == "fallback"})
+    save_json(p, d)
 
 
 def main():

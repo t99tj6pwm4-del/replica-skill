@@ -306,13 +306,19 @@ def sfx_events(props: dict) -> list[tuple[float, str]]:
 def add_sfx(final: Path, props: dict) -> int:
     """Alfonso (2026-11-19): a quiet whoosh / pop on every text move, mixed UNDER the existing sound (his voice
     or his song). Never replaces or shifts the audio; the length stays the same. config.yaml sfx:"""
-    from common import load_config
+    from common import ROOT, load_config, sfx_log_entry
     cfg = load_config().get("sfx") or {}
     if not cfg.get("enabled"):
+        save_json(WORK / "sfx_log.json", {"volume_db": None, "events": [], "note": "config sfx.enabled is false"})
         return 0
-    ev = [(at, OUT.parent / cfg.get(kind, "")) for at, kind in sfx_events(props) if cfg.get(kind)]
-    ev = [(at, f) for at, f in ev if f.exists() and at < float(props["duration"]) - 0.05]
+    # Alfonso 2026-11-23: each text move -> a role (config sfx.events) -> the OpenFilm library sound (old wav fallback)
+    roles = cfg.get("events") or {}
+    ev = [(at, roles[kind]) for at, kind in sfx_events(props) if roles.get(kind)]
+    ev = [(at, role) for at, role in ev if at < float(props["duration"]) - 0.05]
+    entries = [sfx_log_entry(role, at, by="render_final") for at, role in ev]
+    ev = [(at, ROOT / e["file"]) for (at, _), e in zip(ev, entries)]
     if not ev:
+        save_json(WORK / "sfx_log.json", {"volume_db": None, "events": []})
         return 0
     files = sorted({f for _, f in ev})
     inputs = []
@@ -342,7 +348,9 @@ def add_sfx(final: Path, props: dict) -> int:
     if abs(probe(tmp)["duration"] - probe(final)["duration"]) > 0.05:
         die("sound effects changed the video length: not passing it on")
     tmp.replace(final)
-    save_json(WORK / "sfx_log.json", {"volume_db": vol, "events": [{"at": round(a, 3), "file": rel(f)} for a, f in ev]})
+    for e in entries:
+        e["db"] = vol
+    save_json(WORK / "sfx_log.json", {"volume_db": vol, "source": cfg.get("source", "library"), "events": entries})
     print(f"sound effects: {len(ev)} quiet hits under the audio ({vol} dB), log in output/work/sfx_log.json")
     return len(ev)
 

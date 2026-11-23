@@ -3,7 +3,9 @@
 
     python3 scripts/make_sfx.py            # writes sfx/whoosh.wav and sfx/pop.wav (48 kHz stereo)
 
-Alfonso can drop his own files in sfx/ with the same names (or change config.yaml sfx:) to use them instead.
+Since 2026-11-23 (Alfonso) these are the FALLBACK only: the sounds in use come from OpenFilm's CC0 library
+(config.yaml sfx.roles / sfx.library, scripts/library_sfx.py). A role uses its wav here when its library file is
+missing, or everywhere with config sfx.source: own.
 """
 from __future__ import annotations
 

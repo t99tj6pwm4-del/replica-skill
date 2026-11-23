@@ -37,7 +37,7 @@
         --dump-layers DIR: also save every frame's title and logo RGBA (title_NNNN.png / logo_NNNN.png; tests).
 
 All inputs are scaled to 1080x1920 @ 30 fps. snap / zoom / cutout / logo drop the footage audio (the song goes on
-later) and carry only our own sfx (sfx/*.wav), so mix it under the song or keep picture only.
+later) and carry only our sfx (config.yaml sfx.roles: OpenFilm CC0 library, sfx/*.wav fallback), so mix it under the song or keep picture only.
 """
 from __future__ import annotations
 
@@ -52,7 +52,8 @@ from PIL import Image, ImageDraw, ImageFilter
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 W, H, FPS = 1080, 1920, 30
-SFX = ROOT / "sfx"
+SFX = ROOT / "sfx"                 # old synthesised wavs; the sounds now come from common.sfx_file(<role>)
+SOUNDS_USED: list[dict] = []       # every sound this process mixed in (role, offset in its piece, library id, licence)
 LOGO = ROOT / "brand" / "fonzi_logo.png"
 
 from intro_smash import IntroUnfit as _IntroUnfit  # noqa: E402  (numpy / PIL only; no style_fx import there)
@@ -68,6 +69,15 @@ class IntroStyleUnfit(_IntroUnfit):
 
 
 # ---------- io ----------
+def sound(role: str, at: float, db: float) -> Path:
+    """The file for a sound role (config.yaml sfx.roles: OpenFilm CC0 library, old sfx/*.wav as the fallback),
+    recorded in SOUNDS_USED so finish_fx.py / the caller can log it in output/work/sfx_log.json."""
+    from common import sfx_log_entry
+    e = sfx_log_entry(role, max(0.0, at), db, by="style_fx")
+    SOUNDS_USED.append(e)
+    return ROOT / e["file"]
+
+
 def frames(path: Path) -> list[np.ndarray]:
     raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-vf",
                           f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},fps={FPS}",
@@ -93,7 +103,7 @@ def write(fr, out: Path, sounds: list[tuple[str, float, float]]):
            "anullsrc=r=48000:cl=stereo"]
     parts, labels = [], ["[1:a]"]
     for k, (name, at, db) in enumerate(sounds):
-        cmd += ["-i", SFX / f"{name}.wav"]
+        cmd += ["-i", sound(name, at, db)]
         ms = max(0, int(at * 1000))
         parts.append(f"[{k + 2}:a]volume={db}dB,adelay={ms}|{ms}[s{k}]")
         labels.append(f"[s{k}]")
@@ -131,7 +141,7 @@ def snap(inp: Path, out: Path, at: float):
             break
         f = zoom(fr[k], 1 + 0.08 * (1 - d / 7) ** 2, W / 2, H / 2, *shake[d])
         fr[k] = f + (0.55 if d == 0 else 0.25 if d == 1 else 0)
-    write(fr, out, [("impact", at - 0.02, -3)])
+    write(fr, out, [("snap_hit", at - 0.02, -3)])
 
 
 def zoom_through(a: Path, b: Path, out: Path, cx=0.5, cy=0.52):
@@ -153,7 +163,7 @@ def zoom_through(a: Path, b: Path, out: Path, cx=0.5, cy=0.52):
         res.append(acc / m * (1 - 0.8 * t))
     res += [B[k] * (k + 1) / 8 for k in range(min(8, len(B)))] + B[8:]
     cut = len(A) / FPS
-    write(res, out, [("whoosh", cut - 0.45, -8), ("impact", cut, -6)])
+    write(res, out, [("zoom_whoosh", cut - 0.45, -8), ("zoom_impact", cut, -6)])
 
 
 PATTERN = [1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0]
@@ -187,8 +197,8 @@ def cutout(a: Path, b: Path, out: Path, to: str = "black"):
         res.append(zoom(fr(10 + i), z, W / 2 + (cx - W / 2) * (i + 1) / 5, H / 2 + (cy - H / 2) * (i + 1) / 5,
                         *shakes[i]))
     res += B
-    write(res, out, [("pop", len(A) / FPS, -6), ("impact", pin / FPS - 0.02, -3),
-                     ("whoosh", (pin + 5) / FPS - 0.2, -10)] + [("click", c, -14) for c in clicks])
+    write(res, out, [("cutout_pop", len(A) / FPS, -6), ("cutout_hit", pin / FPS - 0.02, -3),
+                     ("cutout_whoosh", (pin + 5) / FPS - 0.2, -10)] + [("cutout_click", c, -14) for c in clicks])
 
 
 def drip_tips(alpha, n, seed=5):
@@ -276,7 +286,7 @@ def logo(out: Path, bg: Path, drips: str = "heavy", dur: float = 3.5):
         if pat[k] and k >= 14:
             f = over(f, drip_layer(tips, k - 14, ph, period, length, drops))
         res.append(f)
-    write(res, out, [("click", c, -10) for c in clicks] + [("crackle", 0.0, -14)])
+    write(res, out, [("logo_click", c, -10) for c in clicks] + [("logo_crackle", 0.0, -14)])
 
 
 # ---------- intro card (STYLE.md rule 0, Style Lab rounds 5-6, locked 2026-11-21) ----------
@@ -697,7 +707,7 @@ def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=Non
             issues.append(f"glitch split inside the letters / too strong: {gl}")
         if issues:
             raise SystemExit("intro: refusing to write it:\n  " + "\n  ".join(issues[:12]))
-        sounds = [("whoosh", b1 / FPS - 0.30, -14), ("impact", b1 / FPS - 0.02, -5)]
+        sounds = [("intro_whoosh", b1 / FPS - 0.30, -14), ("intro_impact", b1 / FPS - 0.02, -5)]
         _intro_out(pic, inp, out, n, total, sounds, piece)
         res = {"ok": True, "style": style, "title": spec.lines, "subtitle": spec.sub, "font": TITLE_FONT.name,
                "title_size": spec.size, "title_y1": spec.y1, "title_extent": list(spec.extent()),
@@ -732,7 +742,7 @@ def _intro_out(pic: Path, inp: Path, out: Path, n: int, total: float, sounds, pi
         base, first = "[1:a]", 2
     parts, labels = [], [base]
     for k, (name, at, db) in enumerate(sounds):
-        cmd += ["-i", SFX / f"{name}.wav"]
+        cmd += ["-i", sound(name, at, db)]
         ms = max(0, int(at * 1000))
         parts.append(f"[{k + first}:a]volume={db}dB,adelay={ms}|{ms}[s{k}]")
         labels.append(f"[s{k}]")

@@ -5,6 +5,7 @@ import numpy as np
 ROOT = Path("/home/user/replica-skill/fonzi-gym-video-editor")
 sys.path.insert(0, str(ROOT / "scripts"))
 import style_fx as sf  # zoom(), W, H
+from common import sfx_file  # config.yaml sfx.roles (OpenFilm CC0 library, old wav fallback)
 
 SRC = ROOT / "input/icloud_0dfgTLSk.mp4"
 SONG = ROOT / "songs/alfonso_music_063BT4Xb.mp3"
@@ -48,8 +49,8 @@ afc = (f"[1:a]atrim=start={SONG_IN:.4f}:duration=3,asetpts=PTS-STARTPTS,aresampl
        f"[2:a]aresample=48000,aformat=channel_layouts=stereo,volume=-14dB,adelay={int(w_at*1000)}|{int(w_at*1000)}[w];"
        f"[3:a]aresample=48000,aformat=channel_layouts=stereo,volume=-10dB,adelay={round(i_at*1000)}|{round(i_at*1000)}[i];"
        f"[s][w][i]amix=inputs=3:normalize=0:duration=first,alimiter=limit=0.89,atrim=duration=3[a]")
-subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", pic, "-i", SONG, "-i", ROOT / "sfx/whoosh.wav",
-                "-i", ROOT / "sfx/impact.wav", "-filter_complex", afc, "-map", "0:v", "-map", "[a]",
+subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", pic, "-i", SONG, "-i", sfx_file("intro_whoosh"),
+                "-i", sfx_file("intro_impact"), "-filter_complex", afc, "-map", "0:v", "-map", "[a]",
                 "-c:v", "libx264", "-crf", "16", "-preset", "slow", "-pix_fmt", "yuv420p", "-r", str(FPS),
                 "-c:a", "aac", "-b:a", "192k", "-t", "3", "-movflags", "+faststart", OUT], check=True)
 tmp.unlink(); pic.unlink()

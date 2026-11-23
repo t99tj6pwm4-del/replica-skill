@@ -39,7 +39,7 @@ case "$cmd" in
   take)
     id="${1:?id}"
     case "$id" in openfilm/audio/music/*) music_allowed || { echo "Library music is blocked (his songs only)." >&2; exit 3; } ;; esac
-    verb=sfx-search; case "$id" in openfilm/audio/music/*) verb=music-search;; openfilm/audio/*) ;; *) verb=sticker;; esac
+    verb=sfx-search; case "$id" in openfilm/audio/music/*) verb=music-search;; openfilm/audio/*|openfilm/sounds/*|openfilm/community/*/sound/*) ;; *) verb=sticker;; esac
     of get "$verb" --take "$id"
     if [ "$verb" = sticker ]; then dest="$HERE/brand/stickers"; else dest="$HERE/sfx/library"; fi
     mkdir -p "$dest"

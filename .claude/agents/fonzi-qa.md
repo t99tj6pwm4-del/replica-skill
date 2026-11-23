@@ -155,8 +155,9 @@ whose back word is not behind him at all (under 2%) or completely gone (over con
 
 ## Sound effects (Alfonso, 2026-11-19)
 The final has quiet whoosh/pop hits under the audio at each title and pop-up (output/work/sfx_log.json). They are
-expected, made by the team (scripts/make_sfx.py), not stock and not other creators' audio. Flag only if one is loud
-over his voice or the song.
+expected. Since 2026-11-23 (Alfonso) they come from the OpenFilm CC0 library (sfx/library/fonzi/, config `sfx.roles`; each
+log entry has library_id + licence CC0) with the old scripts/make_sfx.py wavs as fallback. Never other creators' audio, never
+library music. Flag only if one is loud over his voice or the song, or a library sound is missing from the log.
 
 ## Fonzi style (Style Lab, locked 2026-11-20)
 Follow `fonzi-gym-video-editor/style-lab/STYLE.md`, section "Rules for every video". Effects come from
