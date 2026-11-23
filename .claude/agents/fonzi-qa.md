@@ -88,6 +88,19 @@ See `style-lab/STYLE.md` rule zero-A.
    - **Own footage only?** Look for another creator's watermark, a TV/network logo, stock-site branding,
      or someone else's on-screen name graphics baked into the footage. Any of those = fail.
    Need more frames? `python3 scripts/grab_frames.py output/final_edit.mp4 output/qa/extra <t1> <t2>`
+   - **Cuts on motion (Alfonso 2026-11-23, Director answer 26)?** Read `output/cut_list.md` (written by
+     `cut_video.py`). Every cut needs a `motion` and `matched` entry. **Any cut on stillness without a reason
+     in `stillness_flag` fails -> cuts**. A reason is "dead time removed", "cut locked by storyboard (...)" with a
+     real why (e.g. the style_fx cut-out freeze), or "no motion-safe frame inside the allowed shift" (put the time
+     in your notes for Alfonso). No `output/cut_list.md` at all on a new cut = fail -> cuts (re-run `cut_video.py`).
+     Spot-check 2 cuts: grab one frame before and one after (`grab_frames.py output/final_edit.mp4 output/qa/extra
+     <t-0.07> <t+0.07>`) and confirm something is moving and, for two angles of one lift, the same rep point and
+     direction. An up -> down flip inside one exercise -> cuts. To re-score a cut list yourself without rendering:
+     `python3 scripts/motion_cuts.py score output/work/cut_map.json --out output/qa/motion_audit.md`.
+     `qa_check.py` / `qa_verdict.py` have no flag for this yet (do not edit them; another agent owns them now).
+     Always write the result in `--notes` ("cut list: N cuts, N on motion, N flagged with reasons"). To fail it, use
+     the nearest existing check, `--zoom fail` (zoom / framing), with `--send-to cuts --fix "cut #<n> at <t>s:
+     <what to change>"`.
 4. **Record the verdict:**
    `python3 scripts/qa_verdict.py --captions <pass|fail> --zoom <pass|fail> --face-clear <pass|fail> --own-footage <pass|fail> --lip-sync <pass|fail> --broll-match <pass|fail> --notes "<what you saw in each frame>"`
    (`--lip-sync` / `--broll-match` are required whenever there are side-by-sides.)

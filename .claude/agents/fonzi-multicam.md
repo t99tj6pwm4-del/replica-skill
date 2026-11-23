@@ -76,6 +76,22 @@ FIRST, before the Storyboard Agent:
    when the Director says Alfonso asked for that style, follow that skill's own steps, and still save
    the result as `output/multicam_prompt.txt`.
 
+**Cut on motion (Alfonso, 2026-11-23, Director standing answer 26).** An angle insert is a cut between two angles
+of the same exercise, so it follows rules 3-4 (see `fonzi-cuts.md`, "Cut on motion") **at both edges**:
+- each AI-angle slot **starts and ends on motion** (the bar, his arms, his body, or the camera moving), never while
+  he stands still, rests or sets up;
+- **matched action:** the rep that is moving at the slot's start goes on in the angle at the same rep point (same
+  bar height, same joint angle), and the same at the slot's end going back to his real camera;
+- **matched direction:** up stays up and down stays down across both edges. Never cut from moving up to moving down;
+- the edge sits in the **first third** of a move. Snap to the beat only if it is within 3 frames. With speech, the
+  rule above still holds (cut in a silence between words), so choose the silence where something moves.
+- Check each edge with `python3 scripts/motion_cuts.py propose output/cut_version.mp4 <cut time>` (the cut is
+  already 9:16, so it is measured as-is). Use `track output/cut_version.mp4 <t0> <t1>` to see the direction both
+  sides of the slot. If a slot cannot start and end on motion, move it to one that can, and say so in your
+  report. The generated clip must carry the same move at its first and last frame (the real frame at the
+  timestamp is its anchor), so it never opens or closes on a held pose.
+- Never fake a second angle with a plain crop of a still moment. An angle covers a moving stretch, or it is not used.
+
 Every shot is a **hard cut**: no morph, dissolve or camera move between angles unless the shot says so.
 Transitions between angles (Part E of `docs/capcut_effects_library.md`) only if a hard cut jars, and the
 Text/Visuals Agent adds them, not you.

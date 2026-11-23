@@ -16,6 +16,7 @@ from common import OUT, WORK, die, load_json, resolve  # noqa: E402
 TYPES = {"hook", "exercise", "talk", "broll"}
 EFFECTS = {"punch_in", "slow_mo", "speed_ramp", "hero", "callout"}
 HERO = [0.35, 0.5, 0.75, 1.0]   # Hero speed curve: slow-to-fast, four equal steps
+CUT_LOCKS = {"in", "out", "both"}   # cut on motion (2026-11-23): keep this segment's cut(s) exactly as planned
 
 
 def english_only(text: str, where: str, errors: list):
@@ -60,6 +61,13 @@ def validate(sb: dict, src_duration: float | None = None) -> tuple[list, list, f
         if s.get("type") == "exercise" and not s.get("exercise"):
             errors.append(f"{name}: exercise segments need 'exercise'")
         english_only(s.get("exercise", ""), f"{name} exercise", errors)
+        # cut on motion (optional, 2026-11-23): camera angle label + cut locks
+        if "angle" in s and not (isinstance(s["angle"], str) and s["angle"].strip()):
+            errors.append(f"{name}: 'angle' must be a short label like \"side\" or \"front\"")
+        if "cut_lock" in s and s["cut_lock"] not in CUT_LOCKS:
+            errors.append(f"{name}: 'cut_lock' must be one of {sorted(CUT_LOCKS)}")
+        if s.get("cut_lock") and not s.get("cut_lock_note"):
+            warnings.append(f"{name}: cut_lock without 'cut_lock_note': say why this cut may sit on stillness")
         english_only(s.get("sets_reps", ""), f"{name} sets_reps", errors)
         seg_len = (b - a) / float(s.get("speed", 1.0))
         for e in s.get("effects", []):
@@ -88,6 +96,14 @@ def validate(sb: dict, src_duration: float | None = None) -> tuple[list, list, f
             if e["type"] == "callout":
                 english_only(e.get("text", ""), f"{name} callout", errors)
         total += seg_len
+    mc = sb.get("motion_cuts")
+    if mc is not None and not isinstance(mc, bool):
+        if not isinstance(mc, dict):
+            errors.append("'motion_cuts' must be true/false or {\"enabled\", \"roll\", \"roll_wide\", \"slip_match\"}")
+        else:
+            for k in ("roll", "roll_wide", "slip_match"):
+                if k in mc and not (isinstance(mc[k], (int, float)) and 0 <= mc[k] <= 2):
+                    errors.append(f"motion_cuts.{k} must be 0-2 seconds")
     if not 1.0 <= sb["segments"][0]["src_out"] - sb["segments"][0]["src_in"] <= 3.5 if sb["segments"] else False:
         warnings.append("hook segment should be about 2 seconds")
     total += float(sb["end_card"].get("duration", 2.5))
@@ -149,6 +165,12 @@ def render(sb: dict, total: float) -> str:
                 fx.append(f"callout \"{e['text']}\" at {fmt(e['at'])}")
         if s.get("remove_pauses"):
             fx.append("cut pauses over 0.5s")
+        if s.get("angle"):
+            fx.append(f"angle: {s['angle']}")
+        if s.get("cut_lock"):
+            fx.append(f"cut locked ({s['cut_lock']}): {s.get('cut_lock_note', 'no reason given')}")
+        if s.get("cut_on"):
+            fx.append(f"cut in on: {s['cut_on']}")
         if s.get("visual"):
             fx.insert(0, s["visual"])
         if s["type"] == "hook":
@@ -171,6 +193,10 @@ def render(sb: dict, total: float) -> str:
            else "- Word-by-word captions, each word pops in as it is said; key words in the brand colour: ")
           + (", ".join(sb.get("key_words", [])) or "(none listed)"),
           "- Segmented progress bar across the top",
+          ("- Cuts land on motion (Alfonso 2026-11-23): the Cuts Agent snaps each cut to the nearest moving frame, "
+           "beat only within 3 frames; see output/cut_list.md" if sb.get("motion_cuts", True) not in (False,)
+           and not (isinstance(sb.get("motion_cuts"), dict) and sb["motion_cuts"].get("enabled") is False)
+           else "- Cut on motion is OFF for this video (motion_cuts: false): cuts exactly as planned"),
           "- English only, no hashtags on screen", ""]
     L += render_plan_extras(sb)
     if sb.get("carousel"):

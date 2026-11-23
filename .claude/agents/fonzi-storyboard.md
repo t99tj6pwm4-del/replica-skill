@@ -99,6 +99,35 @@ See `style-lab/STYLE.md` rule zero-A.
 - Keep punch-ins, slow-mo and speed ramps off at least two 4-6 second stretches where he is talking:
   the Multicam/B-Roll Agent needs clean phrases for its camera-angle changes.
 
+## Plan cuts on motion (Alfonso, 2026-11-23, Director standing answer 26)
+
+Every segment boundary is a cut, and every cut must land while something moves (the bar, his arms, his body, or
+the camera). The Cuts Agent snaps each cut to the nearest moving frame: a roll of up to 0.4 s, or up to 1.0 s if
+nothing moves closer. That only works if you plan the boundaries on motion:
+- **Between exercises:** start and end segments on a walk-in, grabbing the bar, unracking or re-racking, or a head
+  turn. Never on him standing still, resting or setting up. Put the moment in `"cut_on"` on the incoming segment
+  (e.g. `"cut_on": "grabs the bar"`). It shows in storyboard.md.
+- **Same exercise, two angles** (the raw video holds the same lift filmed from two spots): give each segment
+  `"angle": "side"` / `"front"` (any short label; default "main"). Plan the boundary mid-rep. Start the rep in
+  angle A and finish it in angle B, at the same rep point and moving the same way, early in the move (first third).
+  Cuts slips the incoming angle up to 1 s to line the reps up.
+- **Same exercise, same angle** (e.g. squat1 -> squat2 from one camera): no mid-rep jump cut. Put the boundary between
+  reps, on the start of the next rep's movement.
+- **One angle only: never fake a second angle.** Do not label one camera as two `angle`s. Use the same-angle rule.
+  AI angle slots (`multicam_room`) must also start and end on motion.
+- **Hook:** its end is not moved (the opener and intro are timed on it). Only the incoming clip slips, so plan
+  the first exercise to start on a moving moment.
+- **On purpose on stillness:** a `style_fx cutout` freezes the outgoing frame for its mask. Set
+  `"cut_lock": "in"` on the incoming segment (or `"out"` on the outgoing one, `"both"`) and add a
+  `"cut_lock_note"` that says why. The cut stays exactly where planned and is flagged with your note.
+  `"motion_cuts": false` (top level) turns cut-on-motion off for one video, only when Alfonso asks.
+- The beat is second. A cut snaps to the beat only if it lands within 3 frames of one, so do not stretch a range just
+  to hit a beat on a still frame.
+- Planned cut times can move by up to 1 s. Leave a little slack around anything you time to a cut (exercise titles,
+  pop-up `cut_start`, style_fx windows). The real times end up in `output/work/cut_map.json`.
+- To find moving frames near a planned boundary: `python3 scripts/motion_cuts.py propose input/<video> <raw t>`
+  (`track input/<video> <t0> <t1>` prints the per-frame motion, direction and rep starts).
+
 ## storyboard.json schema
 
 All times are seconds in the RAW video.
@@ -133,7 +162,9 @@ All times are seconds in the RAW video.
 }
 ```
 
-Segment `type` is one of `hook`, `exercise`, `talk`, `broll`. Optional per segment: `speed`, `fit`
+Segment `type` is one of `hook`, `exercise`, `talk`, `broll`. Optional per segment (cut on motion): `angle`,
+`cut_on`, `cut_lock` (`in` / `out` / `both`) + `cut_lock_note`; top level `motion_cuts` (default on).
+Also optional per segment: `speed`, `fit`
 (`"crop"` default or `"blur"` to keep the whole landscape frame over a blurred background), `crop_x`,
 `focus_x` / `focus_y` (0-1, where punch-ins zoom towards; default centre, slightly high).
 Effects must sit inside their segment's `src_in`-`src_out`.

@@ -2,6 +2,14 @@
 """CUTS AGENT tool. Cuts the raw video exactly as output/storyboard.json says. No text, ever.
 
     python3 scripts/cut_video.py
+    python3 scripts/cut_video.py --plan-only [DIR]   # cut list only, no render, nothing shipped touched
+    python3 scripts/cut_video.py --no-motion         # old behaviour: cuts exactly as planned, punch-ins on the beat
+
+Cut on motion (Alfonso 2026-11-23, Director answer 26, scripts/motion_cuts.py): before cutting, every planned
+cut is moved to the nearest motion-safe frame (roll <= 0.4 s, up to 1.0 s only when nothing moves closer;
+the cut after the hook only slips the incoming clip so the opener / intro timing stays; two angles of the
+same exercise slip the incoming angle up to 1.0 s to line up the same rep point). Beat is second: snapped
+only if the beat is within 3 frames. Storyboard `cut_lock` keeps a cut exactly where planned (still scored).
 
 Does: trim to the planned ranges (black tail / dead ends never make it in), cut pauses over 0.5s,
 jump cuts, punch-ins (110-130%, snapped to the beat when a song is set), slow-mo, speed ramps,
@@ -10,7 +18,8 @@ jump cuts, punch-ins (110-130%, snapped to the beat when a song is set), slow-mo
 Writes:
   output/cut_version.mp4       1080x1920, 30fps, H.264 + AAC
   output/work/cut_voice.wav    voice only (for Whisper)
-  output/work/cut_map.json     where every segment / effect landed on the final timeline
+  output/work/cut_map.json     where every segment / effect landed on the final timeline, plus "cut_list"
+  output/cut_list.md           every cut with its motion, matched, direction, beat and stillness_flag
 """
 from __future__ import annotations
 
@@ -21,6 +30,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from common import FPS, H, OUT, SONGS, W, WORK, die, load_json, probe, rel, resolve, run, save_json  # noqa: E402
 from storyboard_md import validate  # noqa: E402
+import motion_cuts as mc  # noqa: E402
 
 PAD = 0.12       # breath kept on each side of a removed pause
 MIN_PAUSE = 0.5  # only pauses longer than this are cut
@@ -133,7 +143,114 @@ def atempo(speed: float) -> str:
     return ",".join(parts)
 
 
+def seg_len(seg: dict, dead: list) -> float:
+    return sum((p["src_b"] - p["src_a"]) / p["speed"] for p in build_pieces(seg, dead))
+
+
+def _edge_speed(seg: dict, dead: list, end: bool) -> float:
+    ps = build_pieces(seg, dead)
+    return (ps[-1] if end else ps[0])["speed"] if ps else 1.0
+
+
+def _effect_span(seg: dict) -> tuple[float, float] | None:
+    spans = [(e["at"], e["at"] + e.get("dur", 0)) if "at" in e else (e["from"], e["to"]) for e in seg.get("effects", [])]
+    return (min(a for a, _ in spans), max(b for _, b in spans)) if spans else None
+
+
+def plan_motion_cuts(sb: dict, dead: list, period, phase, src, info, usable) -> tuple[list, list] | None:
+    """Move every planned cut onto motion (rules 1-9). Returns (new segments, cut rows) or None when off.
+    Only src_in / src_out (roll, slip) and punch-in `at` change; nothing is added, dropped or reordered."""
+    cfg = sb.get("motion_cuts", {})
+    if cfg is False or (isinstance(cfg, dict) and cfg.get("enabled") is False):
+        return None
+    cfg = cfg if isinstance(cfg, dict) else {}
+    tracks = mc.Tracks(src, info)
+    beat = (period, phase)
+    lo_ok, hi_ok = float(usable[0]), float(usable[1])
+    segs = [{**s, "effects": [dict(e) for e in s.get("effects", [])]} for s in sb["segments"]]
+    rows = []
+    for i, b_seg in enumerate(segs):
+        out_start = sum(seg_len(s, dead) for s in segs[:i])
+        if i > 0:
+            a_seg = segs[i - 1]
+            a_t, b_t = float(a_seg["src_out"]), float(b_seg["src_in"])
+            lock = None
+            if a_seg.get("cut_lock") in ("out", "both") or b_seg.get("cut_lock") in ("in", "both"):
+                lock = b_seg.get("cut_lock_note") or a_seg.get("cut_lock_note") or "cut_lock in storyboard"
+            lim = mc.cut_limits(a_seg, b_seg, lock, cfg)
+            ea, eb = _effect_span(a_seg), _effect_span(b_seg)
+            a_in, b_out = float(a_seg["src_in"]), float(b_seg["src_out"])
+
+            def allowed(r, s_, a_t=a_t, b_t=b_t, ea=ea, eb=eb, a_in=a_in, b_out=b_out):
+                na, nb_in, nb_out = a_t + r * FRAME, b_t + (r + s_) * FRAME, b_out + s_ * FRAME
+                if na - a_in < 0.5 or nb_out - nb_in < 0.5 or na > hi_ok or nb_in < lo_ok or nb_out > hi_ok:
+                    return False
+                if ea and na < ea[1] - 1e-6:
+                    return False
+                if eb and (nb_in > eb[0] + 1e-6 or nb_out < eb[1] - 1e-6):
+                    return False
+                return True
+            res = mc.plan_cut(tracks, a_seg, a_t, b_seg, b_t, roll=lim["roll"], slip=lim["slip"], wide=lim["wide"],
+                              out_t=out_start, beat=beat if period else (None, None),
+                              speed_a=_edge_speed(a_seg, dead, True), locked=lock, allowed=allowed)
+            r, s_ = res["roll_frames"] * FRAME, res["slip_frames"] * FRAME
+            a_seg["src_out"] = round(a_t + r, 4)
+            b_seg["src_in"] = round(b_t + r + s_, 4)
+            b_seg["src_out"] = round(b_out + s_, 4)
+            moved = ("stays" if not (res["roll_frames"] or res["slip_frames"]) else
+                     f"roll {res['roll_frames']:+d} fr" + (f", slip in {res['slip_frames']:+d} fr" if res["slip_frames"] else ""))
+            rows.append({"type": "clip", "seg": b_seg.get("id"), "src_t": b_seg["src_in"], "kind": res["kind"],
+                         "from_to": f"{a_seg.get('id')} {a_seg['src_out']:.2f} -> {b_seg.get('id')} {b_seg['src_in']:.2f}",
+                         "motion": res["motion"], "matched": res["matched"], "direction": res["direction"],
+                         "beat": res["beat"], "moved": moved, "stillness_flag": res["stillness_flag"],
+                         "first_third": res["in"]["first_third"]})
+        # punch-ins (zoom cuts on continuous footage): start in the first third of a move, end on motion
+        out_start = sum(seg_len(s, dead) for s in segs[:i])
+        for e in b_seg["effects"]:
+            if e["type"] != "punch_in":
+                continue
+            ps, t_out, sp = build_pieces(b_seg, dead), out_start, 1.0
+            for p in ps:
+                if p["src_a"] <= e["at"] < p["src_b"]:
+                    t_out += (e["at"] - p["src_a"]) / p["speed"]
+                    sp = p["speed"]
+                    break
+                t_out += (p["src_b"] - p["src_a"]) / p["speed"]
+            z = mc.plan_zoom_edge(tracks, b_seg, float(e["at"]), float(e["dur"]), float(b_seg["src_in"]),
+                                  float(b_seg["src_out"]), out_t=t_out, beat=beat if period else (None, None), speed=sp)
+            e["at"], e["_beat_snapped"] = z["at"], z["beat_snapped"]
+            for edge, st, t in (("punch in", z["start"], z["at"]), ("punch out", z["end"], z["at"] + float(e["dur"]))):
+                rows.append({"type": edge, "seg": b_seg.get("id"), "src_t": round(t, 3), "kind": "zoom",
+                             "from_to": f"{b_seg.get('id')} {t:.2f} (same footage, zoom {e.get('zoom', 1.2)})",
+                             "motion": st["what"] + (", first third" if st["first_third"] else ""),
+                             "matched": "yes" if st["moving"] else "no", "direction": st["dir"] or "-",
+                             "beat": z["beat"], "moved": "stays" if not z["shift_frames"] else f"{z['shift_frames']:+d} fr",
+                             "stillness_flag": "" if st["moving"] else "zoom cut on a still frame: no motion within 0.4 s of the planned key rep",
+                             "first_third": st["first_third"]})
+    # dead-time jump cuts inside a segment (remove_pauses): allowed on stillness, flagged
+    for seg in segs:
+        if not seg.get("remove_pauses"):
+            continue
+        keep = keep_ranges(float(seg["src_in"]), float(seg["src_out"]), dead)
+        for (a0, a1), (b0, b1) in zip(keep, keep[1:]):
+            ta = tracks.get(a1 - 1.6, a1 + 0.2, seg.get("crop_x", 0.5), seg.get("crop_y", 0.5), seg.get("exercise"))
+            tb = tracks.get(b0 - 0.2, b0 + 1.6, seg.get("crop_x", 0.5), seg.get("crop_y", 0.5), seg.get("exercise"))
+            sa, sb_ = ta.at(a1 - FRAME), tb.at(b0)
+            rows.append({"type": "dead time", "seg": seg.get("id"), "src_t": b0, "kind": "same_angle",
+                         "from_to": f"{seg.get('id')} {a1:.2f} -> {b0:.2f}", "motion": mc.motion_text(sa, sb_),
+                         "matched": "yes" if mc.matched(sa, sb_, "same_angle") else "no",
+                         "direction": f"{sa['dir'] or '-'} -> {sb_['dir'] or '-'}", "beat": "-", "moved": "stays",
+                         "stillness_flag": mc.stillness_reason(sa, sb_, dead_time=True), "first_third": sb_["first_third"]})
+    return segs, rows
+
+
 def main():
+    plan_only = "--plan-only" in sys.argv
+    plan_dir = None
+    if plan_only:
+        k = sys.argv.index("--plan-only")
+        plan_dir = Path(sys.argv[k + 1]) if len(sys.argv) > k + 1 and not sys.argv[k + 1].startswith("--") \
+            else WORK / "motion_plan_preview"
     sb = load_json(OUT / "storyboard.json")
     analysis = load_json(WORK / "analysis.json", default={})
     src = resolve(sb["source"])
@@ -143,9 +260,10 @@ def main():
         die("storyboard.json is not valid, send it back to the Storyboard Agent:\n  - " + "\n  - ".join(errors))
     if sb.get("song") and SONGS.resolve() not in resolve(sb["song"]).resolve().parents:
         die("the song must be one of Alfonso's own mp3s in songs/ (no stock or AI music)")
-    for stale in ("multicam_version.mp4", "final_edit.mp4"):   # built on the old cut
-        (OUT / stale).unlink(missing_ok=True)
-    (WORK / "multicam_map.json").unlink(missing_ok=True)
+    if not plan_only:
+        for stale in ("multicam_version.mp4", "final_edit.mp4"):   # built on the old cut
+            (OUT / stale).unlink(missing_ok=True)
+        (WORK / "multicam_map.json").unlink(missing_ok=True)
     sw, sh, src_fps = info["video"]["width"], info["video"]["height"], info["video"]["fps"]
     has_audio = info["audio"] is not None
     dead = analysis.get("dead_ranges", []) if analysis.get("source") == rel(src) else []
@@ -156,6 +274,19 @@ def main():
         period = 60.0 / float(sb["song_bpm"])
         phase = (float(sb.get("song_beat_offset", 0.0)) - float(sb.get("song_start", 0.0))) % period
 
+    # cut on motion (rules 1-9): move each planned cut / punch-in edge onto the nearest motion-safe frame
+    motion = None
+    if "--no-motion" not in sys.argv:
+        usable = analysis.get("usable_range") if analysis.get("source") == rel(src) else None
+        motion = plan_motion_cuts(sb, dead, period, phase, src, info, usable or (0.0, info["duration"]))
+    cut_rows = []
+    if motion:
+        sb = {**sb, "segments": motion[0]}       # in memory only; storyboard.json is never rewritten
+        cut_rows = motion[1]
+        errors, _, _ = validate(sb, info["duration"])
+        if errors:
+            die("motion-snapped cuts broke the plan (report to the Director):\n  - " + "\n  - ".join(errors))
+
     tmp = WORK / "pieces"
     shutil.rmtree(tmp, ignore_errors=True)
     tmp.mkdir(parents=True)
@@ -165,8 +296,10 @@ def main():
     out_t, exact_t, all_pieces, seg_map, events, callouts, snapped = 0.0, 0.0, [], [], [], [], 0
     for seg in sb["segments"]:
         seg = dict(seg)
+        if motion:   # punch-ins already placed on motion, beat snapped only within 3 frames (rule 6)
+            snapped += sum(1 for e in seg.get("effects", []) if e.pop("_beat_snapped", False))
         # snap each punch-in so the zoom cut lands on a beat
-        if period:
+        elif period:
             probe_pieces = build_pieces(seg, dead)
             for e in seg.get("effects", []):
                 if e["type"] != "punch_in":
@@ -244,6 +377,24 @@ def main():
                                      "out_end": round(b if b and b > a else a + e["dur"], 3),
                                      "x": e.get("x"), "y": e.get("y")})
 
+    # cut list (motion / matched / stillness_flag) on the final timeline
+    seg_out = {m["id"]: m for m in seg_map}
+    for r in cut_rows:
+        if r["type"] == "clip" and r["seg"] in seg_out:
+            r["cut_time"] = seg_out[r["seg"]]["out_start"]
+        else:
+            t = src_to_out(r["src_t"], r["seg"])
+            r["cut_time"] = round(t, 3) if t is not None else seg_out.get(r["seg"], {}).get("out_start", 0.0)
+    cut_rows.sort(key=lambda r: r["cut_time"])
+    if plan_only:
+        plan_dir.mkdir(parents=True, exist_ok=True)
+        save_json(plan_dir / "cut_plan.json", {"source": rel(src), "body_end": round(out_t, 3), "segments": seg_map,
+                                                "planned_segments": [{k: s.get(k) for k in ("id", "src_in", "src_out")} for s in sb["segments"]],
+                                                "cut_list": cut_rows})
+        (plan_dir / "cut_list.md").write_text(mc.cut_list_md(sb.get("title", ""), cut_rows, cut_list_intro(cut_rows)))
+        print(f"plan only: {len(cut_rows)} cuts, body {out_t:.2f}s -> {rel(plan_dir)}/cut_list.md (nothing rendered)")
+        return
+
     # render every piece, then join them (jump cuts)
     print(f"cutting {len(all_pieces)} pieces from {rel(src)} ...")
     listing = []
@@ -311,7 +462,14 @@ def main():
         "beat": {"period": period, "phase": phase, "punch_ins_on_beat": snapped} if period else None,
         "pauses_removed_seconds": round(removed, 2),
         "pieces": [{k: round(p[k], 3) for k in ("src_a", "src_b", "out_a", "out_b", "speed", "zoom")} for p in all_pieces],
+        "cut_list": cut_rows,
+        "motion_cuts": bool(motion),
     })
+    if motion:
+        (OUT / "cut_list.md").write_text(mc.cut_list_md(sb.get("title", ""), cut_rows, cut_list_intro(cut_rows)))
+        flagged = sum(1 for r in cut_rows if r["stillness_flag"])
+        print(f"       cut list: {len(cut_rows)} cuts, {sum(r['matched'] == 'yes' for r in cut_rows)} matched, "
+              f"{flagged} on stillness (flagged) -> output/cut_list.md")
     v = info["video"]
     print(f"wrote  {rel(final)}  {v['width']}x{v['height']} {v['fps']}fps {v['codec']}+"
           f"{info['audio']['codec'] if info['audio'] else 'NO AUDIO'}  {info['duration']:.2f}s")
@@ -324,6 +482,14 @@ def main():
     if not lo <= info["duration"] <= hi:
         die(f"cut is {info['duration']:.1f}s but must be {lo}-{hi}s. Report this to the Director: "
             "the storyboard ranges need adjusting.", code=2)
+
+
+def cut_list_intro(rows: list) -> list[str]:
+    return ["Cut on motion (Alfonso 2026-11-23). `motion` = what moves on each side (out / in), `matched` = same",
+            "rep point + direction (two angles), same direction (new exercise), or moving footage (zoom cut).",
+            "`moved` = how far the planned cut went to land on motion. Any cut on stillness is flagged with why.",
+            "", f"**{len(rows)} cuts, {sum(1 for r in rows if not r['stillness_flag'])} on motion, "
+            f"{sum(1 for r in rows if r['stillness_flag'])} flagged.**", ""]
 
 
 if __name__ == "__main__":
