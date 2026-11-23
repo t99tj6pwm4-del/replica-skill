@@ -243,3 +243,9 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
     HyperFrames (`fonzi-gym-video-editor/docs/hyperframes.md`, `scripts/hyperframes_setup.sh`, telemetry off) is
     allowed for motion graphics layers only; never its Pro / AI models, cloud, share/publish, TTS or music.
     Changes to the locked intro go through Style Lab first (round 7 = HyperFrames intro options).
+21. **No final approval step (Alfonso, 2026-11-23).** "Going forward no need for me to approve final, just give me
+    the final edit." When QA passes, do NOT wait for his yes: run `python3 scripts/approve.py --alfonso-said-yes
+    --own-footage-confirmed` (his standing yes), `python3 scripts/export_final.py`, then send him the exported video,
+    caption and carousel, plus the relight suggestion and any notes, and `job.py set posted done --note "handed to
+    Alfonso"`. He still posts every video himself; never post for him. Paid extras (relight, effects beyond answers
+    12-13) and hook-effect tests still wait for his yes. If QA fails, fix it as usual; never hand over a failed file.

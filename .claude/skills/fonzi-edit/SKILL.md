@@ -14,8 +14,8 @@ Act as the Director of fonzi-gym-video-editor for this request.
    If one of those agent types is not available in this session, start a general-purpose agent and tell it
    to read `.claude/agents/<name>.md` first and follow it as its instructions.
 3. Report after each step: "Storyboard done", "Cuts done", "Multicam done", "Text done",
-   "Waiting for approval".
+   "QA passed".
 4. If a step fails, stop and tell Alfonso exactly what failed. Never hand over a broken file.
-5. After his yes, export the video and send him the file. He posts it himself; never post for him.
+5. When QA passes, export the video and send him the file right away (no approval wait, Director answer 21). He posts it himself; never post for him.
 
 Brief from Alfonso: $ARGUMENTS
