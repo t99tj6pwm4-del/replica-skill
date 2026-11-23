@@ -197,6 +197,19 @@ the Director the hook shot keeps his face too low (or pass `--title-y` / `--face
 frames at ~0.7 / 1.0 / 1.5 s: `--preview` stills show the Remotion layer only, not the intro or logo card.
 Test renders: `render_final.py --out output/<dir>/x.mp4` leaves output/final_edit.mp4 alone (no rotation record).
 
+**Logo opener (Alfonso, 2026-11-23, Director answer 23: "logo card first, then intro").** finish_fx.py now opens
+every intro-card video with ~1.5 s of the END-CARD look (`style_fx.py opener`: the clean picture blurred 18 px and
+darkened to 35 %, the same white logo, the same 14-frame flicker and the SAME drips as this video's end card; the
+logo lands solid on a beat with an impact; clicks + crackle, sfx roles `opener_click` / `opener_crackle` /
+`opener_impact`, -6 dB under the song). Length from config `intro.opener` (beats auto = the beat count nearest 1.5 s,
+ending ON a beat; 101 bpm: 3 beats = 1.77 s). The intro card then starts at the opener's end (`style_fx.py intro
+--start`), its beat 1 = the next beat >= 10 frames later, and still ends at the hook end / first gold title. Nothing
+is added to the length. If the hook is too short (intro < `intro.min_dur`), the opener shrinks a beat at a time to
+`min_beats`, then is dropped with `opener_fallback_reason` (finish_fx.json + rotation entry; QA soft-fail): tell the
+Director the Storyboard agent must give the hook ~1.5-1.8 s more. Check `output/work/opener_card.json` (frames,
+solid frame on the beat, logo box) and grab frames at ~0.3 / 1.0 s and just after the opener. `--no-opener` on
+render_final.py is for tests only. Storyboard `"intro": {"opener": false | {"beats": N}}` only when Alfonso asks.
+
 ## Supervisor mode (Alfonso, 2026-11-21): you plan and check, workers build
 You are the **supervisor** of the visuals step. Each visual piece (intro card, each gold title, pop-ups, logo end
 card, HyperFrames motion layers, Style Lab options) is built by its own `fonzi-vfx-worker` agent, from a work

@@ -13,7 +13,8 @@ After the composite it ALWAYS runs scripts/finish_fx.py (Fonzi style, STYLE.md r
 card over the hook (props title.style "fonzi_intro"; title strobe -> pulse -> glitch -> smash and logo flat <-> 3d by
 rotation, an unfit glitch / smash falls back to pulse; only a render to output/final_edit.mp4 is recorded in
 posted/style_rotation.json, an --out test render never is) and the dripping logo end card
-(endCard.style "logo_drip"), baked into the picture in one pass. The --preview stills show only the Remotion layer:
+(endCard.style "logo_drip"), baked into the picture in one pass. Since 2026-11-23 the intro card is preceded by the
+logo opener (~1.5 s of the end-card look on the beat grid, config intro.opener; `--no-opener` = test only). The --preview stills show only the Remotion layer:
 the intro and the logo card are not in them (look at output/work/intro_card.json and the final's frames instead).
 
 The picture itself is never changed: Remotion renders a transparent graphics layer and ffmpeg
@@ -141,7 +142,7 @@ def main():
     if "-h" in sys.argv or "--help" in sys.argv:
         print(__doc__.strip())
         print("\nflags: --out PATH  --preview T [T ...]  --title-style normal|layered-gold|layered-gold-plus  "
-              f"--intro-style {'|'.join(INTRO_STYLES)}  --logo-style {'|'.join(LOGO_STYLES)}")
+              f"--intro-style {'|'.join(INTRO_STYLES)}  --logo-style {'|'.join(LOGO_STYLES)}  --no-opener (test only)")
         return
     intro_style, logo_style = flag("--intro-style", INTRO_STYLES), flag("--logo-style", LOGO_STYLES)
     if not (OUT / "cut_version.mp4").exists():
@@ -268,7 +269,8 @@ def main():
     add_sfx(final, props)
     # Fonzi finish (intro card + logo end card), always, exactly once per render, on the clean picture `cut`
     import finish_fx
-    finish_fx.finish(final, cut, props, intro_style=intro_style, logo_style=logo_style)
+    finish_fx.finish(final, cut, props, intro_style=intro_style, logo_style=logo_style,
+                     opener=False if "--no-opener" in sys.argv else None)
     fx_base.unlink(missing_ok=True)
     (WORK / "layered_base.mp4").unlink(missing_ok=True)
     (WORK / "exercise_base.mp4").unlink(missing_ok=True)

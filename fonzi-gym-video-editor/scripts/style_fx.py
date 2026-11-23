@@ -14,6 +14,11 @@
         Logo end card: brand/fonzi_logo.png flickers on, then real drips run from the halo, letters and tail.
         Rotate slow / heavy / wet across videos. Background = CLIP blurred and darkened to 35 %.
 
+    python3 scripts/style_fx.py opener OUT.mp4 --bg CLIP.mp4 [--drips slow|heavy|wet] [--dur 1.777] [--beats 0.592]
+        Logo opener (Alfonso 2026-11-23): the first ~1.5 s (snapped to the beat by finish_fx.py) in the end-card
+        look: CLIP blurred + darkened to 35 %, the same white logo, flicker and drips as the end card; the logo
+        lands solid on a beat (impact). Then the intro card starts (finish_fx.py, intro --start).
+
     python3 scripts/style_fx.py intro IN.mp4 OUT.mp4 --title "LOCKED IN" --subtitle "5 LIFTS. ONE SONG."
             --style strobe|pulse|glitch|smash (--beats 0.667,1.335 | --bpm 89.88 --phase 0.667) [--dur 2.0]
             [--logo flat|3d] [--smash-keep-out left|right|none|x0,y0,x1,y1] [--piece] [--mask-src CLEAN.mp4]
@@ -78,9 +83,10 @@ def sound(role: str, at: float, db: float) -> Path:
     return ROOT / e["file"]
 
 
-def frames(path: Path) -> list[np.ndarray]:
+def frames(path: Path, limit: int | None = None) -> list[np.ndarray]:
+    lim = ["-frames:v", str(int(limit))] if limit else []
     raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(path), "-vf",
-                          f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},fps={FPS}",
+                          f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},fps={FPS}", *lim,
                           "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], check=True, capture_output=True).stdout
     a = np.frombuffer(raw, np.uint8).reshape(-1, H, W, 3).astype(np.float32) / 255
     if not len(a):
@@ -262,8 +268,14 @@ def over(base, layer, alpha=1.0, glow=None, g=0.0):
     return f
 
 
-def logo(out: Path, bg: Path, drips: str = "heavy", dur: float = 3.5):
-    n = int(dur * FPS)
+LOGO_FLICKER = [0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1]   # the locked r1-l2 flicker-on (14 frames)
+DRIP_SETS = {"slow": (6, 2.4, 90, True), "heavy": (14, 1.7, 150, True), "wet": (14, 0, 170, False)}
+
+
+def _logo_card(bg: Path, n: int, drips: str, solid_at: int = 14):
+    """The end-card look, n frames: CLIP blurred (18 px) and darkened to 35 %, the white logo (78 % of the width)
+    flickering on so that it is solid from frame `solid_at` (the 14-frame flicker sits just before it; earlier
+    frames show only the dark footage), real drips from `solid_at`. Returns (frames, flicker-on times, logo layer)."""
     lg = Image.open(LOGO).convert("RGBA")
     s = int(W * 0.78)
     lg = lg.resize((s, s), Image.LANCZOS)
@@ -271,22 +283,64 @@ def logo(out: Path, bg: Path, drips: str = "heavy", dur: float = 3.5):
     layer.paste(lg, ((W - s) // 2, (H - s) // 2 - 60), lg)
     lay = np.asarray(layer, np.float32) / 255
     glow = np.asarray(layer.filter(ImageFilter.GaussianBlur(28)), np.float32) / 255
-    src = frames(bg)
+    src = frames(bg, n + 2)                     # only the frames the card covers (bg may be the whole video)
     bgs = [np.asarray(u8(src[k % len(src)]).filter(ImageFilter.GaussianBlur(18)), np.float32) / 255 * 0.35
            for k in range(n)]
-    ntips, period, length, drops = {"slow": (6, 2.4, 90, True), "heavy": (14, 1.7, 150, True),
-                                    "wet": (14, 0, 170, False)}[drips]
+    ntips, period, length, drops = DRIP_SETS[drips]
     tips = drip_tips(lay[..., 3], ntips)
     ph = np.random.default_rng(11).uniform(0, max(period, 1), len(tips))
-    pat = [0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1] + [1] * n
+    off = solid_at - len(LOGO_FLICKER)
+    pat = [LOGO_FLICKER[k - off] if 0 <= k - off < len(LOGO_FLICKER) else int(k >= solid_at) for k in range(n)]
     clicks = [k / FPS for k in range(n) if pat[k] and (k == 0 or not pat[k - 1])]
     res = []
     for k in range(n):
         f = over(bgs[k], lay, pat[k], glow, 0.6 * pat[k])
-        if pat[k] and k >= 14:
-            f = over(f, drip_layer(tips, k - 14, ph, period, length, drops))
+        if pat[k] and k >= solid_at:
+            f = over(f, drip_layer(tips, k - solid_at, ph, period, length, drops))
         res.append(f)
+    return res, clicks, layer
+
+
+def logo(out: Path, bg: Path, drips: str = "heavy", dur: float = 3.5):
+    res, clicks, _ = _logo_card(bg, int(dur * FPS), drips)
     write(res, out, [("logo_click", c, -10) for c in clicks] + [("logo_crackle", 0.0, -14)])
+
+
+def opener(out: Path, bg: Path, drips: str = "heavy", dur: float = 1.8, beats: list[float] | None = None,
+           report: Path | None = None) -> dict:
+    """Logo opener (Alfonso 2026-11-23, STYLE.md rule 0): the first ~1.5 s of the video in the END-CARD look (same
+    blur, same 35 % dark, same white logo, same flicker and the same drips the video's end card gets), before the
+    gold intro. The flicker lands the logo solid on the first beat at least 10 frames in (else frame 14), impact on
+    that beat; clicks on the flickers, crackle bed (sfx roles opener_click / opener_crackle / opener_impact).
+    `dur` should end on a beat (finish_fx.py snaps it to the song's beat grid); OUT carries only our sfx."""
+    import json
+    n = int(round(dur * FPS))
+    if n < 20:
+        raise SystemExit(f"opener: {n} frames is too short for the logo flicker (needs 20+)")
+    bf = sorted({int(round(t * FPS)) for t in (beats or [])})
+    solid = next((b for b in bf if 10 <= b <= n - 8), 14)
+    on_beat = solid in bf
+    res, clicks, layer = _logo_card(bg, n, drips, solid)
+    a = np.asarray(layer)[..., 3]
+    box = Image.fromarray((a > 8).astype(np.uint8) * 255).getbbox()
+    edge = int((a[0] > 8).sum() + (a[-1] > 8).sum() + (a[:, 0] > 8).sum() + (a[:, -1] > 8).sum())
+    if not box or box[0] < 4 or box[1] < SAFE_TOP or box[2] > W - 4 or box[3] > SAFE_BOTTOM or edge:
+        raise SystemExit(f"opener: logo box {box} (edge px {edge}) is not fully inside the frame / safe band")
+    sounds = [("opener_click", c, -10) for c in clicks] + [("opener_crackle", 0.0, -14)]
+    if on_beat:
+        sounds.append(("opener_impact", solid / FPS - 0.02, -8))
+    write(res, out, sounds)
+    bg_mean = float(np.mean([f.mean() for f in res[:max(1, solid - 14)]])) if solid > 14 else None
+    rep = {"ok": True, "frames": n, "dur": round(n / FPS, 3), "drips": drips, "solid_frame": solid,
+           "solid_s": round(solid / FPS, 3), "solid_on_beat": on_beat, "flicker_on_s": [round(c, 3) for c in clicks],
+           "logo_box": list(box), "logo_edge_px": edge, "blur_px": 18, "dark": 0.35, "logo_width_px": int(W * 0.78),
+           "dark_frames_mean": round(bg_mean, 3) if bg_mean is not None else None,
+           "sounds": [list(s) for s in sounds], "output": str(out)}
+    if report:
+        Path(report).write_text(json.dumps(rep, indent=1))
+    print(f"opener: {n} frames ({n / FPS:.2f}s), {drips} drips, logo solid on frame {solid}"
+          f"{' (on the beat, impact)' if on_beat else ''}, logo box {list(box)}")
+    return rep
 
 
 # ---------- intro card (STYLE.md rule 0, Style Lab rounds 5-6, locked 2026-11-21) ----------
@@ -477,11 +531,12 @@ def title_state(style: str, k: int, beats: list[int]):
     raise SystemExit(f"intro: unknown style {style!r} (strobe | pulse)")
 
 
-def _extract(path: Path, n: int, into: Path) -> list[Path]:
+def _extract(path: Path, n: int, into: Path, start_frame: int = 0) -> list[Path]:
     into.mkdir(parents=True, exist_ok=True)
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(path), "-vf",
                     f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},fps={FPS},"
-                    f"trim=end_frame={n},setpts=PTS-STARTPTS", "-an", str(into / "f%04d.png")], check=True)
+                    f"trim=start_frame={start_frame}:end_frame={start_frame + n},setpts=PTS-STARTPTS", "-an",
+                    str(into / "f%04d.png")], check=True)
     got = sorted(into.glob("f*.png"))
     if len(got) < n:
         raise SystemExit(f"intro: {path} has only {len(got)} frames, need {n}")
@@ -553,7 +608,7 @@ def _pulse_window(k: int, beats: list[int]) -> bool:
 def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=None, bpm=None, phase=None,
           dur: float = 3.0, piece: bool = False, mask_src: Path | None = None, report: Path | None = None,
           title_y: int | None = None, face_box: tuple | None = None, logo: str = "flat",
-          smash_keep_out=None, dump_layers: Path | None = None) -> dict:
+          smash_keep_out=None, dump_layers: Path | None = None, start: float = 0.0) -> dict:
     import json
     import shutil
     import tempfile
@@ -564,7 +619,10 @@ def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=Non
         raise SystemExit(f"intro: unknown logo {logo!r} ({' | '.join(LOGO_STYLES)})")
     total = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
                                   str(inp)], capture_output=True, text=True, check=True).stdout.strip())
-    n = int(round(min(dur, total) * FPS))
+    s0 = int(round(start * FPS))                            # logo opener before the intro: the window starts here
+    if s0 and not piece:
+        raise SystemExit("intro: --start needs --piece (finish_fx.py splices the piece in after the opener)")
+    n = int(round(min(dur, total - s0 / FPS) * FPS))
     bts = beat_frames(n, beats, bpm, phase)
     b1 = bts[0]
     if style == "glitch":                                   # unfit checks before the slow cut-out
@@ -577,8 +635,8 @@ def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=Non
                               "fly b1-3..b1-1)", "smash")
     tmp = Path(tempfile.mkdtemp(prefix=".intro_", dir=out.parent))
     try:
-        pics = _extract(inp, n, tmp / "pic")
-        msrc = _extract(mask_src, n, tmp / "mask") if mask_src else pics
+        pics = _extract(inp, n, tmp / "pic", s0)
+        msrc = _extract(mask_src, n, tmp / "mask", s0) if mask_src else pics
         cuts = shot_cuts(msrc)
         edges = [0] + cuts + [n]
         session, model = lt.cut_session()
@@ -713,6 +771,7 @@ def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=Non
                "title_size": spec.size, "title_y1": spec.y1, "title_extent": list(spec.extent()),
                "text_y_range": yr, "dur": round(n / FPS, 3), "frames": n, "beat_frames": bts,
                "beats_s": [round(b / FPS, 3) for b in bts], "shot_cuts": cuts, "cut_model": model,
+               "start": round(s0 / FPS, 3), "start_frame": s0, "beats_abs_s": [round((s0 + b) / FPS, 3) for b in bts],
                "logo_box": list(box), "logo_size": [box[2] - box[0], box[3] - box[1]], "logo_visible_pct": vis_pct,
                "logo_edge_px": edge_px, "face_max_y": max((h[3] for h in heads if h), default=None),
                "faces_found": sum(1 for h in heads if h), "sounds": [list(s) for s in sounds],
@@ -774,6 +833,10 @@ if __name__ == "__main__":
     c.add_argument("out", type=Path); c.add_argument("--to", choices=["black", "white"], default="black")
     lo = sub.add_parser("logo"); lo.add_argument("out", type=Path); lo.add_argument("--bg", type=Path, required=True)
     lo.add_argument("--drips", choices=["slow", "heavy", "wet"], default="heavy"); lo.add_argument("--dur", type=float, default=3.5)
+    op = sub.add_parser("opener"); op.add_argument("out", type=Path); op.add_argument("--bg", type=Path, required=True)
+    op.add_argument("--drips", choices=["slow", "heavy", "wet"], default="heavy"); op.add_argument("--dur", type=float, default=1.8)
+    op.add_argument("--beats", help="beat times in seconds inside the opener (the logo lands solid on one)")
+    op.add_argument("--report", type=Path)
     it = sub.add_parser("intro"); it.add_argument("inp", type=Path); it.add_argument("out", type=Path)
     it.add_argument("--title", required=True); it.add_argument("--subtitle", default="")
     it.add_argument("--style", choices=list(TITLE_STYLES), required=True,
@@ -790,6 +853,7 @@ if __name__ == "__main__":
     it.add_argument("--title-y", type=int, help="centre of the first title line by hand (still face-checked)")
     it.add_argument("--face-box", help="x0,y0,x1,y1 extra face box to keep clear (for a hard shot)")
     it.add_argument("--report", type=Path)
+    it.add_argument("--start", type=float, default=0.0, help="window starts here (after the logo opener; needs --piece)")
     a = ap.parse_args()
     if a.cmd == "intro":
         intro(a.inp, a.out, a.title, a.subtitle, a.style,
@@ -797,7 +861,10 @@ if __name__ == "__main__":
               a.piece, a.mask_src, a.report, a.title_y,
               tuple(int(v) for v in a.face_box.split(",")) if a.face_box else None, a.logo,
               (tuple(int(v) for v in a.smash_keep_out.split(",")) if "," in a.smash_keep_out else a.smash_keep_out)
-              if a.smash_keep_out else None, a.dump_layers)
+              if a.smash_keep_out else None, a.dump_layers, a.start)
+    elif a.cmd == "opener":
+        opener(a.out, a.bg, a.drips, a.dur, [float(x) for x in a.beats.split(",") if x.strip()] if a.beats else None,
+               a.report)
     elif a.cmd == "snap":
         snap(a.inp, a.out, a.at)
     elif a.cmd == "zoom":

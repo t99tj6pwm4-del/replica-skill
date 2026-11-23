@@ -80,6 +80,13 @@ Tool: `scripts/style_fx.py` (snap / zoom / cutout / logo). Our own sounds only (
    (overlay_props `title.style: "fonzi_intro"`; the title cycles strobe -> pulse -> glitch -> smash and the logo
    alternates flat / 3d per video via `posted/style_rotation.json`; storyboard `intro.style` / `intro.logo` /
    `intro.smash_keep_out` override).
+   **Logo opener first (Alfonso 2026-11-23, Director answer 23: "logo card first, then intro"):** every video opens
+   with ~1.5 s of the end-card look BEFORE the gold intro: the live footage blurred and darkened to 35 %, the white
+   Fonzi logo (same size, same flicker-on, same drips as that video's end card), the logo landing solid on a beat
+   (impact), clicks + crackle under the song. Snapped to the song's beat grid (config `intro.opener`, auto = the beat
+   count nearest 1.5 s; 101 bpm = 3 beats = 1.78 s); the intro title then lands on the next beat. Inside the 90 s,
+   nothing added: the hook must be ~1.5-1.8 s longer (~3.5-4 s). Hook too short = no opener, reason logged.
+   Tool: `style_fx.py opener` + `intro --start`, run by `finish_fx.py`.
 3. **Logo end card**: `style_fx.py logo` last 3-3.5 s: flicker on + real drips; rotate `--drips slow|heavy|wet`.
 4. **Never**: colour grade, flicker masks / light leaks, film burn, rise wipe, slow luma fade, cut-out with black
    or outline backgrounds, text over his face, hashtags, non-English (except the Spanish pop-up lines).

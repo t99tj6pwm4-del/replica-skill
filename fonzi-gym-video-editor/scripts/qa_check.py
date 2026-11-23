@@ -81,6 +81,71 @@ def intro_checks(ir: dict, fin: dict | None = None) -> list[dict]:
     return out
 
 
+OPENER_DUR = (0.9, 2.5)                                 # seconds: ~1.5 s on the beat grid (config intro.opener)
+
+
+def _frame_gray(video: Path, t: float):
+    import numpy as np
+    import subprocess
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{t:.3f}", "-i", str(video), "-frames:v", "1", "-vf",
+                          f"scale={W}:{H}", "-f", "rawvideo", "-pix_fmt", "gray", "-"], capture_output=True).stdout
+    a = np.frombuffer(raw, np.uint8)
+    return a[: W * H].reshape(H, W).astype(np.float32) / 255 if a.size >= W * H else None
+
+
+def opener_checks(fin: dict, ir: dict, final: Path) -> list[dict]:
+    """Logo opener (Alfonso 2026-11-23, answer 23): ~1.5 s of the end-card look before the intro. Checks: it exists
+    (or finish_fx logged why not: soft), it lasts ~1.5 s and ends on the beat, the logo is fully in frame, the
+    intro starts after it (window and beat 1), and a real frame of the final looks like it (dark blurred footage,
+    white logo)."""
+    out = []
+
+    def c(name, ok, detail, soft=False):
+        out.append({"check": name, "pass": bool(ok), "detail": detail, "soft": soft})
+
+    on = (load_config().get("intro") or {}).get("opener") or {}
+    op = fin.get("opener")
+    if not op:
+        why = fin.get("opener_fallback_reason")
+        if not on.get("enabled", True):
+            return out
+        if why:
+            c("logo opener before the intro (end-card look, ~1.5 s)", False, f"not baked in: {why}", soft=True)
+        elif not fin.get("opener_checked"):
+            c("logo opener before the intro (end-card look, ~1.5 s)", False,
+              "finished before the opener rule (2026-11-23): re-render with scripts/render_final.py", soft=True)
+        else:
+            c("logo opener before the intro (end-card look, ~1.5 s)", False, "finish_fx.py logged no opener and no "
+              "reason", soft=False)
+        return out
+    dur = float(op.get("dur") or 0)
+    c("logo opener before the intro (end-card look, ~1.5 s)",
+      OPENER_DUR[0] <= dur <= OPENER_DUR[1] and op.get("from", 0) == 0,
+      f"0-{dur:.2f}s = {op.get('beats')} beats (planned {op.get('planned_beats')}), ends on the beat at "
+      f"{op.get('end_beat_s')}s, {op.get('drips')} drips, logo solid on frame {op.get('solid_frame')}"
+      f"{' on the beat' if op.get('solid_on_beat') else ''}")
+    box = op.get("logo_box") or []
+    inside = len(box) == 4 and box[0] >= 0 and box[1] >= 110 and box[2] <= W and box[3] <= H - 420
+    c("opener logo fully inside the frame", inside and op.get("logo_edge_px", 1) == 0,
+      f"logo box {box} in {W}x{H} (safe band 110-{H - 420}), edge px {op.get('logo_edge_px')}")
+    of = int(op.get("frames") or 0)
+    st = int(ir.get("start_frame") if ir.get("start_frame") is not None else -1)
+    b1 = (ir.get("beats_abs_s") or [None])[0]
+    c("intro starts after the opener", st >= of and b1 is not None and b1 * FPS > of,
+      f"opener frames 0-{of - 1}, intro window from frame {st} ({ir.get('start')}s), intro beat 1 at {b1}s")
+    t = (of - 4) / FPS if of > 8 else 0.5 * dur
+    g = _frame_gray(final, t)
+    if g is not None and len(box) == 4:
+        import numpy as np
+        x0, y0, x1, y1 = box
+        m = np.ones_like(g, bool)
+        m[y0:y1, x0:x1] = False
+        bg_mean, white = float(g[m].mean()), float((g[y0:y1, x0:x1] > 0.8).mean())
+        c("opener frame: dark blurred footage + white logo", bg_mean < 0.3 and white > 0.02,
+          f"frame {t:.2f}s: background mean {bg_mean:.2f} (< 0.30), white logo px {white * 100:.1f}% of its box")
+    return out
+
+
 def main():
     final, qdir = OUT / "final_edit.mp4", OUT / "qa"
     if "--final" in sys.argv:
@@ -275,13 +340,14 @@ def main():
             ok = bool(ir.get("ok"))
             add("intro card (Rubik Dirt title, logo behind him, title on the beat)", ok,
                 (f"{ir['style']} title, {ir.get('logo_style') or 'flat'} logo: {' / '.join(ir['title'])} "
-                 f"0-{ir['dur']:.2f}s, beats {ir['beats_s']}, text y "
+                 f"{ir.get('start', 0):.2f}-{ir.get('start', 0) + ir['dur']:.2f}s, beats "
+                 f"{ir.get('beats_abs_s') or ir['beats_s']}, text y "
                  f"{ir['text_y_range'][0]}-{ir['text_y_range'][1]} below his face (down to y={ir['face_max_y']}), "
                  f"logo {ir['logo_size'][0]}x{ir['logo_size'][1]} fully in frame, {len(ir['shot_cuts'])} shot cut(s)"
                  if ok else "title.style is fonzi_intro but finish_fx.py did not bake an intro into this file "
                  "(render with scripts/render_final.py, it runs finish_fx.py itself)"), "text_visuals")
             if ok:
-                for ic in intro_checks(ir, fin):
+                for ic in intro_checks(ir, fin) + opener_checks(fin, ir, final):
                     add(ic["check"], ic["pass"], ic["detail"], "text_visuals", soft=ic["soft"])
             if not ok:
                 missing.append("intro card")

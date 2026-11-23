@@ -28,9 +28,11 @@ Work inside `fonzi-gym-video-editor/` (cd there first). The Director gives you t
 
 ## Planning rules
 
-- **Hook in the first 2 seconds.** The first segment is `type: "hook"`, about 2 seconds, the most eye-catching
-  moment or his opening line, with the intro card text from the brief (e.g. brief "Form Fix Friday" ->
-  hook text "FRIDAY FORM FIX").
+- **Hook in the first 2 seconds.** The first segment is `type: "hook"`, the most eye-catching moment or his opening
+  line, with the intro card text from the brief (e.g. brief "Form Fix Friday" -> hook text "FRIDAY FORM FIX").
+  Since 2026-11-23 (logo opener) the hook segment must be about **3.5-4 s** (~1.5-1.8 s logo opener + at least
+  ~2 s of intro card), ending ON a beat: about 6-7 beats at 100 bpm, 7-8 at 120 bpm. Take the extra from the first
+  exercise, not from the 90 s total. The first gold exercise title starts at the hook end.
 - Then each exercise in the order it happens. One `exercise` segment per exercise, with `exercise` name and
   `sets_reps` (e.g. "4 x 10"). Take sets/reps from what he says or from the brief; if neither gives it, leave
   `sets_reps` empty and say so in your reply. Never invent numbers.
@@ -165,3 +167,12 @@ Fonzi intro card (Rubik Dirt gold title on beat 1, Fonzi logo behind him), not a
 no hook `snap`. Plan the hook shot so his face sits in the upper half and his chest is clear (the title goes
 below his face), keep the first gold exercise title at least ~1.5 s after 0, and optionally set
 `"intro": {"style": "strobe"|"pulse"}` only when Alfonso asks for one (otherwise it alternates per video).
+
+**Logo opener (Alfonso 2026-11-23, answer 23: "logo card first, then intro").** Every video now OPENS with ~1.5 s
+of the end-card look (the same shot blurred and darkened, the white Fonzi logo flickering on with drips; config
+`intro.opener`, snapped to the song's beat grid: 3 beats = 1.78 s at 101 bpm), THEN the gold intro card on the next
+beat. It sits inside the hook, nothing is added to the length, so **the hook needs ~1.5-1.8 s more than before:
+plan it ~3.5-4 s** (see the hook rule above). The opener blurs the hook shot, so the clean face-up moment the intro
+card needs must be in the hook's SECOND part. If the hook is too short, finish_fx.py drops the opener (logged,
+QA soft-fails it). `"intro": {"opener": false}` turns it off for one video only when Alfonso asks;
+`"intro": {"opener": {"beats": N}}` fixes its length.

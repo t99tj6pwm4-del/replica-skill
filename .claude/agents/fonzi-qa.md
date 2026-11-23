@@ -169,4 +169,14 @@ intro (Rubik Dirt gold title, no drips, below his face; Fonzi logo behind him, w
 to the beat, strobe or pulse). `qa_check.py` passes "intro card" only if `finish_fx.py` logged THIS file
 (output/work/finish_fx.json, same sha256) with a clean intro, and the same for the logo drip end card; an intro is
 still required. Look at a frame around 1.0 s: no text on his face, no dark scrim, no white flash, no snap.
+
+**Logo opener (2026-11-23, Director answer 23).** Every video opens with ~1.5 s of the end-card look (blurred,
+darkened footage + white Fonzi logo, flicker, same drips as the end card), then the intro card. `qa_check.py`
+checks from finish_fx.json + a real frame of the file: "logo opener before the intro" (0.9-2.5 s, ends on the beat),
+"opener logo fully inside the frame" (safe band 110-1500), "intro starts after the opener" (window and beat 1 after
+it) and "opener frame: dark blurred footage + white logo" (background mean < 0.30, white logo pixels present). A
+missing opener with a logged reason (hook too short, `opener_fallback_reason`) is a SOFT fail: tell Alfonso the
+reason (the hook needs ~1.5 s more); missing with no reason is a hard fail -> text_visuals. Look at frames at
+~0.3 s (dark, logo flickering), ~1.0 s (logo solid with drips), and just after the opener (intro card, logo behind
+him, title on the next beat). The intro detail now shows its window as start-end (e.g. 1.77-4.13 s).
 `qa_check.py --final <path>` checks a test render (frames go to <its folder>/qa/).
