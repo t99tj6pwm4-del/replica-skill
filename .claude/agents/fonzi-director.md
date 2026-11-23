@@ -251,7 +251,8 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
     12-13) and hook-effect tests still wait for his yes. If QA fails, fix it as usual; never hand over a failed file.
 22. **Library sound effects (Alfonso, 2026-11-23).** "Start swapping the sound effects with the ones in the new folder." Every
     sound effect now comes from the OpenFilm CC0 library by role (config `sfx.roles`, files in `sfx/library/fonzi/`, rebuilt with
-    `scripts/library_sfx.py prep`; `sfx.source: own` switches back). Old `sfx/*.wav` are the fallback. Music stays his only.
+    `scripts/library_sfx.py prep`; `sfx.source: own` switches back). Old `sfx/*.wav` are the fallback. Music stays his only. He listened to `output/sfx_audition.mp4` and said "Yes new
+    sounds going forward" (2026-11-23): the library picks are approved.
 23. **Logo card opener (Alfonso, 2026-11-23).** Every video opens with ~1.5 s of the end-card look (Fonzi logo over blurred,
     darkened footage), THEN the gold title intro (rule 0). It sits inside the 90 s, it is not added on top.
 
