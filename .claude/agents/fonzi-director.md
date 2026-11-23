@@ -260,6 +260,8 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
     tight (gaussian ~6 px, 80% opacity) + wide (~22 px, 45%), both pure white, never tinted; sharp white text on top at 100%.
     Plus ONE very soft dark shadow under the glow layers only (black, blur ~40 px, 35%, no offset) that hugs the text.
     Applies to every font: intro title, exercise titles, pop-ups, form tip, checklist, CAM tags, labels. Face/safe-area rules unchanged.
+    Style Lab round 8 (2026-11-23): he KEPT A2 (softer: tight 4 px / 60%, wide 16 px / 30%, shadow 40 px / 35%) and asked for a
+    gray or black see-through card back behind Today's Routine and the Exercise Bar (sets x reps); colour picked in round 8b.
 25. **Default intro = "video-inside-text" (Alfonso, 2026-11-23).** Replaces the round 7 rotation (strobe/pulse/glitch/smash) and
     every older intro card, on every gym video unless he says otherwise. Order: logo opener (answer 23) -> video-inside-text.
     Black 1080x1920 matte with the title cut out (footage plays through the letters; it is the real start of the video, not a
