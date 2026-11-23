@@ -1,0 +1,13 @@
+{
+  "videos": [
+    {
+      "video": "input/icloud_08bSldXW.mp4",
+      "intro": "strobe",
+      "intro_planned": "strobe",
+      "logo": "flat",
+      "drips": "wet",
+      "updated": "2026-11-23 03:58"
+    }
+  ],
+  "note": "Fonzi style rotation (finish_fx.py, Round 7): intro title strobe -> pulse -> glitch -> smash (intro = rendered, intro_planned = what the cycle asked for; an unfit glitch / smash renders pulse with fallback_reason), intro logo flat <-> 3d (no logo key = flat), logo drips slow -> heavy -> wet; one entry per video, in render order"
+}
