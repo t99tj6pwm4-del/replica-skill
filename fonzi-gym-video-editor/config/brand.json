@@ -2,10 +2,11 @@
   "name": "Fonzi Stays Fit",
   "handle": "@fonzi.stays.fit",
   "facebook_page": "Fonzi.stays.fit",
-  "color": "#FFD60A",
+  "color": "#FFFFFF",
   "textColor": "#FFFFFF",
   "darkColor": "#0B0B0F",
   "layered_title_top": "FONZI",
   "layered_title_bottom": "STAYS FIT",
-  "popup_color": "#D4A017"
+  "popup_color": "#FFFFFF",
+  "text_look": "config.yaml text_look (white + glow + soft shadow, Alfonso 2026-11-23; was gold #FFD60A / #D4A017)"
 }

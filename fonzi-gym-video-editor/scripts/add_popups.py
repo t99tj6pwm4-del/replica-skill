@@ -186,7 +186,7 @@ def main():
         return
     if pops:
         props["popups"] = pops
-        props.setdefault("brand", {})["popupColor"] = brand().get("popup_color", "#D4A017")
+        props.setdefault("brand", {})["popupColor"] = brand().get("popup_color", "#FFFFFF")
     else:
         props.pop("popups", None)
     save_json(path, props)

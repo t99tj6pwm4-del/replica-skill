@@ -12,7 +12,8 @@ generalised to any title and any face. All motion is relative to b1 (the first b
                   each line centred on x 540), scale 0.82 -> 0.90 (cubic out)
     b1            land: the exact title layer tl (same pixels as strobe / pulse at rest)
     b1 .. b1+3    shake of the whole title: (+6,-3) (-4,+2) (+2,-1) (0,0)
-    later beats   the locked pulse (tint toward white by 0.55 e, scale 1 + 0.06 e about the group centre), no burst
+    later beats   the locked pulse (scale 1 + 0.06 e about the group centre; the title is white since 2026-11-23, so
+                  style_fx brightens the text_look glow instead of tinting), no burst
 
 Keep-out (the dumbbell / working-arm side): auto = compare his mask pixels left vs right of the torso strip
 (head-box centre x +- 0.6 head-box width) in the scatter rows over the scatter frames; the heavier side is kept
@@ -32,8 +33,9 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 W, H = 1080, 1920
-GOLD = (212, 160, 23)                         # colours.gold #D4A017
-GOLD_MAX = (236, 212, 151)                    # colours.gold_highlight_max #ECD497
+# Since 2026-11-23 (Director answer 24) the title is pure white (config text_look); the names stay for the port.
+GOLD = (255, 255, 255)                        # text_look.color #FFFFFF (was gold #D4A017)
+GOLD_MAX = (255, 255, 255)                    # white is the ceiling (was #ECD497)
 E = (1, 0.8, 0.55, 0.3, 0.12, 0)              # title_styles.pulse e
 # title_styles.smash (style sheet) / r7-05 hf/build.py
 SEED, TRIALS = 0x0C5E2026, 3000
@@ -597,7 +599,7 @@ def _selftest(out):
             st = sf.title_state("pulse", k, beats)
             t = Image.fromarray(tref, "RGBA")
             if st[0]:
-                g_ = np.array(sf.GOLD, np.float32)
+                g_ = np.array(sf.TITLE_RGB, np.float32)
                 t = sf._tint(t, [int(v) for v in g_ + (255 - g_) * st[0]])
             limits[k] = iou(tmask(np.asarray(sf._scaled(t, st[1], gcx, gcy))), tmask(gold[k]))
         else:
@@ -696,13 +698,13 @@ def _selftest(out):
         st = sf.title_state("pulse", k, beats)
         t = tl
         if st[0]:
-            g = np.array(sf.GOLD, np.float32)
+            g = np.array(sf.TITLE_RGB, np.float32)
             t = sf._tint(tl, [int(v) for v in g + (255 - g) * st[0]])
         pulse_eq.append(np.array_equal(np.asarray(sf._scaled(t, st[1], gcx, gcy))[..., 3], ours[k][..., 3]))
     sfp = []                           # the unchanged style_fx pulse layer on the peak frames (for the report)
     for b in beats[1:]:
         st = sf.title_state("pulse", b, beats)
-        g = np.array(sf.GOLD, np.float32)
+        g = np.array(sf.TITLE_RGB, np.float32)
         a = np.asarray(sf._scaled(sf._tint(tl, [int(v) for v in g + (255 - g) * st[0]]), st[1], gcx, gcy))
         sel = a[..., 3] > 128
         sfp.append({"frame": b, "max_rgb": a[sel][:, :3].max(0).tolist(),

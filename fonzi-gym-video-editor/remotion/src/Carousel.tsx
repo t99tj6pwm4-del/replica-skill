@@ -1,18 +1,21 @@
 import React from "react";
 import { AbsoluteFill, Img, staticFile } from "remotion";
 import { BODY, DISPLAY, useFonts } from "./fonts";
+import { DEFAULT_LOOK, Glow, LookProvider } from "./look";
 import type { CarouselProps } from "./types";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
 // One still per slide: a cover, then one slide per exercise with sets x reps.
-export const CarouselSlide: React.FC<CarouselProps> = ({ brand, slide }) => {
+// Since 2026-11-23 (Director answer 24): every text white in the glow look, no chip box, no accent bar.
+export const CarouselSlide: React.FC<CarouselProps> = ({ brand, slide, textLook }) => {
   useFonts();
   const cover = slide.kind === "cover";
   const words = slide.title.split(/\s+/).filter(Boolean);
   const longest = Math.max(...words.map((w) => w.length), 1);
   const size = Math.min(cover ? 230 : 190, Math.floor(940 / (longest * 0.47)));
   return (
+    <LookProvider value={textLook ?? DEFAULT_LOOK}>
     <AbsoluteFill style={{ backgroundColor: brand.darkColor }}>
       {slide.image ? (
         <Img
@@ -34,66 +37,29 @@ export const CarouselSlide: React.FC<CarouselProps> = ({ brand, slide }) => {
           right: 64,
           display: "flex",
           justifyContent: "space-between",
-          fontFamily: BODY,
-          fontWeight: 800,
-          fontSize: 34,
-          letterSpacing: 3,
-          color: brand.textColor,
         }}
       >
-        <span>{brand.handle}</span>
-        <span style={{ color: brand.color }}>
+        <Glow style={{ fontFamily: BODY, fontWeight: 800, fontSize: 34, letterSpacing: 3 }}>{brand.handle}</Glow>
+        <Glow style={{ fontFamily: BODY, fontWeight: 800, fontSize: 34, letterSpacing: 3 }}>
           {cover ? "SWIPE >>" : `${pad(slide.index)} / ${pad(slide.total)}`}
-        </span>
+        </Glow>
       </div>
       <div style={{ position: "absolute", left: 64, right: 64, bottom: 90 }}>
-        <div style={{ width: 150, height: 16, backgroundColor: brand.color, marginBottom: 26 }} />
         {words.map((w, i) => (
-          <div
-            key={i}
-            style={{
-              fontFamily: DISPLAY,
-              fontSize: size,
-              lineHeight: 1.04,
-              letterSpacing: 2,
-              color: cover && i === words.length - 1 ? brand.color : brand.textColor,
-            }}
-          >
+          <Glow key={i} style={{ fontFamily: DISPLAY, fontSize: size, lineHeight: 1.04, letterSpacing: 2 }}>
             {w}
-          </div>
+          </Glow>
         ))}
         {slide.detail ? (
-          <div
-            style={{
-              display: "inline-block",
-              marginTop: 30,
-              padding: "12px 30px",
-              borderRadius: 12,
-              backgroundColor: brand.color,
-              color: brand.darkColor,
-              fontFamily: BODY,
-              fontWeight: 800,
-              fontSize: 64,
-            }}
-          >
-            {slide.detail}
-          </div>
+          <Glow style={{ marginTop: 30, fontFamily: BODY, fontWeight: 800, fontSize: 64 }}>{slide.detail}</Glow>
         ) : null}
         {slide.cue ? (
-          <div
-            style={{
-              marginTop: 28,
-              fontFamily: BODY,
-              fontWeight: 700,
-              fontSize: 46,
-              lineHeight: 1.25,
-              color: brand.textColor,
-            }}
-          >
+          <Glow style={{ marginTop: 28, fontFamily: BODY, fontWeight: 700, fontSize: 46, lineHeight: 1.25 }}>
             {slide.cue}
-          </div>
+          </Glow>
         ) : null}
       </div>
     </AbsoluteFill>
+    </LookProvider>
   );
 };

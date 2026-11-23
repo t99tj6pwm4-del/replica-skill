@@ -9,6 +9,19 @@ render or post anything. Your only outputs are `output/storyboard.json` and `out
 
 Work inside `fonzi-gym-video-editor/` (cd there first). The Director gives you the raw video path and the brief.
 
+## White text look (Alfonso, 2026-11-23, Director answer 24): overrides every gold / colour rule in this file
+Every piece of text is pure white #FFFFFF: no gold, no colour, no stroke, no outline, no box, no background bar.
+Under the sharp white text (100 %), bottom to top: dark shadow (black, blur 40 px, 35 %, no offset, hugs the text) ->
+wide glow (white, blur 22 px, 45 %) -> tight glow (white, blur 6 px, 80 %). Blur at 1080x1920; the glow is never tinted.
+The numbers live ONLY in config.yaml `text_look:` (Python: `scripts/text_look.py`; Remotion: `props.textLook`,
+injected by render_final.py, drawn by `<Glow>` in `remotion/src/look.tsx`). Fonts unchanged (Rubik Dirt intro,
+Montserrat everything else). Layered titles: the back word's glow + shadow are behind his cut-out too. Pop-ups: no
+card / #333 panel / gold heading / gold check; text floats, checks white. Progress bar = a thin white line in the
+glow look. Glitch intro = white-only 2-frame ghost + slice burst (no red / cyan). Pulse intro = the glow brightens.
+The logo stays as is; the CAM tag flash stays. QA: text neutral (no tint) and no box (`text_look_check.json`).
+Wherever this file says "gold" below, read "the white text look" (keys like `layered-gold`, `gold_title_end` stay).
+See `style-lab/STYLE.md` rule zero-A.
+
 ## Steps
 
 1. **Analyze** (read-only on the video):
@@ -52,7 +65,7 @@ Work inside `fonzi-gym-video-editor/` (cd there first). The Director gives you t
 - **Song:** only Alfonso's own mp3s in `songs/`. If there are any, pick one, copy its `bpm` and
   `beat_offset` from the analysis, and set `song_volume` 0.12-0.2 when he talks (0.6+ if nobody talks).
   No songs in the folder: set `"song": null`. Never stock music, never AI music, never a download.
-- `key_words`: 8-15 words from what he says that deserve the brand colour (exercise names, cues, numbers).
+- `key_words`: 8-15 words from what he says that deserve emphasis (exercise names, cues, numbers; shown a touch bigger with a brighter glow, no colour since 2026-11-23).
 - All on-screen text: **English only, no hashtags**, short, punchy.
 - **2 or more exercises:** fill `carousel` with every exercise, its sets x reps and one cue.
 - `caption`: the post caption, one or two lines.
@@ -163,7 +176,7 @@ Follow `fonzi-gym-video-editor/style-lab/STYLE.md`, section "Rules for every vid
 himself). Most cuts stay plain and on the beat; one effect per cut at most; cut-out at most 1-2 per video.
 
 **Intro card (2026-11-21, STYLE.md rule 0).** The hook text (`hook.text`, `hook.subtitle`) is now drawn as the
-Fonzi intro card (Rubik Dirt gold title on beat 1, Fonzi logo behind him), not a Remotion title card, and there is
+Fonzi intro card (Rubik Dirt white-glow title on beat 1, Fonzi logo behind him), not a Remotion title card, and there is
 no hook `snap`. Plan the hook shot so his face sits in the upper half and his chest is clear (the title goes
 below his face), keep the first gold exercise title at least ~1.5 s after 0, and optionally set
 `"intro": {"style": "strobe"|"pulse"}` only when Alfonso asks for one (otherwise it alternates per video).

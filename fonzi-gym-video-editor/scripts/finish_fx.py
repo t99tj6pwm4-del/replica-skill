@@ -9,7 +9,7 @@ cannot run twice.
 
 What it does (STYLE.md "Rules for every video"):
   - overlay_props title.style == "fonzi_intro": the intro card (rule 0) over the first seconds, via
-    style_fx.py intro: Rubik Dirt gold title below his face, Fonzi logo behind him, title flickering to the
+    style_fx.py intro: Rubik Dirt title (white text look) below his face, Fonzi logo behind him, title flickering to the
     song's beat (cut_map.json "beat"), whoosh into beat 1 + impact on beat 1. Window = from 0 to the end of the
     hook (props title.to), never into the first gold exercise title / end card, at most config intro.max_dur.
   - overlay_props endCard.style == "logo_drip": the dripping logo end card (rule 3, style_fx.py logo) over the

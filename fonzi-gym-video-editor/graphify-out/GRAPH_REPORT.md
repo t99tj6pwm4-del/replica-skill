@@ -1,17 +1,17 @@
 # Graph Report - fonzi-gym-video-editor  (2026-11-23)
 
 ## Corpus Check
-- 55 files · ~100,228 words
+- 57 files · ~102,308 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 11 file(s) not represented in the graph (top: (none) 6, .ttf 4, .example 1)
 
 ## Summary
-- 945 nodes · 2060 edges · 82 communities (71 shown, 11 thin omitted)
-- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 24 edges (avg confidence: 0.85)
+- 990 nodes · 2157 edges · 73 communities (66 shown, 7 thin omitted)
+- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 23 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `b50d9526`
+- Built from commit: `f637d72b`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -21,7 +21,7 @@
 - round5/build.py
 - hyperframes_setup.sh
 - multicam
-- re
+- effects.py
 - cut_video.py
 - round1/build.py
 - common.py
@@ -45,8 +45,9 @@
 - audio
 - config.yaml
 - load_json
-- rel
-- effects.py
+- text_look.py
+- library_sfx.py
+- common.py
 - intro_smash.py
 - openfilm_library.sh
 - intro
@@ -57,7 +58,7 @@
 - run
 - die
 - subprocess
-- numpy
+- text_look
 - cutout_hit
 - intro_impact
 - intro_whoosh
@@ -67,14 +68,7 @@
 - riser
 - title_whoosh
 - zoom_whoosh
-- TitleSpec
-- Path
-- shot_library.py
-- round6/build.py
 - opener
-- opener_checks
-- place
-- render
 - cutout_hit
 - cutout_pop
 - cutout_whoosh
@@ -91,49 +85,46 @@
 - title_whoosh
 - zoom_impact
 - zoom_whoosh
-- intro_checks
-- recipe
-- suggest
 
 ## God Nodes (most connected - your core abstractions)
 1. `die()` - 67 edges
 2. `load_json()` - 46 edges
-3. `save_json()` - 44 edges
-4. `rel()` - 43 edges
+3. `save_json()` - 45 edges
+4. `rel()` - 44 edges
 5. `run()` - 40 edges
 6. `probe()` - 30 edges
 7. `main()` - 24 edges
-8. `finish()` - 22 edges
-9. `intro()` - 20 edges
+8. `load_config()` - 22 edges
+9. `finish()` - 22 edges
 10. `main()` - 20 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `render()` --indirect_call--> `beats()`  [INFERRED]
-  scripts/intro_smash.py → scripts/finish_fx.py
-- `remember()` --calls--> `save_json()`  [EXTRACTED]
-  scripts/post_to_meta.py → scripts/common.py
-- `cfg()` --calls--> `load_config()`  [EXTRACTED]
-  scripts/finish_fx.py → scripts/common.py
-- `picks()` --calls--> `load_json()`  [EXTRACTED]
-  scripts/finish_fx.py → scripts/common.py
-- `record()` --calls--> `load_json()`  [EXTRACTED]
-  scripts/finish_fx.py → scripts/common.py
+- `build_popups()` --calls--> `die()`  [EXTRACTED]
+  scripts/add_popups.py → scripts/common.py
+- `main()` --calls--> `load_json()`  [EXTRACTED]
+  scripts/add_popups.py → scripts/common.py
+- `main()` --calls--> `rel()`  [EXTRACTED]
+  scripts/add_popups.py → scripts/common.py
+- `main()` --calls--> `save_json()`  [EXTRACTED]
+  scripts/add_popups.py → scripts/common.py
+- `main()` --calls--> `load_json()`  [EXTRACTED]
+  scripts/build_overlay_props.py → scripts/common.py
 
 ## Import Cycles
 - None detected.
 
-## Communities (82 total, 11 thin omitted)
+## Communities (73 total, 7 thin omitted)
 
 ### Community 0 - "roles"
 Cohesion: 0.50
 Nodes (4): fallback, sound, cutout_click, roles
 
 ### Community 1 - "Overlay.tsx"
-Cohesion: 0.05
-Nodes (61): react, react-dom, remotion, @remotion/cli, @types/react, typescript, dependencies, react@18.3.1 (+53 more)
+Cohesion: 0.06
+Nodes (67): react, react-dom, remotion, @remotion/cli, @types/react, typescript, dependencies, react@18.3.1 (+59 more)
 
 ### Community 2 - "round5/build.py"
-Cohesion: 0.14
+Cohesion: 0.13
 Nodes (15): build_layers(), Checker, ease_out(), encode(), gold_drips(), line(), load_frames(), main() (+7 more)
 
 ### Community 3 - "hyperframes_setup.sh"
@@ -144,29 +135,25 @@ Nodes (3): DO_NOT_TRACK, HYPERFRAMES_NO_TELEMETRY, hyperframes_setup.sh script
 Cohesion: 0.20
 Nodes (10): multicam, broll_seconds, flow_prompt, local_shot_seconds, max_shot_seconds, min_shot_seconds, require_top_down, shots (+2 more)
 
-### Community 5 - "re"
-Cohesion: 0.21
-Nodes (9): main(), boundaries(), main(), mid_word(), overlap(), parse_time(), rep_points(), retime() (+1 more)
+### Community 5 - "effects.py"
+Cohesion: 0.08
+Nodes (26): apply(), combo_key(), in_library(), library_names(), log(), log_title_style(), previous_combo(), recipe() (+18 more)
 
 ### Community 6 - "cut_video.py"
-Cohesion: 0.19
-Nodes (10): resolve(), atempo(), build_pieces(), keep_ranges(), main(), q(), video_filter(), english_only() (+2 more)
+Cohesion: 0.17
+Nodes (13): load_config(), atempo(), build_pieces(), keep_ranges(), main(), q(), video_filter(), english_only() (+5 more)
 
 ### Community 8 - "round1/build.py"
-Cohesion: 0.11
-Nodes (26): filter_chain(), grade(), grade_rgb(), make_lut(), _sig(), warm_weight(), clip(), finish() (+18 more)
+Cohesion: 0.06
+Nodes (43): filter_chain(), grade(), grade_rgb(), make_lut(), _sig(), warm_weight(), clip(), finish() (+35 more)
 
 ### Community 9 - "common.py"
-Cohesion: 0.14
-Nodes (9): find_duplicate(), fingerprint(), fingerprint_distance(), save_json(), sfx_file(), sha256(), main(), show() (+1 more)
+Cohesion: 0.16
+Nodes (15): find_duplicate(), fingerprint(), fingerprint_distance(), load_json(), probe(), rel(), save_json(), sha256() (+7 more)
 
 ### Community 10 - "google-flow"
 Cohesion: 0.13
 Nodes (15): api, aspect_ratio, broll_model, clip_seconds, daily_credits, if_blocked_at_peak, max_clip_seconds, min_clip_seconds (+7 more)
-
-### Community 11 - "Graph"
-Cohesion: 0.32
-Nodes (4): Graph, load_env(), main(), remember()
 
 ### Community 12 - "compilerOptions"
 Cohesion: 0.17
@@ -201,8 +188,8 @@ Cohesion: 0.40
 Nodes (5): api, broll_only, key_env, model, ltx-2.5
 
 ### Community 22 - "layered_title.py"
-Cohesion: 0.12
-Nodes (9): depth_move(), drop_specks(), fit_font(), font_at(), layout(), person_mask(), raw_masks(), text_layer() (+1 more)
+Cohesion: 0.13
+Nodes (14): build(), build_exercise_titles(), cut_session(), depth_move(), drop_specks(), exercise_plans(), fit_font(), font_at() (+6 more)
 
 ### Community 23 - "titles"
 Cohesion: 0.20
@@ -229,20 +216,24 @@ Cohesion: 0.29
 Nodes (6): openfilm, allow_music, library_only, video_length, target_seconds, tolerance_seconds
 
 ### Community 30 - "load_json"
+Cohesion: 0.08
+Nodes (21): build_popups(), clip(), is_song_video(), main(), no_text_windows(), place(), popup_text_ok(), summary() (+13 more)
+
+### Community 31 - "text_look.py"
 Cohesion: 0.13
-Nodes (16): build_popups(), is_song_video(), main(), no_text_windows(), popup_text_ok(), summary(), walk_text(), caption_pages() (+8 more)
+Nodes (12): box_pixels(), _demo(), for_remotion(), hex_rgb(), look(), pad(), stack(), text_rgb() (+4 more)
 
-### Community 32 - "rel"
-Cohesion: 0.16
-Nodes (15): load_config(), rel(), sfx_info(), sfx_log_entry(), build(), build_exercise_titles(), cut_session(), exercise_plans() (+7 more)
+### Community 32 - "library_sfx.py"
+Cohesion: 0.26
+Nodes (9): audition(), card(), mont(), cfg(), listing(), loudest_rms(), main(), pcm() (+1 more)
 
-### Community 33 - "effects.py"
-Cohesion: 0.27
-Nodes (8): apply(), combo_key(), in_library(), library_names(), log(), log_title_style(), previous_combo(), validate()
+### Community 33 - "common.py"
+Cohesion: 0.24
+Nodes (3): sfx_file(), sfx_info(), sfx_log_entry()
 
 ### Community 34 - "intro_smash.py"
 Cohesion: 0.06
-Nodes (24): auto_side(), _back_out(), _box(), _cubic_out(), _frame_boxes(), _gap(), IntroUnfit, _layout() (+16 more)
+Nodes (23): auto_side(), _back_out(), _box(), _cubic_out(), _frame_boxes(), _gap(), IntroUnfit, _layout() (+15 more)
 
 ### Community 35 - "openfilm_library.sh"
 Cohesion: 0.70
@@ -254,35 +245,35 @@ Nodes (6): intro, logo_sfx_db, logo_styles, max_dur, min_dur, title_styles
 
 ### Community 37 - "intro_glitch.py"
 Cohesion: 0.13
-Nodes (12): _edge_keep(), glitch_fits(), glitch_frames(), glitch_offset(), glitch_stats(), glitch_title(), _selftest(), _sheet() (+4 more)
+Nodes (12): _beat_index(), _edge_keep(), glitch_fits(), glitch_frames(), glitch_offset(), glitch_stats(), glitch_title(), _parts() (+4 more)
 
 ### Community 38 - "Logo3D"
 Cohesion: 0.15
 Nodes (6): ease_in_out(), fade(), Logo3D, _rot(), _selftest(), run()
 
 ### Community 39 - "style_fx.py"
-Cohesion: 0.11
-Nodes (17): beat_frames(), big_logo(), _extract(), head_box(), intro(), _intro_out(), IntroStyleUnfit, over() (+9 more)
+Cohesion: 0.07
+Nodes (35): beat_frames(), big_logo(), cutout(), drip_layer(), drip_tips(), _extract(), _fit(), _font() (+27 more)
 
 ### Community 40 - "multicam_generate.py"
-Cohesion: 0.15
-Nodes (14): check_generator(), run(), conform(), ltx_generate(), main(), audio_md5(), env_key(), fal_generate() (+6 more)
+Cohesion: 0.17
+Nodes (13): check_generator(), die(), conform(), ltx_generate(), main(), audio_md5(), env_key(), fal_generate() (+5 more)
 
 ### Community 41 - "run"
-Cohesion: 0.14
-Nodes (13): base_video(), probe(), add_sfx(), browser_args(), check_text(), walk(), flag(), main() (+5 more)
+Cohesion: 0.16
+Nodes (11): base_video(), add_sfx(), browser_args(), flag(), main(), measure_text_look(), mute_if_rule(), remotion() (+3 more)
 
 ### Community 42 - "die"
 Cohesion: 0.14
-Nodes (17): die(), beat_grid(), beats(), _box(), cfg(), _cycle(), finish(), intro_end() (+9 more)
+Nodes (15): beat_grid(), beats(), _box(), cfg(), _cycle(), finish(), intro_end(), intro_window() (+7 more)
 
 ### Community 43 - "subprocess"
-Cohesion: 0.17
-Nodes (10): contact_sheets(), detect(), intersect(), main(), motion_curve(), ranges_where(), song_tempo(), loudest_rms() (+2 more)
+Cohesion: 0.15
+Nodes (12): contact_sheets(), detect(), intersect(), main(), motion_curve(), ranges_where(), song_tempo(), resolve() (+4 more)
 
-### Community 44 - "numpy"
-Cohesion: 0.13
-Nodes (13): smooth_masks(), drip_layer(), drip_layer(), drip_tips(), flicker(), logo_cards(), luma(), raw() (+5 more)
+### Community 44 - "text_look"
+Cohesion: 0.20
+Nodes (10): blur, color, name, opacity, text_look, box_alpha_max, color, layers (+2 more)
 
 ### Community 45 - "cutout_hit"
 Cohesion: 0.25
@@ -320,29 +311,9 @@ Nodes (8): title_whoosh, dur, fade_out, id, match, name, original, start
 Cohesion: 0.25
 Nodes (8): zoom_whoosh, dur, fade_out, id, match, name, original, start
 
-### Community 54 - "TitleSpec"
-Cohesion: 0.17
-Nodes (7): _fit(), _font(), _line(), _lines(), _overlap_x(), place_title(), TitleSpec
-
-### Community 55 - "Path"
-Cohesion: 0.28
-Nodes (11): cutout(), drip_tips(), frames(), logo(), _logo_card(), opener(), snap(), u8() (+3 more)
-
-### Community 56 - "shot_library.py"
-Cohesion: 0.26
-Nodes (7): description(), last_video_shots(), load(), log_shots(), pick(), _pick(), top_down_rule()
-
-### Community 57 - "round6/build.py"
-Cohesion: 0.29
-Nodes (6): big_logo(), brighten(), main(), option(), recolor(), title_state()
-
 ### Community 58 - "opener"
 Cohesion: 0.25
 Nodes (8): opener, beats, enabled, lead_frames, max_beats, min_beats, sfx_db, target
-
-### Community 61 - "render"
-Cohesion: 0.67
-Nodes (3): fmt(), render(), render_plan_extras()
 
 ### Community 62 - "cutout_hit"
 Cohesion: 0.67
@@ -410,23 +381,23 @@ Nodes (3): zoom_whoosh, fallback, sound
 
 ## Knowledge Gaps
 - **2 isolated node(s):** `DO_NOT_TRACK`, `HYPERFRAMES_NO_TELEMETRY`
-  These have ≤1 connection - possible missing edges. (Counts symbols only; 428 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **11 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges. (Counts symbols only; 450 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **7 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `sfx` connect `library` to `roles`, `config.yaml`?**
-  _High betweenness centrality (0.049) - this node is a cross-community bridge._
+  _High betweenness centrality (0.048) - this node is a cross-community bridge._
 - **What connects `DO_NOT_TRACK`, `HYPERFRAMES_NO_TELEMETRY` to the rest of the system?**
   _2 weakly-connected nodes found - possible missing edges._
 - **Should `Overlay.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.05456095481670929 - nodes in this community are weakly interconnected._
-- **Why does `die()` connect `die` to `rel`, `effects.py`, `re`, `cut_video.py`, `multicam_generate.py`, `common.py`, `run`, `subprocess`, `Graph`, `layered_title.py`, `shot_library.py`, `load_json`?**
-  _High betweenness centrality (0.042) - this node is a cross-community bridge._
+  _Cohesion score 0.056140350877192984 - nodes in this community are weakly interconnected._
+- **Why does `die()` connect `multicam_generate.py` to `library_sfx.py`, `common.py`, `effects.py`, `cut_video.py`, `common.py`, `die`, `subprocess`, `Graph`, `run`, `layered_title.py`, `load_json`?**
+  _High betweenness centrality (0.039) - this node is a cross-community bridge._
 - **Should `round5/build.py` be split into smaller, more focused modules?**
-  _Cohesion score 0.13768115942028986 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.13 - nodes in this community are weakly interconnected._
 - **Why does `library` connect `library` to `cutout_hit`, `intro_impact`, `intro_whoosh`, `logo_click`, `logo_crackle`, `popup_pop`, `riser`, `title_whoosh`, `zoom_whoosh`?**
-  _High betweenness centrality (0.036) - this node is a cross-community bridge._
-- **Should `round1/build.py` be split into smaller, more focused modules?**
-  _Cohesion score 0.10975609756097561 - nodes in this community are weakly interconnected._
+  _High betweenness centrality (0.034) - this node is a cross-community bridge._
+- **Should `effects.py` be split into smaller, more focused modules?**
+  _Cohesion score 0.07678075855689177 - nodes in this community are weakly interconnected._

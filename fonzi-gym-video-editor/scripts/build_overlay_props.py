@@ -156,7 +156,7 @@ def main():
     pops, pop_notes = build_popups(sb, cm["duration"], props)
     if pops:
         props["popups"] = pops
-        props["brand"]["popupColor"] = b.get("popup_color", "#D4A017")
+        props["brand"]["popupColor"] = b.get("popup_color", "#FFFFFF")
     save_json(WORK / "overlay_props.json", props)
     n = sum(len(p["words"]) for p in props["captions"])
     print(f"captions   {n} words on {len(props['captions'])} pages, "

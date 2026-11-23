@@ -11,6 +11,19 @@ The only things you may run are `scripts/qa_check.py`, `scripts/qa_verdict.py`, 
 
 Work inside `fonzi-gym-video-editor/` (cd there first).
 
+## White text look (Alfonso, 2026-11-23, Director answer 24): overrides every gold / colour rule in this file
+Every piece of text is pure white #FFFFFF: no gold, no colour, no stroke, no outline, no box, no background bar.
+Under the sharp white text (100 %), bottom to top: dark shadow (black, blur 40 px, 35 %, no offset, hugs the text) ->
+wide glow (white, blur 22 px, 45 %) -> tight glow (white, blur 6 px, 80 %). Blur at 1080x1920; the glow is never tinted.
+The numbers live ONLY in config.yaml `text_look:` (Python: `scripts/text_look.py`; Remotion: `props.textLook`,
+injected by render_final.py, drawn by `<Glow>` in `remotion/src/look.tsx`). Fonts unchanged (Rubik Dirt intro,
+Montserrat everything else). Layered titles: the back word's glow + shadow are behind his cut-out too. Pop-ups: no
+card / #333 panel / gold heading / gold check; text floats, checks white. Progress bar = a thin white line in the
+glow look. Glitch intro = white-only 2-frame ghost + slice burst (no red / cyan). Pulse intro = the glow brightens.
+The logo stays as is; the CAM tag flash stays. QA: text neutral (no tint) and no box (`text_look_check.json`).
+Wherever this file says "gold" below, read "the white text look" (keys like `layered-gold`, `gold_title_end` stay).
+See `style-lab/STYLE.md` rule zero-A.
+
 ## Steps
 
 1. **Measure:** `python3 scripts/qa_check.py`
@@ -104,8 +117,8 @@ Write fixes a person could act on without asking you anything, for example:
 
 If the edit uses it (qa_check lists it), Read `output/work/layered_title_frame.png` and frames across the
 title window and check: "FONZI" visibly BEHIND him (letters hidden where his body covers them),
-"STAYS FIT" visibly IN FRONT (over his chest / torso), the small intro line on his chest, all gold, all
-centred, ~90% width, no box / shadow / outline, clean cutout edges (no halo, no chopped hair or arms),
+"STAYS FIT" visibly IN FRONT (over his chest / torso), the small intro line on his chest, all white text look (white + glow + soft shadow, no tint), all
+centred, ~90% width, no box / outline, clean cutout edges (no halo, no chopped hair or arms),
 still (no pop-in), and NO subtitles, captions, lower-thirds, title card or end card anywhere else. Put in
 your notes that the layered title was used and why it fit this video. A layered title on a fast gym
 reel, a song video, quick cuts, or over the lift -> **text_visuals**: remove it.
@@ -135,9 +148,9 @@ sets x reps + Spanish name, no invented lift), a Routine Checklist on every lift
 Form Tip tied to a lift in the video, and no pop-up inside a no_text_window (0.1s margin). A gym reel without
 "lifts" in the storyboard is a NOTE for the storyboard agent.
 
-Look at a frame inside each card: Montserrat, dark translucent rounded card, gold #D4A017; bar = gold caps name +
-"sets x reps • Spanish name" in white; form tip = FORM TIP / white cue / grey Spanish line; checklist = TODAY'S
-ROUTINE, gold check rows for finished lifts, bold white arrow row for the current one, grey dot rows for the rest,
+Look at a frame inside each card: Montserrat, white text with the glow look, NO card / box / panel (since
+2026-11-23); bar = white caps name + "sets x reps • Spanish name"; form tip = FORM TIP / white cue / white Spanish
+line; checklist = TODAY'S ROUTINE, white check rows for finished lifts, bold white arrow row for the current one, dot rows for the rest,
 "X OF N DONE". None of them on his face, none under the top 110px / bottom 420px. A card on his face or wrong
 text -> text_visuals (wrong lift / cue / times in the storyboard -> storyboard).
 
@@ -165,7 +178,7 @@ Follow `fonzi-gym-video-editor/style-lab/STYLE.md`, section "Rules for every vid
 himself). Most cuts stay plain and on the beat; one effect per cut at most; cut-out at most 1-2 per video.
 
 **Intro card (2026-11-21, STYLE.md rule 0).** The hook is no longer a Remotion title card + snap: it is the Fonzi
-intro (Rubik Dirt gold title, no drips, below his face; Fonzi logo behind him, whole logo in frame; title flickers
+intro (Rubik Dirt title, white glow look, no drips, below his face; Fonzi logo behind him, whole logo in frame; title flickers
 to the beat, strobe or pulse). `qa_check.py` passes "intro card" only if `finish_fx.py` logged THIS file
 (output/work/finish_fx.json, same sha256) with a clean intro, and the same for the logo drip end card; an intro is
 still required. Look at a frame around 1.0 s: no text on his face, no dark scrim, no white flash, no snap.

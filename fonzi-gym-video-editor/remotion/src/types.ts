@@ -1,10 +1,12 @@
+import type { TextLook } from "./look";
+
 export type Brand = {
   name: string;
   handle: string;
   color: string;
   textColor: string;
   darkColor: string;
-  /** pop-up cards gold (config/brand.json "popup_color"), default #D4A017 */
+  /** pop-up text colour (config/brand.json "popup_color"); white since 2026-11-23 (was gold #D4A017) */
   popupColor?: string;
 };
 
@@ -102,7 +104,7 @@ export type OverlayProps = {
   brand: Brand;
   layout: { captionY: number; lowerThirdY: number; titleOffsetY?: number; progressY?: number };
   title: { from: number; to: number; text: string; subtitle?: string; animation?: string;
-    // gold: every word in brand.popupColor (the Style Lab gold); stagger: frames between words (default 4)
+    // gold: legacy flag, ignored since 2026-11-23 (all text white); stagger: frames between words (default 4)
     gold?: boolean; stagger?: number;
     // style "fonzi_intro" (STYLE.md rule 0): the Rubik Dirt intro card is baked into the picture after the render
     // (scripts/finish_fx.py -> style_fx.py intro); Remotion draws no TitleCard. Absent = the old TitleCard.
@@ -123,10 +125,13 @@ export type OverlayProps = {
   progressLabels?: boolean;
   /** pop-up cards: exercise bar, form tip, routine checklist (optional; absent = no pop-ups) */
   popups?: Popups;
+  /** THE text look (config.yaml text_look, injected by render_final.py): white + 2 white glows + soft dark shadow */
+  textLook?: TextLook;
 };
 
 export type CarouselProps = {
   brand: Brand;
+  textLook?: TextLook;
   slide: {
     kind: "cover" | "exercise";
     title: string;

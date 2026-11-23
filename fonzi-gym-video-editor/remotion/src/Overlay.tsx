@@ -9,6 +9,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { BODY, DISPLAY, MONTSERRAT, WEIGHT, useFonts } from "./fonts";
+import { DEFAULT_LOOK, Glow, LookProvider } from "./look";
 import type {
   Brand,
   Callout,
@@ -27,7 +28,9 @@ const clamp = {
   extrapolateLeft: "clamp" as const,
   extrapolateRight: "clamp" as const,
 };
-const SHADOW = "0 6px 24px rgba(0,0,0,0.55)";
+/* Alfonso 2026-11-23 (Director answer 24): every text is pure white in the text look (./look.tsx <Glow>: soft dark
+   shadow -> wide white glow -> tight white glow -> sharp white). No gold, no colour, no stroke / outline, no card box,
+   no background bar, no panel. Numbers from config.yaml text_look via props.textLook. */
 
 /* ------------------------------------------------------------------ */
 /* Title card: words slam in one by one over moving brand stripes      */
@@ -43,7 +46,6 @@ const TitleCard: React.FC<{
   stagger?: number;
 }> = ({ text, subtitle, brand, frames, animation, offsetY = 0, gold = false, stagger = 4 }) => {
   const frame = useCurrentFrame();
-  const accent = gold ? brand.popupColor ?? brand.color : brand.color;
   // CapCut library Animation > In for the hook: Flash In / Fade In / Zoom 1 / Focus
   const inFlash = animation === "Flash In" ? interpolate(frame, [0, 2, 6], [0, 0.9, 0], clamp) : 0;
   const inFade = animation === "Fade In" ? interpolate(frame, [0, 8], [0, 1], clamp) : 1;
@@ -88,22 +90,7 @@ const TitleCard: React.FC<{
           filter: inBlur ? `blur(${inBlur}px)` : undefined,
         }}
       >
-        {/* diagonal brand stripes */}
-        {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              left: -200,
-              width: STRIPE_SAFE_RIGHT + 200,
-              top: 590 + offsetY + i * 46,
-              height: i === 0 ? 22 : 8,
-              backgroundColor: accent,
-              opacity: i === 0 ? 1 : 0.55,
-              transform: `translateX(${stripe(i * 3)}%) rotate(-7deg)`,
-            }}
-          />
-        ))}
+        {/* no brand stripes since 2026-11-23 (no bars): the words float in the white glow look */}
         <div
           style={{
             position: "absolute",
@@ -127,25 +114,19 @@ const TitleCard: React.FC<{
               fps,
               config: { damping: 11, stiffness: 190, mass: 0.6 },
             });
-            const last = i === words.length - 1;
             return (
               <div
                 key={i}
                 style={{
-                  fontFamily: DISPLAY,
-                  fontSize: size,
-                  lineHeight: 1.02,
-                  letterSpacing: 2,
-                  color: gold || last ? accent : brand.textColor,
-                  textShadow: SHADOW,
                   opacity: interpolate(s, [0, 0.3], [0, 1], clamp),
                   transform: `scale(${interpolate(s, [0, 1], [1.6, 1])})`,
                   transformOrigin: "left center",
                   marginLeft: i * TITLE_INDENT,
-                  whiteSpace: "nowrap",
                 }}
               >
-                {w}
+                <Glow style={{ fontFamily: DISPLAY, fontSize: size, lineHeight: 1.02, letterSpacing: 2, whiteSpace: "nowrap" }}>
+                  {w}
+                </Glow>
               </div>
             );
           })}
@@ -157,17 +138,6 @@ const TitleCard: React.FC<{
                 // wraps inside the face-safe width instead of being clipped mid-word
                 maxWidth: titleW - Math.min(words.length * TITLE_INDENT, 120),
                 boxSizing: "border-box",
-                whiteSpace: "normal",
-                lineHeight: 1.15,
-                padding: "14px 30px",
-                backgroundColor: accent,
-                color: brand.darkColor,
-                fontFamily: BODY,
-                fontWeight: 800,
-                fontSize: 46,
-                textTransform: "uppercase",
-                letterSpacing: 1,
-                borderRadius: 10,
                 transform: `translateY(${interpolate(
                   spring({ frame: frame - 6 - words.length * stagger, fps, config: { damping: 14 } }),
                   [0, 1],
@@ -176,7 +146,10 @@ const TitleCard: React.FC<{
                 opacity: interpolate(frame - 6 - words.length * stagger, [0, 5], [0, 1], clamp),
               }}
             >
-              {subtitle}
+              <Glow style={{ whiteSpace: "normal", lineHeight: 1.15, fontFamily: BODY, fontWeight: 800, fontSize: 46,
+                textTransform: "uppercase", letterSpacing: 1 }}>
+                {subtitle}
+              </Glow>
             </div>
           ) : null}
         </div>
@@ -228,67 +201,45 @@ const LowerThirdCard: React.FC<{
         opacity: 1 - out,
       }}
     >
-      <div
-        style={{
-          width: 18,
-          backgroundColor: brand.color,
-          transform: `scaleY(${bar})`,
-          transformOrigin: "bottom",
-          borderRadius: 4,
-        }}
-      />
-      <div
-        style={{
-          clipPath: `inset(0 ${100 - panel * 100}% 0 0)`,
-          backgroundColor: "rgba(11,11,15,0.86)",
-          padding: "18px 34px 22px 26px",
-          borderRadius: "0 14px 14px 0",
-        }}
-      >
-        <div
+      {/* no accent bar, no dark panel since 2026-11-23: the lines float in the white glow look */}
+      <div style={{ opacity: Math.min(bar, panel) > 0 ? 1 : 0 }}>
+        <Glow
           style={{
             fontFamily: BODY,
             fontWeight: 700,
             fontSize: 28,
             letterSpacing: 5,
-            color: brand.color,
             opacity: interpolate(frame, [9, 16], [0, 1], clamp),
           }}
         >
           {`EXERCISE ${pad(item.index)} / ${pad(item.total)}`}
-        </div>
+        </Glow>
         <div style={{ display: "flex", alignItems: "center", gap: 24, marginTop: 4 }}>
           <div
             style={{
-              fontFamily: DISPLAY,
-              fontSize: 88,
-              lineHeight: 1.08,
-              color: brand.textColor,
-              letterSpacing: 1.5,
               transform: `translateX(${name}px)`,
               opacity: interpolate(frame, [7, 13], [0, 1], clamp),
-              // long exercise names wrap onto two lines instead of running off the frame
-              whiteSpace: item.title.length > 22 ? "normal" : "nowrap",
               maxWidth: 820,
             }}
           >
-            {item.title}
-          </div>
-          {item.detail ? (
-            <div
+            <Glow
               style={{
-                fontFamily: BODY,
-                fontWeight: 800,
-                fontSize: 46,
-                color: brand.darkColor,
-                backgroundColor: brand.color,
-                padding: "8px 22px",
-                borderRadius: 10,
-                whiteSpace: "nowrap",
-                transform: `scale(${chip})`,
+                fontFamily: DISPLAY,
+                fontSize: 88,
+                lineHeight: 1.08,
+                letterSpacing: 1.5,
+                // long exercise names wrap onto two lines instead of running off the frame
+                whiteSpace: item.title.length > 22 ? "normal" : "nowrap",
               }}
             >
-              {item.detail}
+              {item.title}
+            </Glow>
+          </div>
+          {item.detail ? (
+            <div style={{ transform: `scale(${chip})` }}>
+              <Glow style={{ fontFamily: BODY, fontWeight: 800, fontSize: 46, whiteSpace: "nowrap" }}>
+                {item.detail}
+              </Glow>
             </div>
           ) : null}
         </div>
@@ -342,51 +293,31 @@ const ProgressBar: React.FC<{ segments: ProgressSegment[]; brand: Brand; showLab
   const total = segments[segments.length - 1].to - segments[0].from;
   const current = segments.find((s) => t >= s.from && t < s.to) ?? segments[segments.length - 1];
   const appear = interpolate(frame, [0, 10], [0, 1], clamp);
+  // Alfonso 2026-11-23: the progress bar is a THIN WHITE LINE in the same glow look (no grey track box, no colour):
+  // the done part is solid white 4 px, the part still to come a 2 px white hairline at 35 %; gaps between segments.
   return (
     <div style={{ position: "absolute", top, left: 56, right: 56, opacity: appear }}>
-      <div style={{ display: "flex", gap: 8 }}>
-        {segments.map((s, i) => {
-          const fill = interpolate(t, [s.from, s.to], [0, 100], clamp);
-          return (
-            <div
-              key={i}
-              style={{
-                flex: (s.to - s.from) / total,
-                height: 12,
-                borderRadius: 6,
-                backgroundColor: "rgba(255,255,255,0.32)",
-                overflow: "hidden",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.35)",
-              }}
-            >
-              <div
-                style={{
-                  width: `${fill}%`,
-                  height: "100%",
-                  backgroundColor: brand.color,
-                  borderRadius: 6,
-                }}
-              />
-            </div>
-          );
-        })}
-      </div>
-      {showLabel ? <div
-        style={{
-          marginTop: 12,
-          fontFamily: BODY,
-          fontWeight: 800,
-          fontSize: 28,
-          letterSpacing: 3,
-          color: brand.textColor,
-          textTransform: "uppercase",
-          textShadow:
-            "0 0 2px rgba(0,0,0,0.95), 0 0 6px rgba(0,0,0,0.9), 0 2px 12px rgba(0,0,0,0.85)",
-          WebkitTextStroke: "1px rgba(0,0,0,0.6)",
-        }}
-      >
-        {current.label}
-      </div> : null}
+      <Glow style={{ height: 12 }}>
+        <div style={{ display: "flex", gap: 10, height: 12, alignItems: "center" }}>
+          {segments.map((s, i) => {
+            const fill = interpolate(t, [s.from, s.to], [0, 100], clamp);
+            return (
+              <div key={i} style={{ flex: (s.to - s.from) / total, position: "relative", height: 4 }}>
+                <div style={{ position: "absolute", left: 0, right: 0, top: 1, height: 2, backgroundColor: "currentColor",
+                  opacity: 0.35 }} />
+                <div style={{ position: "absolute", left: 0, top: 0, height: 4, width: `${fill}%`,
+                  backgroundColor: "currentColor", borderRadius: 2 }} />
+              </div>
+            );
+          })}
+        </div>
+      </Glow>
+      {showLabel ? (
+        <Glow style={{ marginTop: 12, fontFamily: BODY, fontWeight: 800, fontSize: 28, letterSpacing: 3,
+          textTransform: "uppercase" }}>
+          {current.label}
+        </Glow>
+      ) : null}
     </div>
   );
 };
@@ -431,27 +362,23 @@ const Captions: React.FC<{ pages: CaptionPage[]; brand: Brand; y: number }> = ({
         const active = t >= w.start && t < w.end + 0.06;
         // pop from the word's own centre and never past full size, so a word never reaches its neighbour
         const scale = Math.min(1, interpolate(s, [0, 1], [0.55, 1])) * (active ? 1.03 : 1);
+        // white glow look: no stroke, no colour; a key word is a touch bigger with a brighter glow instead
         return (
-          <span
+          <div
             key={i}
             style={{
               display: "inline-block",
-              fontFamily: DISPLAY,
-              fontSize: size,
-              lineHeight: 1.16,
-              letterSpacing: 1.5,
-              color: w.highlight ? brand.color : brand.textColor,
-              WebkitTextStroke: `${Math.round(size * 0.13)}px ${brand.darkColor}`,
-              paintOrder: "stroke fill",
-              textShadow: "0 8px 22px rgba(0,0,0,0.6)",
               opacity: said ? 1 : 0,
-              transform: `translateY(${interpolate(s, [0, 1], [26, 0])}px) scale(${scale}) rotate(${
+              transform: `translateY(${interpolate(s, [0, 1], [26, 0])}px) scale(${scale * (w.highlight ? 1.08 : 1)}) rotate(${
                 w.highlight && active ? -2 : 0
               }deg)`,
             }}
           >
-            {w.text}
-          </span>
+            <Glow style={{ fontFamily: DISPLAY, fontSize: size, lineHeight: 1.16, letterSpacing: 1.5 }}
+              boost={w.highlight ? 0.5 : 0}>
+              {w.text}
+            </Glow>
+          </div>
         );
       })}
     </div>
@@ -497,25 +424,15 @@ const CalloutMark: React.FC<{ item: Callout; brand: Brand; frames: number }> = (
   const sy = cy - r * 0.7;
   return (
     <AbsoluteFill style={{ opacity: out }}>
+      {/* ring + leader line: white in the same glow look (no dark under-stroke, no colour) */}
+      <Glow style={{ position: "absolute", left: 0, top: 0, width, height }}>
       <svg width={width} height={height} style={{ position: "absolute" }}>
         <circle
           cx={cx}
           cy={cy}
           r={r}
           fill="none"
-          stroke={brand.darkColor}
-          strokeWidth={16}
-          strokeDasharray={circ}
-          strokeDashoffset={draw}
-          opacity={0.55}
-          transform={`rotate(-90 ${cx} ${cy}) translate(${cx} ${cy}) scale(${pulse}) translate(${-cx} ${-cy})`}
-        />
-        <circle
-          cx={cx}
-          cy={cy}
-          r={r}
-          fill="none"
-          stroke={brand.color}
+          stroke="currentColor"
           strokeWidth={9}
           strokeLinecap="round"
           strokeDasharray={circ}
@@ -527,31 +444,23 @@ const CalloutMark: React.FC<{ item: Callout; brand: Brand; frames: number }> = (
           y1={sy}
           x2={sx + (lx - sx) * line}
           y2={sy + (ly + 40 - sy) * line}
-          stroke={brand.color}
+          stroke="currentColor"
           strokeWidth={7}
           strokeLinecap="round"
         />
       </svg>
+      </Glow>
       <div
         style={{
           position: "absolute",
           top: ly - 40,
           ...(right ? { left: lx - 20 } : { right: width - lx - 20 }),
           maxWidth: 560,
-          backgroundColor: brand.color,
-          color: brand.darkColor,
-          fontFamily: DISPLAY,
-          fontSize: 60,
-          lineHeight: 1.1,
-          letterSpacing: 1,
-          padding: "12px 26px",
-          borderRadius: 12,
-          boxShadow: SHADOW,
           transform: `scale(${pop})`,
           transformOrigin: right ? "left bottom" : "right bottom",
         }}
       >
-        {item.text}
+        <Glow style={{ fontFamily: DISPLAY, fontSize: 60, lineHeight: 1.1, letterSpacing: 1 }}>{item.text}</Glow>
       </div>
     </AbsoluteFill>
   );
@@ -579,9 +488,9 @@ const EventAccent: React.FC<{ ev: TimedEvent; brand: Brand; frames: number }> = 
           width: 90,
           height: 90,
           ...pos,
-          [bt]: `10px solid ${brand.color}`,
-          [bs]: `10px solid ${brand.color}`,
-          filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.5))",
+          [bt]: `10px solid ${brand.textColor}`,
+          [bs]: `10px solid ${brand.textColor}`,
+          filter: "drop-shadow(0 0 6px rgba(255,255,255,0.8)) drop-shadow(0 0 40px rgba(0,0,0,0.35))",
         }}
       />
     );
@@ -604,28 +513,14 @@ const EventAccent: React.FC<{ ev: TimedEvent; brand: Brand; frames: number }> = 
     return (
       <AbsoluteFill>
         <AbsoluteFill style={{ backgroundColor: "#fff", opacity: interpolate(frame, [0, 4], [0.35, 0], clamp) }} />
-        <div
-          style={{
-            position: "absolute",
-            top: ev.y ?? 232,
-            left: ev.x ?? 56,
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            padding: "10px 22px",
-            borderRadius: 10,
-            backgroundColor: "rgba(11,11,15,0.86)",
-            border: `4px solid ${brand.color}`,
-            color: brand.textColor,
-            fontFamily: BODY,
-            fontWeight: 800,
-            fontSize: 30,
-            letterSpacing: 3,
-            opacity: tag,
-          }}
-        >
-          <div style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: "#E11D2E" }} />
-          {ev.label ?? "CAM 2"}
+        {/* the white flash stays; the tag floats in the white glow look (no box, no border, white dot) */}
+        <div style={{ position: "absolute", top: ev.y ?? 232, left: ev.x ?? 56, opacity: tag }}>
+          <Glow style={{ fontFamily: BODY, fontWeight: 800, fontSize: 30, letterSpacing: 3, whiteSpace: "nowrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <div style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: "currentColor" }} />
+              {ev.label ?? "CAM 2"}
+            </div>
+          </Glow>
         </div>
       </AbsoluteFill>
     );
@@ -644,41 +539,17 @@ const EventAccent: React.FC<{ ev: TimedEvent; brand: Brand; frames: number }> = 
           }}
         />
       ) : null}
-      <div
-        style={{
-          position: "absolute",
-          top: ev.y ?? 232,
-          right: 56,
-          display: "flex",
-          alignItems: "center",
-          gap: 14,
-          padding: "10px 22px",
-          borderRadius: 10,
-          backgroundColor: slow ? "rgba(11,11,15,0.86)" : brand.color,
-          border: `4px solid ${brand.color}`,
-          color: slow ? brand.textColor : brand.darkColor,
-          fontFamily: BODY,
-          fontWeight: 800,
-          fontSize: 34,
-          letterSpacing: 3,
-          transform: `scale(${pop})`,
-          transformOrigin: "right center",
-        }}
-      >
-        {slow ? (
-          <div
-            style={{
-              width: 18,
-              height: 18,
-              borderRadius: 9,
-              backgroundColor: brand.color,
-              opacity: blink,
-            }}
-          />
-        ) : (
-          <span style={{ transform: `translateX(${(frame % 10) - 5}px)` }}>{">>"}</span>
-        )}
-        {ev.label ?? (slow ? "SLOW-MO" : "FAST")}
+      <div style={{ position: "absolute", top: ev.y ?? 232, right: 56, transform: `scale(${pop})`, transformOrigin: "right center" }}>
+        <Glow style={{ fontFamily: BODY, fontWeight: 800, fontSize: 34, letterSpacing: 3, whiteSpace: "nowrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            {slow ? (
+              <div style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: "currentColor", opacity: blink }} />
+            ) : (
+              <span style={{ display: "inline-block", transform: `translateX(${(frame % 10) - 5}px)` }}>{">>"}</span>
+            )}
+            {ev.label ?? (slow ? "SLOW-MO" : "FAST")}
+          </div>
+        </Glow>
       </div>
     </AbsoluteFill>
   );
@@ -753,17 +624,14 @@ const EndCard: React.FC<{
               <div
                 key={i}
                 style={{
-                  fontFamily: DISPLAY,
-                  fontSize: Math.min(210, Math.floor(1500 / Math.max(text.length, 6))),
-                  lineHeight: 1.05,
-                  letterSpacing: 2,
-                  color: i === words.length - 1 ? brand.color : brand.textColor,
-                  textShadow: SHADOW,
                   opacity: interpolate(s, [0, 0.3], [0, 1], clamp),
                   transform: `scale(${interpolate(s, [0, 1], [2.2, 1])})`,
                 }}
               >
-                {w}
+                <Glow style={{ fontFamily: DISPLAY, fontSize: Math.min(210, Math.floor(1500 / Math.max(text.length, 6))),
+                  lineHeight: 1.05, letterSpacing: 2 }}>
+                  {w}
+                </Glow>
               </div>
             );
           })}
@@ -772,29 +640,18 @@ const EndCard: React.FC<{
           <div
             style={{
               marginTop: 26,
-              fontFamily: BODY,
-              fontWeight: 700,
-              fontSize: 48,
-              color: brand.textColor,
-              textTransform: "uppercase",
-              letterSpacing: 2,
               opacity: interpolate(frame, [24, 32], [0, 1], clamp),
               transform: `translateY(${interpolate(frame, [24, 32], [30, 0], clamp)}px)`,
             }}
           >
-            {subtitle}
+            <Glow style={{ fontFamily: BODY, fontWeight: 700, fontSize: 48, textTransform: "uppercase", letterSpacing: 2 }}>
+              {subtitle}
+            </Glow>
           </div>
         ) : null}
         <div
           style={{
             marginTop: 54,
-            padding: "14px 34px",
-            borderRadius: 50,
-            backgroundColor: brand.color,
-            color: brand.darkColor,
-            fontFamily: BODY,
-            fontWeight: 800,
-            fontSize: 44,
             transform: `scale(${spring({
               frame: frame - 30,
               fps,
@@ -802,7 +659,7 @@ const EndCard: React.FC<{
             })})`,
           }}
         >
-          {brand.handle}
+          <Glow style={{ fontFamily: BODY, fontWeight: 800, fontSize: 44 }}>{brand.handle}</Glow>
         </div>
       </AbsoluteFill>
     </AbsoluteFill>
@@ -824,21 +681,8 @@ const ListCard: React.FC<{ item: ListCardItem; brand: Brand; frames: number }> =
     // two-line strip: header pill, then all items in one row (fits below a close-up face)
     return (
       <div style={{ position: "absolute", left: 56, right: 56, top: item.y, opacity: 1 - out, transform: `translateX(${-out * 600}px)` }}>
-        <div
-          style={{
-            display: "inline-block",
-            fontFamily: DISPLAY,
-            fontSize: 50,
-            lineHeight: 1.05,
-            letterSpacing: 2,
-            color: brand.darkColor,
-            backgroundColor: brand.color,
-            padding: "4px 18px 0",
-            borderRadius: 8,
-            clipPath: `inset(0 ${100 - head * 100}% 0 0)`,
-          }}
-        >
-          {item.title}
+        <div style={{ display: "inline-block", opacity: head, transform: `translateX(${(1 - head) * -40}px)` }}>
+          <Glow style={{ fontFamily: DISPLAY, fontSize: 50, lineHeight: 1.05, letterSpacing: 2 }}>{item.title}</Glow>
         </div>
         <div style={{ display: "flex", flexWrap: "nowrap", gap: 10, marginTop: 8 }}>
           {item.items.map((t, i) => {
@@ -846,26 +690,17 @@ const ListCard: React.FC<{ item: ListCardItem; brand: Brand; frames: number }> =
             const s = spring({ frame: frame - start, fps, config: { damping: 11, stiffness: 210, mass: 0.6 } });
             const tick = interpolate(frame, [start + 3, start + 9], [0, 1], clamp);
             return (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "4px 12px 2px 6px",
-                  borderRadius: 8,
-                  backgroundColor: "rgba(11,11,15,0.8)",
-                  opacity: Math.min(1, s * 1.4),
-                  transform: `translateY(${(1 - s) * 30}px)`,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                <svg width="28" height="28" viewBox="0 0 30 30">
-                  <rect x="2" y="2" width="26" height="26" rx="5" fill="none" stroke={brand.color} strokeWidth="4" />
-                  <path d="M8 16 L13 21 L23 9" fill="none" stroke={brand.color} strokeWidth="4" strokeLinecap="round"
-                    strokeLinejoin="round" strokeDasharray="28" strokeDashoffset={28 * (1 - tick)} />
-                </svg>
-                <div style={{ fontFamily: DISPLAY, fontSize: 38, lineHeight: 1.05, letterSpacing: 1, color: brand.textColor }}>{t}</div>
+              <div key={i} style={{ opacity: Math.min(1, s * 1.4), transform: `translateY(${(1 - s) * 30}px)` }}>
+                <Glow style={{ fontFamily: DISPLAY, fontSize: 38, lineHeight: 1.05, letterSpacing: 1, whiteSpace: "nowrap" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 12px 2px 6px" }}>
+                    <svg width="28" height="28" viewBox="0 0 30 30">
+                      <rect x="2" y="2" width="26" height="26" rx="5" fill="none" stroke="currentColor" strokeWidth="4" />
+                      <path d="M8 16 L13 21 L23 9" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round"
+                        strokeLinejoin="round" strokeDasharray="28" strokeDashoffset={28 * (1 - tick)} />
+                    </svg>
+                    <div>{t}</div>
+                  </div>
+                </Glow>
               </div>
             );
           })}
@@ -875,21 +710,8 @@ const ListCard: React.FC<{ item: ListCardItem; brand: Brand; frames: number }> =
   }
   return (
     <div style={{ position: "absolute", left: 56, top: item.y, opacity: 1 - out, transform: `translateX(${-out * 600}px)` }}>
-      <div
-        style={{
-          display: "inline-block",
-          fontFamily: DISPLAY,
-          fontSize: 66,
-          lineHeight: 1.05,
-          letterSpacing: 2,
-          color: brand.darkColor,
-          backgroundColor: brand.color,
-          padding: "6px 24px 2px",
-          borderRadius: 10,
-          clipPath: `inset(0 ${100 - head * 100}% 0 0)`,
-        }}
-      >
-        {item.title}
+      <div style={{ display: "inline-block", opacity: head, transform: `translateX(${(1 - head) * -40}px)` }}>
+        <Glow style={{ fontFamily: DISPLAY, fontSize: 66, lineHeight: 1.05, letterSpacing: 2 }}>{item.title}</Glow>
       </div>
       <div style={{ marginTop: 10 }}>
         {item.items.map((t, i) => {
@@ -899,55 +721,20 @@ const ListCard: React.FC<{ item: ListCardItem; brand: Brand; frames: number }> =
           return (
             <div
               key={i}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 18,
-                marginTop: 5,
-                opacity: Math.min(1, s * 1.4),
-                transform: `translateX(${(1 - s) * -80}px)`,
-              }}
+              style={{ marginTop: 5, opacity: Math.min(1, s * 1.4), transform: `translateX(${(1 - s) * -80}px)` }}
             >
-              <div
-                style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 8,
-                  border: `5px solid ${brand.color}`,
-                  backgroundColor: `rgba(11,11,15,0.7)`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <svg width="26" height="26" viewBox="0 0 30 30">
-                  <path
-                    d="M5 16 L12 23 L26 7"
-                    fill="none"
-                    stroke={brand.color}
-                    strokeWidth="5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeDasharray="34"
-                    strokeDashoffset={34 * (1 - tick)}
-                  />
-                </svg>
-              </div>
-              <div
-                style={{
-                  fontFamily: DISPLAY,
-                  fontSize: 54,
-                  lineHeight: 1.05,
-                  letterSpacing: 1.5,
-                  color: brand.textColor,
-                  backgroundColor: "rgba(11,11,15,0.78)",
-                  padding: "2px 18px 0",
-                  borderRadius: 8,
-                  textShadow: SHADOW,
-                }}
-              >
-                {t}
-              </div>
+              <Glow style={{ fontFamily: DISPLAY, fontSize: 54, lineHeight: 1.05, letterSpacing: 1.5 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 8, border: "5px solid currentColor", boxSizing: "border-box",
+                    display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="26" height="26" viewBox="0 0 30 30">
+                      <path d="M5 16 L12 23 L26 7" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round"
+                        strokeLinejoin="round" strokeDasharray="34" strokeDashoffset={34 * (1 - tick)} />
+                    </svg>
+                  </div>
+                  <div style={{ padding: "2px 0 0" }}>{t}</div>
+                </div>
+              </Glow>
             </div>
           );
         })}
@@ -959,11 +746,9 @@ const ListCard: React.FC<{ item: ListCardItem; brand: Brand; frames: number }> =
 
 /* ------------------------------------------------------------------ */
 /* Pop-up cards (Alfonso, 2026-11-17): exercise bar, form tip, routine */
-/* checklist. Montserrat, dark translucent rounded card, gold #D4A017.  */
+/* checklist. Montserrat. Since 2026-11-23 (Director answer 24): NO    */
+/* card box, no #333 panel, no gold: white text in the glow look.     */
 /* ------------------------------------------------------------------ */
-const POPUP_GOLD = "#D4A017"; // fallback only; the real value is brand.popupColor (config/brand.json)
-const CARD_BG = "rgba(51,51,51,0.85)"; // #333 at 85%
-const POPUP_GREY = "#C8C8C8";
 
 // quick pop-in (spring, ~0.2s) and quick pop-out (last ~0.17s)
 const usePop = (frames: number) => {
@@ -977,214 +762,150 @@ const usePop = (frames: number) => {
   };
 };
 
-const cardStyle: React.CSSProperties = {
-  backgroundColor: CARD_BG,
-  borderRadius: 44,
-  boxSizing: "border-box",
-};
-
-const ExerciseBar: React.FC<{ item: ExerciseBarPopup; brand: Brand; frames: number }> = ({ item, brand, frames }) => {
+const ExerciseBar: React.FC<{ item: ExerciseBarPopup; brand: Brand; frames: number }> = ({ item, frames }) => {
   const pop = usePop(frames);
-  const gold = brand.popupColor || POPUP_GOLD;
-  // long names ("SEATED DUMBBELL SHOULDER PRESS") shrink to fit the 884px text width instead of being cut off
+  // long names ("SEATED DUMBBELL SHOULDER PRESS") shrink to fit the text width instead of being cut off
   const inner = 1080 - 2 * 54 - 2 * 44;
   const titleSize = Math.min(58, Math.floor(inner / (Math.max(1, item.title.length) * 0.8)));
   const detailSize = Math.min(38, Math.floor(inner / (Math.max(1, (item.detail || "").length) * 0.57)));
   return (
     <div
       style={{
-        ...cardStyle,
         position: "absolute",
-        left: 54,
-        right: 54,
-        top: item.y,
-        padding: "22px 44px 24px",
-        borderTop: `6px solid ${gold}`,
+        left: 98,
+        right: 98,
+        top: item.y + 22,
         transformOrigin: "50% 100%",
         ...pop,
       }}
     >
-      <div
+      <Glow
         style={{
           fontFamily: MONTSERRAT,
           fontWeight: WEIGHT.extraBold,
           fontSize: titleSize,
           lineHeight: 1.12,
           letterSpacing: 1,
-          color: gold,
           textTransform: "uppercase",
           whiteSpace: "nowrap",
-          overflow: "hidden",
         }}
       >
         {item.title}
-      </div>
+      </Glow>
       {item.detail ? (
-        <div
+        <Glow
           style={{
             fontFamily: MONTSERRAT,
             fontWeight: WEIGHT.regular,
             fontSize: detailSize,
             lineHeight: 1.3,
             marginTop: 4,
-            color: brand.textColor,
             whiteSpace: "nowrap",
           }}
         >
           {item.detail}
-        </div>
+        </Glow>
       ) : null}
     </div>
   );
 };
 
-const FormTipCard: React.FC<{ item: FormTipPopup; brand: Brand; frames: number }> = ({ item, brand, frames }) => {
+const FormTipCard: React.FC<{ item: FormTipPopup; brand: Brand; frames: number }> = ({ item, frames }) => {
   const pop = usePop(frames);
-  const gold = brand.popupColor || POPUP_GOLD;
   return (
     <div
       style={{
-        ...cardStyle,
         position: "absolute",
-        left: 60,
-        right: 60,
-        top: item.y,
-        padding: "36px 48px 40px",
+        left: 108,
+        right: 108,
+        top: item.y + 36,
         transformOrigin: "50% 0%",
         ...pop,
       }}
     >
-      <div
-        style={{
-          fontFamily: MONTSERRAT,
-          fontWeight: WEIGHT.extraBold,
-          fontSize: 46,
-          lineHeight: 1.1,
-          color: gold,
-          letterSpacing: 0.5,
-        }}
-      >
+      <Glow style={{ fontFamily: MONTSERRAT, fontWeight: WEIGHT.extraBold, fontSize: 46, lineHeight: 1.1, letterSpacing: 0.5 }}>
         FORM TIP
-      </div>
-      <div
-        style={{
-          fontFamily: MONTSERRAT,
-          fontWeight: WEIGHT.bold,
-          fontSize: 62,
-          lineHeight: 1.2,
-          marginTop: 14,
-          color: brand.textColor,
-          maxWidth: 680,
-        }}
-      >
+      </Glow>
+      <Glow style={{ fontFamily: MONTSERRAT, fontWeight: WEIGHT.bold, fontSize: 62, lineHeight: 1.2, marginTop: 14, maxWidth: 680 }}>
         {item.cue}
-      </div>
+      </Glow>
       {item.cueEs ? (
-        <div
-          style={{
-            fontFamily: MONTSERRAT,
-            fontWeight: WEIGHT.regular,
-            fontSize: 36,
-            lineHeight: 1.3,
-            marginTop: 16,
-            color: POPUP_GREY,
-          }}
-        >
+        <Glow style={{ fontFamily: MONTSERRAT, fontWeight: WEIGHT.regular, fontSize: 36, lineHeight: 1.3, marginTop: 16 }}>
           {item.cueEs}
-        </div>
+        </Glow>
       ) : null}
     </div>
   );
 };
 
-const RoutineChecklist: React.FC<{ item: ChecklistPopup; brand: Brand; frames: number }> = ({ item, brand, frames }) => {
+const RoutineChecklist: React.FC<{ item: ChecklistPopup; brand: Brand; frames: number }> = ({ item, frames }) => {
   const pop = usePop(frames);
-  const gold = brand.popupColor || POPUP_GOLD;
   const n = item.items.length;
-  const tight = n > 6; // long routines: smaller rows so the card still fits on the left
+  const tight = n > 6; // long routines: smaller rows so the list still fits on the left
   const fs = tight ? 30 : 34;
   const pitch = tight ? 52 : 62;
+  // all white (no gold / grey): done = white check, current = arrow + bold + a touch bigger, still to come = dot
   return (
     <div
       style={{
-        ...cardStyle,
         position: "absolute",
-        left: 54,
-        top: item.y,
-        minWidth: 560,
-        maxWidth: 760,
-        padding: "40px 46px 44px",
+        left: 100,
+        top: item.y + 40,
+        minWidth: 468,
+        maxWidth: 668,
         transformOrigin: "0% 50%",
         ...pop,
       }}
     >
-      <div
-        style={{
-          fontFamily: MONTSERRAT,
-          fontWeight: WEIGHT.extraBold,
-          fontSize: 38,
-          lineHeight: 1.1,
-          color: gold,
-          marginBottom: 14,
-          whiteSpace: "nowrap",
-        }}
-      >
+      <Glow style={{ fontFamily: MONTSERRAT, fontWeight: WEIGHT.extraBold, fontSize: 38, lineHeight: 1.1, marginBottom: 14,
+        whiteSpace: "nowrap" }}>
         TODAY'S ROUTINE
-      </div>
+      </Glow>
       {item.items.map((name, i) => {
         const done = i < item.current;
         const cur = i === item.current;
-        const color = done ? gold : cur ? brand.textColor : POPUP_GREY;
         return (
-          <div key={i} style={{ display: "flex", alignItems: "center", height: pitch }}>
-            <div style={{ width: 56, flexShrink: 0, display: "flex", alignItems: "center" }}>
-              {done ? (
-                <svg width="44" height="36" viewBox="0 0 44 36">
-                  <path d="M3 18 L15 30 L41 4" fill="none" stroke={gold} strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              ) : (
-                <span
-                  style={{
-                    fontFamily: MONTSERRAT,
-                    fontWeight: cur ? WEIGHT.extraBold : WEIGHT.bold,
-                    fontSize: cur ? 34 : 44,
-                    lineHeight: 1,
-                    color,
-                    paddingLeft: cur ? 0 : 6,
-                  }}
-                >
-                  {cur ? "→" : "•"}
-                </span>
-              )}
+          <Glow key={i} style={{ height: pitch }}>
+            <div style={{ display: "flex", alignItems: "center", height: pitch }}>
+              <div style={{ width: 56, flexShrink: 0, display: "flex", alignItems: "center" }}>
+                {done ? (
+                  <svg width="44" height="36" viewBox="0 0 44 36">
+                    <path d="M3 18 L15 30 L41 4" fill="none" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round"
+                      strokeLinejoin="round" />
+                  </svg>
+                ) : (
+                  <span
+                    style={{
+                      fontFamily: MONTSERRAT,
+                      fontWeight: cur ? WEIGHT.extraBold : WEIGHT.bold,
+                      fontSize: cur ? 34 : 44,
+                      lineHeight: 1,
+                      paddingLeft: cur ? 0 : 6,
+                    }}
+                  >
+                    {cur ? "→" : "•"}
+                  </span>
+                )}
+              </div>
+              <div
+                style={{
+                  fontFamily: MONTSERRAT,
+                  fontWeight: cur ? WEIGHT.extraBold : WEIGHT.regular,
+                  fontSize: cur ? fs + 4 : fs,
+                  lineHeight: 1.1,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {name}
+              </div>
             </div>
-            <div
-              style={{
-                fontFamily: MONTSERRAT,
-                fontWeight: cur ? WEIGHT.bold : WEIGHT.regular,
-                fontSize: fs,
-                lineHeight: 1.1,
-                color,
-                whiteSpace: "nowrap",
-              }}
-            >
-              {name}
-            </div>
-          </div>
+          </Glow>
         );
       })}
-      <div
-        style={{
-          fontFamily: MONTSERRAT,
-          fontWeight: WEIGHT.bold,
-          fontSize: 32,
-          lineHeight: 1.1,
-          color: gold,
-          marginTop: 30,
-          letterSpacing: 0.5,
-        }}
-      >
+      <Glow style={{ fontFamily: MONTSERRAT, fontWeight: WEIGHT.bold, fontSize: 32, lineHeight: 1.1, marginTop: 30,
+        letterSpacing: 0.5 }}>
         {`${item.current} OF ${n} DONE`}
-      </div>
+      </Glow>
     </div>
   );
 };
@@ -1208,6 +929,7 @@ export const Overlay: React.FC<OverlayProps> = (p) => {
     ? p.lowerThirds.filter((lt) => !pops.bars.some((b) => lt.from < b.to && b.from < lt.to))
     : p.lowerThirds;
   return (
+    <LookProvider value={p.textLook ?? DEFAULT_LOOK}>
     <AbsoluteFill>
      <AbsoluteFill style={{ opacity: textHidden ? 0 : 1 }}>
       {/* accents sit under the text layers */}
@@ -1303,5 +1025,6 @@ export const Overlay: React.FC<OverlayProps> = (p) => {
         </Sequence>
       ) : null}
     </AbsoluteFill>
+    </LookProvider>
   );
 };

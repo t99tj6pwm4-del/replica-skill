@@ -101,7 +101,9 @@ def render_carousel(sb: dict, cm: dict, cdir: Path | None = None):
     files = []
     for i, slide in enumerate(slides):
         pfile = WORK / f"carousel_{i}.json"
-        save_json(pfile, {"brand": {k: b[k] for k in ("name", "handle", "color", "textColor", "darkColor")}, "slide": slide})
+        import text_look
+        save_json(pfile, {"brand": {k: b[k] for k in ("name", "handle", "color", "textColor", "darkColor")}, "slide": slide,
+                          "textLook": text_look.for_remotion()})
         out = cdir / f"slide_{i + 1:02d}.png"
         remotion(["still", "src/index.ts", "CarouselSlide", str(out), f"--props={pfile}", f"--public-dir={pub}"])
         files.append(rel(out))
@@ -152,6 +154,12 @@ def main():
     props_path = WORK / "overlay_props.json"
     props = load_json(props_path)
     check_text(props)
+    # Alfonso 2026-11-23 (answer 24): THE text look from config.yaml text_look, the same numbers the Python titles use
+    import text_look
+    props["textLook"] = text_look.for_remotion()
+    props.setdefault("brand", {}).update({k: v for k, v in brand().items() if k in ("color", "textColor", "darkColor")})
+    props["brand"]["popupColor"] = brand().get("popup_color", "#FFFFFF")
+    save_json(props_path, props)
     info = probe(cut)
     if abs(info["duration"] - props["duration"]) > 0.25:
         die("overlay_props.json was built for a different cut. Re-run scripts/build_overlay_props.py")
@@ -259,6 +267,7 @@ def main():
          fc, "-map", "[v]", "-map", "0:a?",
          "-t", f"{info['duration']:.3f}", "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-profile:v", "high",
          "-pix_fmt", "yuv420p", "-r", str(FPS), "-c:a", "copy", "-movflags", "+faststart", final])
+    measure_text_look(overlay, props, final)
     overlay.unlink(missing_ok=True)
     out = probe(final)
     v = out["video"]
@@ -282,8 +291,54 @@ def main():
         die(f"final is {v['width']}x{v['height']}, expected {W}x{H}")
 
 
+def measure_text_look(overlay: Path, props: dict, final: Path) -> dict:
+    """Alfonso 2026-11-23 (answer 24): measure the Remotion layer itself (RGBA, before it is laid over the picture)
+    at a frame inside every pop-up, CAM tag and the progress label: text pixels (alpha >= 50 %) must be white /
+    neutral (R-G-B spread <= text_look.neutral_max_spread) and no dark pixel may be more opaque than
+    text_look.box_alpha_max (a card / bar / panel; the look's own shadow peaks at 35 %). Log for qa_check.py:
+    output/work/text_look_check.json."""
+    import subprocess
+    import numpy as np
+    import text_look
+    lk = text_look.look()
+    pops = props.get("popups") or {}
+    samples = [(f"bar {b['title']}", b["from"] + 1.0) for b in pops.get("bars") or []]
+    samples += [(f"checklist {c['current']}", c["from"] + 1.0) for c in pops.get("checklists") or []]
+    if pops.get("formTip"):
+        samples.append(("form tip", pops["formTip"]["from"] + 1.5))
+    samples += [(f"cam tag {e.get('label', '')}", e["from"] + 0.8) for e in props.get("events") or [] if e.get("kind") == "cam"]
+    for i, lt in enumerate(props.get("lowerThirds") or []):
+        samples.append((f"lower-third {lt['title']}", lt["from"] + 1.0))
+    for i, c in enumerate(props.get("captions") or []):
+        if i < 3:
+            samples.append((f"caption page {i + 1}", (c["start"] + c["end"]) / 2))
+    samples.append(("progress bar + label", min(float(props["duration"]) - 0.5, 20.0)))
+    rows, ok = [], True
+    for name, t in samples:
+        t = min(max(0.0, float(t)), float(props["duration"]) - 0.05)
+        raw = subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{t:.3f}", "-i", str(overlay), "-frames:v", "1",
+                              "-f", "rawvideo", "-pix_fmt", "rgba", "-"], capture_output=True).stdout
+        if len(raw) < W * H * 4:
+            rows.append({"what": name, "t": round(t, 2), "error": "no frame"})
+            ok = False
+            continue
+        a = np.frombuffer(raw[: W * H * 4], np.uint8).reshape(H, W, 4)
+        spread, box = text_look.tint_spread(a), text_look.box_pixels(a)
+        drawn = int((a[..., 3] >= 128).sum())
+        good = spread <= int(lk["neutral_max_spread"]) and box == 0
+        ok &= good
+        rows.append({"what": name, "t": round(t, 2), "text_px": drawn, "tint_spread": spread, "box_px": box, "ok": good})
+    rep = {"final": rel(final), "ok": ok, "text_look": text_look.for_remotion(),
+           "neutral_max_spread": lk["neutral_max_spread"], "box_alpha_max": lk["box_alpha_max"], "samples": rows}
+    save_json(WORK / "text_look_check.json", rep)
+    bad = [r for r in rows if not r.get("ok")]
+    print(f"text look: {len(rows)} Remotion frames measured, "
+          + ("all white / neutral, no box" if ok else f"{len(bad)} FAIL: {bad[:3]}"))
+    return rep
+
+
 def sfx_events(props: dict) -> list[tuple[float, str]]:
-    """(time, kind) for every text move that gets a sound: hook card, gold exercise titles, pop-up cards."""
+    """(time, kind) for every text move that gets a sound: hook card, layered exercise titles, pop-up cards."""
     ev = []
     t = props.get("title") or {}
     # the Fonzi intro card brings its own whoosh into beat 1 + impact on beat 1 (finish_fx.py)

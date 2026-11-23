@@ -21,9 +21,11 @@ from common import (load_config, FPS, H, INPUT, OUT, W, WORK, find_duplicate, lo
                     save_json, sha256)
 
 
+ROOT_BRAND = Path(__file__).resolve().parent.parent / "config" / "brand.json"
 INTRO_STYLES = ("strobe", "pulse", "glitch", "smash")   # finish_fx.ALL_INTRO_STYLES (Round 7, 2026-11-22)
 LOGO_STYLES = ("flat", "3d")
-TITLE_MAX_RGB = (0xEC, 0xD4, 0x97)                      # style sheet: the title is never brighter than #ECD497
+# Alfonso 2026-11-23 (answer 24): all text pure white + glow (config text_look). The gold ceiling (#ECD497) is gone;
+# text must be white / neutral (no tint) and there must be no box behind it.
 SPLIT_ALPHA_MAX = 0.6                                   # glitch split copies
 SMASH_MIN_GAP = 24                                      # smash scatter: never a glyph gap < 24 px
 LOGO_ON_FACE_SOFT = 2500                                # soft: a window sum (3 s windows go over it)
@@ -62,14 +64,16 @@ def intro_checks(ir: dict, fin: dict | None = None) -> list[dict]:
           f"min glyph gap {sm.get('min_glyph_gap_px')} px, keep-out {sm.get('keep_out')} "
           f"({sm.get('keep_out_source')}), scatter shrink {sm.get('scatter_shrink')}, lands on frame "
           f"{sm.get('land_frame')}" if sm else "style smash but no smash stats logged")
-    rgb = ir.get("title_max_rgb")
-    if rgb is not None:
-        ok = all(int(v) <= m for v, m in zip(rgb, TITLE_MAX_RGB))
-        # hard only for glitch (no pulse frames in the window); smash / strobe / pulse windows include pulse tint
-        # frames, which style_fx.intro already checks per frame (it refuses to write a brighter smash frame)
-        c("title never brighter than #ECD497", ok,
-          f"brightest title pixel {list(rgb)} ({'ok' if ok else 'over #ECD497'}"
-          f"{'' if style == 'glitch' else ', window max incl. pulse frames: note only'})", soft=style != "glitch")
+    import text_look as TL
+    lim = int(TL.look()["neutral_max_spread"])
+    if "title_tint_spread_max" in ir:
+        sp = int(ir["title_tint_spread_max"])
+        c("intro title is white (no tint, text_look)", sp <= lim and (ir.get("title_rgb") or "#FFFFFF") == TL.look()["color"],
+          f"title {ir.get('title_rgb')}, max R-G-B spread over the window {sp} (<= {lim}), brightest "
+          f"{ir.get('title_max_rgb')}, glow / shadow px on his face {ir.get('glow_on_face_px_max', 0)}")
+    else:
+        c("intro title is white (no tint, text_look)", False,
+          f"intro rendered before the white look (title max rgb {ir.get('title_max_rgb')}): re-render", soft=True)
     face = ir.get("logo_on_face_px_max")
     if face is not None:
         c(f"logo on his face edge <= {LOGO_ON_FACE_SOFT} px (window sum)", face <= LOGO_ON_FACE_SOFT,
@@ -228,7 +232,7 @@ def main():
     def walk(n):
         if isinstance(n, dict):
             for k, x in n.items():
-                if k not in ("brand", "kind"):
+                if k not in ("brand", "kind", "textLook"):
                     walk(x)
         elif isinstance(n, list):
             for x in n:
@@ -305,7 +309,8 @@ def main():
         add(f"{lt['first']} sits BEHIND him (part of the letters hidden by his body)", bool(cov and cov > 0.02),
             f"{(cov or 0) * 100:.0f}% of the first name is covered by him", "text_visuals")
         add(f"layered title {lt['first']} / {lt['intro_line']} / {lt['last']}", True,
-            f"{lt['at']:.2f}-{lt['at'] + lt['dur']:.2f}s, gold {lt['gold']}, 90% width; frame {lt['frame']}", "text_visuals")
+            f"{lt['at']:.2f}-{lt['at'] + lt['dur']:.2f}s, {lt.get('text_rgb') or 'gold ' + str(lt.get('gold'))} "
+            f"text_look, 90% width; frame {lt['frame']}", "text_visuals")
         logf = OUT / "effects_log.md"
         add("title style logged in output/effects_log.md", logf.exists() and "Layered Title" in logf.read_text(),
             "logged" if logf.exists() else "missing", "text_visuals")
@@ -318,13 +323,39 @@ def main():
             max_cov = float((load_config().get("titles") or {}).get("max_back_cover", 0.45))
             behind = [t for t in ex_titles if t.get("front_only")
                       or 0.02 < (t.get("first_name_covered_by_person") or 0) <= max_cov]
-            add("exercise names as gold layered titles (back word partly behind him)",
+            add("exercise names as layered titles (back word partly behind him)",
                 len(behind) == len(ex_titles),
                 f"{len(behind)}/{len(ex_titles)} have the back word 2-{max_cov * 100:.0f}% covered by him; "
                 + "; ".join(f"{t['first']} {t['last']} {(t.get('first_name_covered_by_person') or 0) * 100:.0f}%"
                             if not t.get("front_only") else f"{t['first']} {t['last']} front-only"
                             for t in ex_titles) + "; frames: "
                 + ", ".join(t["frame"] for t in ex_titles), "text_visuals")
+        # Alfonso 2026-11-23 (answer 24): every text white in the glow look, no box (replaces the gold checks)
+        import text_look as TL
+        lk = TL.look()
+        b = load_json(ROOT_BRAND, default={})
+        okc = (str(b.get("color", "")).upper() == lk["color"] and str(b.get("popup_color", "")).upper() == lk["color"]
+               and props.get("textLook") == TL.for_remotion())
+        add("text look: white everywhere (brand colours + Remotion textLook = config text_look)", okc,
+            f"brand color {b.get('color')}, popup_color {b.get('popup_color')}, props.textLook "
+            f"{'= config' if props.get('textLook') == TL.for_remotion() else 'missing / differs: re-render'}", "text_visuals")
+        if ex_titles:
+            nonw = [f"{t['first']} {t['last']}" for t in ex_titles if (t.get("text_rgb") or "") != lk["color"]]
+            add("layered exercise titles are white with the glow look", not nonw,
+                "all white (back word's glow + shadow behind his cut-out)" if not nonw else f"not white: {nonw}",
+                "text_visuals")
+        tl_chk = load_json(WORK / "text_look_check.json", default={})
+        if tl_chk and tl_chk.get("final") == rel(final):
+            bad = [r for r in tl_chk.get("samples", []) if not r.get("ok")]
+            add("Remotion text white / neutral with no box (measured on the graphics layer)", not bad,
+                f"{len(tl_chk['samples'])} frames: max tint spread "
+                f"{max((r.get('tint_spread', 0) for r in tl_chk['samples']), default=0)} (<= {lk['neutral_max_spread']}), "
+                f"box px {sum(r.get('box_px', 0) for r in tl_chk['samples'])}"
+                + (f"; FAIL {bad[:3]}" if bad else ""), "text_visuals")
+        else:
+            add("Remotion text white / neutral with no box (measured on the graphics layer)", False,
+                "no output/work/text_look_check.json for this file (render with scripts/render_final.py)",
+                "text_visuals", soft=True)
         need = {"title card": props.get("title") or props.get("opener"),   # Alfonso's own opener image counts as the hook card
                 "lower-thirds": props.get("lowerThirds") or ex_titles,
                 "progress bar": props.get("progress"), "end card": props.get("endCard")}

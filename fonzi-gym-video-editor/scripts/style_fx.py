@@ -2,7 +2,7 @@
 """Fonzi style effects, locked in Style Lab (style-lab/STYLE.md). Our own code and sounds; no colour grade ever.
 
     python3 scripts/style_fx.py snap IN.mp4 OUT.mp4 --at 0.4
-        Gold title landing hit: 2-frame white flash, punch-in 1.08 -> 1 over 6 frames, small shake (+ impact sfx).
+        Title landing hit (retired for the hook): 2-frame white flash, punch-in 1.08 -> 1 over 6 frames, small shake (+ impact sfx).
     python3 scripts/style_fx.py zoom A.mp4 B.mp4 OUT.mp4 [--cx 0.5 --cy 0.52]
         Zoom through: last 10 frames of A punch into a dark object (default his tank top, frame centre) with a
         radial zoom blur until black; B fades up out of the dark over 8 frames (+ whoosh, impact on the cut).
@@ -23,14 +23,16 @@
             --style strobe|pulse|glitch|smash (--beats 0.667,1.335 | --bpm 89.88 --phase 0.667) [--dur 2.0]
             [--logo flat|3d] [--smash-keep-out left|right|none|x0,y0,x1,y1] [--piece] [--mask-src CLEAN.mp4]
             [--report intro.json] [--dump-layers DIR]
-        Intro card (STYLE.md rule 0, locked 2026-11-21, Round 7 styles 2026-11-22): Rubik Dirt gold title (no
-        drips) IN FRONT of him and below his face, small white letter-spaced subtitle, the Fonzi logo (white,
+        Intro card (STYLE.md rule 0, locked 2026-11-21, Round 7 styles 2026-11-22; WHITE text_look since
+        2026-11-23: pure white + 2 white glows + a soft dark shadow, config text_look): Rubik Dirt title (no
+        drips) IN FRONT of him and below his face, small white letter-spaced subtitle (same look), the Fonzi logo (white,
         ~1000 px, whole logo in frame) BEHIND him (rembg cut-out per frame, per shot when there is a hard cut
         inside the window). Four title styles, all landing on beat 1:
           strobe  solid from beat 1, off 2 frames on each later beat (r6-01, unchanged)
-          pulse   round-2 flicker-on burst, then brighter + 1.0->1.06 on each later beat (r6-03, unchanged)
-          glitch  the pulse burst, then on beats 2-4 a 3-frame red / cyan split (8/5/2 px, alpha <= 0.6) on the
-                  letter edges only (scripts/intro_glitch.py, r7-03)
+          pulse   round-2 flicker-on burst, then the glow brightens + 1.0->1.06 on each later beat (r6-03 motion)
+          glitch  the pulse burst, then on beats 2-4 a SHORT 2-frame white burst: white ghost copies (8 / 4 px,
+                  alpha 0.45 / 0.25) on the letter edges + a 2-band slice jitter on the first frame
+                  (scripts/intro_glitch.py; white-only since 2026-11-23, no red / cyan)
           smash   letters fade in scattered below his face and off the dumbbell side, fly into a spaced row,
                   smash home on beat 1 with a decaying shake, then the pulse (scripts/intro_smash.py, r7-05)
         Two logos: flat (fades up b1-4 -> b1, unchanged) or 3d (14 px white extrusion swinging to rest by b1+10,
@@ -310,7 +312,7 @@ def opener(out: Path, bg: Path, drips: str = "heavy", dur: float = 1.8, beats: l
            report: Path | None = None) -> dict:
     """Logo opener (Alfonso 2026-11-23, STYLE.md rule 0): the first ~1.5 s of the video in the END-CARD look (same
     blur, same 35 % dark, same white logo, same flicker and the same drips the video's end card gets), before the
-    gold intro. The flicker lands the logo solid on the first beat at least 10 frames in (else frame 14), impact on
+    intro. The flicker lands the logo solid on the first beat at least 10 frames in (else frame 14), impact on
     that beat; clicks on the flickers, crackle bed (sfx roles opener_click / opener_crackle / opener_impact).
     `dur` should end on a beat (finish_fx.py snaps it to the song's beat grid); OUT carries only our sfx."""
     import json
@@ -346,7 +348,8 @@ def opener(out: Path, bg: Path, drips: str = "heavy", dur: float = 1.8, beats: l
 # ---------- intro card (STYLE.md rule 0, Style Lab rounds 5-6, locked 2026-11-21) ----------
 TITLE_FONT = ROOT / "brand" / "fonts" / "RubikDirt-Regular.ttf"
 SUB_FONT = ROOT / "remotion" / "public" / "fonts" / "Montserrat.ttf"
-GOLD = (212, 160, 23)                       # #D4A017
+import text_look as TL  # noqa: E402
+TITLE_RGB = TL.text_rgb()                   # pure white (config text_look; was gold #D4A017 until 2026-11-23)
 SAFE_TOP, SAFE_BOTTOM = 110, H - 420        # Instagram's own buttons cover the rest
 BURST = [0, 1, 0, 0, 1, 1, 0, 1]            # the locked round-2 flicker-on, first 8 frames (pulse style)
 LOGO_ART_W = 1000                           # logo art width on screen (the png has margins round the art)
@@ -425,7 +428,7 @@ class TitleSpec:
         title, sub = _I.new("RGBA", (W, H), (0, 0, 0, 0)), _I.new("RGBA", (W, H), (0, 0, 0, 0))
         cys, sy = self.centres()
         for t, cy in zip(self.lines, cys):
-            _line(title, t, self.font, cy, GOLD + (255,))
+            _line(title, t, self.font, cy, TITLE_RGB + (255,))
         if self.sub:
             _line(sub, self.sub, self.sub_font, sy, (255, 255, 255, 255), track=SUB_TRACK)
         return title, sub, (W / 2, (cys[0] + cys[-1]) / 2)
@@ -463,8 +466,7 @@ def _with_alpha(layer, a):
 
 
 def _shadow(layer, blur=10, opacity=0.6):
-    """Tight soft shadow that follows the letters (fills the dirt specks so the gold reads over the white logo).
-    Not a scrim."""
+    """RETIRED 2026-11-23 for text (text_look.under replaces it); kept for old Style Lab scripts only."""
     a = layer.getchannel("A").filter(ImageFilter.MaxFilter(5)).filter(ImageFilter.GaussianBlur(blur))
     a = a.point(lambda v: int(min(255, v * 1.6) * opacity))
     sh = Image.new("RGBA", (W, H), (8, 8, 10, 0))
@@ -597,7 +599,7 @@ def place_title(spec: TitleSpec, heads: list, visible: list[int], style: str, ti
 
 TITLE_STYLES = ("strobe", "pulse", "glitch", "smash")
 LOGO_STYLES = ("flat", "3d")
-GOLD_MAX = (236, 212, 151)                  # #ECD497, brightest a title pixel may be (glitch / smash hard check)
+NEUTRAL_MAX = int(TL.look()["neutral_max_spread"])   # title pixels must stay white / grey: max R-G-B spread
 LOGO_FIT_BOX = (4, 4, W - 4, H - 4)         # logo alpha > 8 bbox must stay inside on every frame
 
 
@@ -670,6 +672,7 @@ def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=Non
         empty = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         issues, edge_px, vis_pct = [], 0, {}
         logo_max, logo_face, title_max = None, 0, None
+        title_spread, glow_face = 0, 0
         pic = tmp / "intro.pic.mp4"
         enc = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
                                 "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-crf", "14", "-preset", "medium",
@@ -710,19 +713,19 @@ def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=Non
                     logo_face += int((vis[y0:y1, x0:x1] & soft).sum())
             txt = Image.new("RGBA", (W, H), (0, 0, 0, 0))
             t = None
+            boost = 0.0                                     # white cannot get whiter: the pulse brightens the glow
             if style in ("strobe", "pulse"):
                 st = title_state(style, k, bts)
                 if st:
                     amt, sc = st
-                    t = tl
-                    if amt:
-                        g = np.array(GOLD, np.float32)
-                        t = _tint(tl, [int(v) for v in g + (255 - g) * amt])
-                    t = _scaled(t, sc, gcx, gcy)
+                    boost = float(TL.look()["pulse_glow_boost"]) * amt / 0.55
+                    t = _scaled(tl, sc, gcx, gcy)
             elif style == "glitch":
                 t = ig.glitch_title(tl, k, bts)
             else:
                 t = plan.title(k, tl, bts)
+                if t is not None and _pulse_window(k, bts) and k > b1:
+                    boost = float(TL.look()["pulse_glow_boost"]) * 0.5
             if t is not None:
                 txt = Image.alpha_composite(txt, t)
                 ta = np.asarray(t)
@@ -730,9 +733,10 @@ def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=Non
                 if on.any():
                     mx = ta[..., :3][on].max(0)
                     title_max = mx if title_max is None else np.maximum(title_max, mx)
-                    hard = style == "glitch" or (style == "smash" and not _pulse_window(k, bts))
-                    if hard and (mx > np.array(GOLD_MAX)).any():
-                        issues.append(f"f{k}: title pixel {mx.tolist()} brighter than #ECD497")
+                    sp = TL.tint_spread(ta)
+                    title_spread = max(title_spread, sp)
+                    if sp > NEUTRAL_MAX:
+                        issues.append(f"f{k}: title pixel tinted (R-G-B spread {sp} > {NEUTRAL_MAX}): text must be white")
             if dump_layers:
                 (t if t is not None else empty).save(dump_layers / f"title_{k:04d}.png")
                 lay.save(dump_layers / f"logo_{k:04d}.png")
@@ -742,8 +746,10 @@ def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=Non
                 sl = Image.new("RGBA", (W, H), (0, 0, 0, 0))
                 sl.paste(sub, (0, int(18 * (1 - e))), sub)
                 txt = Image.alpha_composite(txt, _with_alpha(sl, e))
-            if txt.getbbox():                               # every style: title, split copies, glyphs, subtitle
-                comp = Image.alpha_composite(Image.alpha_composite(comp, _shadow(txt)), txt)
+            if txt.getbbox():                               # every style: title, ghost copies, glyphs, subtitle
+                glow = TL.under(txt, boost)                 # text_look: shadow -> wide glow -> tight glow
+                comp = Image.alpha_composite(Image.alpha_composite(comp, glow), txt)
+                ga = np.asarray(glow.getchannel("A"))
                 ys, xs = np.nonzero(np.asarray(txt.getchannel("A")) > 20)
                 yr = [min(yr[0], int(ys.min())), max(yr[1], int(ys.max()))]
                 if ys.min() < SAFE_TOP or ys.max() > SAFE_BOTTOM:
@@ -754,6 +760,10 @@ def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=Non
                         c = int(((xs >= x0) & (xs < x1) & (ys >= y0) & (ys < y1)).sum())
                         if c:
                             issues.append(f"f{k}: {c} title px on his face box {hb}")
+                        g = int((ga[max(0, y0):y1, max(0, x0):x1] > 64).sum())
+                        glow_face = max(glow_face, g)
+                        if g:
+                            issues.append(f"f{k}: {g} glow / shadow px (alpha > 25 %) on his face box {hb}")
             enc.stdin.write(np.asarray(comp.convert("RGB"), np.uint8).tobytes())
         enc.stdin.close()
         if enc.wait():
@@ -779,11 +789,14 @@ def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=Non
                "logo_style": logo, "logo_scale": lg.scale if lg else 1.0, "logo_box_max": logo_max,
                "logo_on_face_px_max": logo_face,      # window total, as round 6 (2087)
                "title_max_rgb": [int(v) for v in title_max] if title_max is not None else None,
+               "title_rgb": "#%02X%02X%02X" % TITLE_RGB, "title_tint_spread_max": title_spread,
+               "text_look": TL.for_remotion(), "glow_on_face_px_max": glow_face,
                "glitch": gl, "smash": plan.stats() if plan else None}
         print(f"intro {style} / logo {logo}: {' / '.join(spec.lines)} ({spec.size}px, line 1 at y={spec.y1}), logo "
               f"{res['logo_size']} at {box} (scale {res['logo_scale']}), beats {res['beats_s']}, shots "
               f"{len(edges) - 1}, his face down to y={res['face_max_y']}, text y {yr[0]}-{yr[1]}: clear of his "
-              f"face in all {n} frames; title max rgb {res['title_max_rgb']}, logo on face {logo_face} px")
+              f"face in all {n} frames; title max rgb {res['title_max_rgb']} (tint spread {title_spread}), white glow look, "
+              f"logo on face {logo_face} px")
         if report:
             report.write_text(json.dumps(res, indent=1))
         return res

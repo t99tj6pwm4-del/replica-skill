@@ -7,7 +7,7 @@ import type { CarouselProps, OverlayProps } from "./types";
 const brand = {
   name: "Fonzi Stays Fit",
   handle: "@fonzi.stays.fit",
-  color: "#FFD60A",
+  color: "#FFFFFF", // white text look since 2026-11-23 (config.yaml text_look)
   textColor: "#FFFFFF",
   darkColor: "#0B0B0F",
 };

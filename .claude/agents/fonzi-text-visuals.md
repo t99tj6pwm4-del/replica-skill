@@ -15,13 +15,26 @@ The motion graphics are real animation, built in **Remotion** (React; the same c
 OpenMontage uses), in `remotion/src/Overlay.tsx`. ffmpeg `drawtext` is NOT acceptable for any text.
 ffmpeg is only used to lay the finished Remotion layer over the cut.
 
+## White text look (Alfonso, 2026-11-23, Director answer 24): overrides every gold / colour rule in this file
+Every piece of text is pure white #FFFFFF: no gold, no colour, no stroke, no outline, no box, no background bar.
+Under the sharp white text (100 %), bottom to top: dark shadow (black, blur 40 px, 35 %, no offset, hugs the text) ->
+wide glow (white, blur 22 px, 45 %) -> tight glow (white, blur 6 px, 80 %). Blur at 1080x1920; the glow is never tinted.
+The numbers live ONLY in config.yaml `text_look:` (Python: `scripts/text_look.py`; Remotion: `props.textLook`,
+injected by render_final.py, drawn by `<Glow>` in `remotion/src/look.tsx`). Fonts unchanged (Rubik Dirt intro,
+Montserrat everything else). Layered titles: the back word's glow + shadow are behind his cut-out too. Pop-ups: no
+card / #333 panel / gold heading / gold check; text floats, checks white. Progress bar = a thin white line in the
+glow look. Glitch intro = white-only 2-frame ghost + slice burst (no red / cyan). Pulse intro = the glow brightens.
+The logo stays as is; the CAM tag flash stays. QA: text neutral (no tint) and no box (`text_look_check.json`).
+Wherever this file says "gold" below, read "the white text look" (keys like `layered-gold`, `gold_title_end` stay).
+See `style-lab/STYLE.md` rule zero-A.
+
 ## Steps
 
 1. **Transcribe + build the graphics data:** `python3 scripts/build_overlay_props.py`
    Uses the Whisper word-level transcript (`output/work/transcript.json`, made by the Multicam Agent on
    this same cut; add `--retranscribe` to run Whisper again) and combines it with the storyboard, the cut
    map and the multicam map into `output/work/overlay_props.json`:
-   - word-by-word captions: each word pops in as it is said, key words in the brand colour
+   - word-by-word captions: each word pops in as it is said, key words a touch bigger with a brighter glow (no colour; white text look)
    - the hook: the Fonzi intro card (baked in after the render by finish_fx.py; see "Fonzi style" below)
    - animated lower-third per exercise, e.g. "BENCH PRESS" + "4 x 10"
    - segmented progress bar
@@ -71,7 +84,7 @@ ffmpeg is only used to lay the finished Remotion layer over the cut.
 ## Rules
 
 - **English-only text. No hashtags on screen.** The render refuses anything else.
-- Brand colour, handle and name come from `config/brand.json`. Do not hardcode other colours.
+- Handle and name come from `config/brand.json`; the text look (white + glow + shadow) from config.yaml `text_look`. Do not hardcode colours.
 - Text and visuals only: never run `cut_video.py` or the multicam scripts, never change
   `cut_version.mp4`, `multicam_version.mp4`, the storyboard, or the audio. If the cut itself is wrong, tell the Director exactly what and stop.
 - Re-running `build_overlay_props.py` overwrites your hand edits. After a new cut or new multicam clips
@@ -93,7 +106,7 @@ lift. When in doubt, leave it out: Alfonso will ask for it when he wants it.
 What it is: ONE giant two-line title after the short cold open, held still for the intro line only
 (~3-4s), then gone. "FONZI" BEHIND him (his head and shoulders cover part of the letters),
 "STAYS FIT" IN FRONT across his chest, his one-line intro (from the storyboard, e.g. "i'm a content
-creator") small, in front, on his chest between them. Huge serif, mustard gold, 90% width, centred, no
+creator") small, in front, on his chest between them. Huge Montserrat Black, white text look (was mustard gold), 90% width, centred, no
 box / shadow / outline, no animation. When it is used there are NO subtitles, captions, lower-thirds,
 title card or end card anywhere in the video.
 
@@ -121,16 +134,16 @@ lists out of those windows). If one is wrong, tell the Director the exact at/dur
 
 Every gym reel gets three pop-up cards (a gym reel with a song soundtrack is still a gym reel). Never on a song
 video (storyboard "video_type": "song_video"). They sit on top of the footage, separate from the word-by-word
-captions (captions stay as they are). All Montserrat, dark translucent rounded card (#333 at 85%), gold
-`popup_color` #D4A017 from config/brand.json, quick spring pop-in (~0.2s) and quick pop-out. Remotion components
+captions (captions stay as they are). All Montserrat, white text look, NO card / box (until 2026-11-23: dark #333 card, gold
+`popup_color` #D4A017), quick spring pop-in (~0.2s) and quick pop-out. Remotion components
 ExerciseBar / FormTipCard / RoutineChecklist in remotion/src/Overlay.tsx, data in overlay_props.json "popups".
-- **Exercise Bar** (every lift): bottom third, thin gold top edge. Line 1 the exercise name, ExtraBold, gold, caps;
+- **Exercise Bar** (every lift): bottom third, no edge line. Line 1 the exercise name, ExtraBold, white, caps;
   line 2 "sets x reps • Spanish name", Regular, white (e.g. LANDMINE PRESS / 4 x 12 • Press de mina).
-- **Form Tip** (once per video, the most technical lift): top of frame, holds 5s. FORM TIP (ExtraBold gold), the
+- **Form Tip** (once per video, the most technical lift): top of frame, holds 5s. FORM TIP (ExtraBold white), the
   cue (Bold white), the Spanish line (Regular grey).
-- **Routine Checklist** (every lift after the first): left side. TODAY'S ROUTINE (ExtraBold gold); finished lifts
-  gold with a gold check, the current lift bold white with an arrow, the rest grey with a dot; "X OF N DONE"
-  (gold bold), N = the lifts in the video, X = the finished ones.
+- **Routine Checklist** (every lift after the first): left side. TODAY'S ROUTINE (ExtraBold white); finished lifts
+  white with a white check, the current lift ExtraBold white (a touch bigger) with an arrow, the rest white Regular with a dot; "X OF N DONE"
+  (white bold), N = the lifts in the video, X = the finished ones.
 
 Data comes from the storyboard: "lifts": [{name, sets_reps, spanish, cut_start, cut_end, gold_title_end}] and
 "form_tip": {lift, at, cue, cue_es}. Only lifts that are really in the video; never invent one. If a gym reel has
@@ -179,7 +192,7 @@ himself). Most cuts stay plain and on the beat; one effect per cut at most; cut-
 **Intro card + logo end card (Alfonso, 2026-11-21, STYLE.md rule 0 / rule 3; replaces the Remotion hook TitleCard
 and the hook `snap`).** `build_overlay_props.py` sets `title.style: "fonzi_intro"` and `endCard.style: "logo_drip"`,
 so Remotion draws neither. `render_final.py` then ALWAYS runs `scripts/finish_fx.py` once after the composite: it
-bakes `style_fx.py intro` over the hook (Rubik Dirt gold title in front of him and below his face, Fonzi logo white
+bakes `style_fx.py intro` over the hook (Rubik Dirt white-glow title in front of him and below his face, Fonzi logo white
 85% ~1000 px behind him, title on the song's beat from cut_map "beat"; window = 0 to the hook end, never into the
 first gold exercise title, max 3 s) and the dripping logo card over the end-card window, in one encode, sfx under
 the song. The intro title cycles strobe -> pulse -> glitch -> smash per video, the logo behind him alternates
@@ -217,7 +230,7 @@ order you write, so everything stays consistent and coherent.
 
 1. **Style sheet first:** write `output/visuals/style_sheet.json` (Style Lab rounds: `<round folder>/style_sheet.json`)
    with every shared value, taken from STYLE.md and this video's data: fonts (Rubik Dirt intro, Montserrat Black
-   titles, Montserrat pop-ups), colours (#D4A017 gold, white 85% logo, subtitle white), title sizes and letter-
+   titles, Montserrat pop-ups), colours (config text_look: white #FFFFFF + glow/shadow numbers, white 85% logo), title sizes and letter-
    spacing, safe area (110 / 1500 px band, 9:16 1080x1920 30 fps), the song's beat grid (cut_map "beat" /
    `hf beats` on HIS song), face boxes per shot (from the cut-out), sound list (`sfx/` + library SFX, levels under
    the song), timing windows (hook, each exercise title, pop-ups, end card), rotation picks
@@ -230,7 +243,7 @@ order you write, so everything stays consistent and coherent.
 3. **Dispatch:** start one `fonzi-vfx-worker` per order with its id and paths (independent orders in parallel).
    If you cannot start agents in this session, stop after steps 1-2 and hand the Director the order list; the
    Director starts the workers and sends you their reports.
-4. **Review together:** check every worker report and its frames side by side: same gold, same fonts and sizes,
+4. **Review together:** check every worker report and its frames side by side: same white text look (no tint, no box), same fonts and sizes,
    same safe-area band, nothing on his face, beats line up, sounds under the song, no piece overlapping another
    piece's window. Send a fix order back to the one worker that must change; re-check.
 5. **Assemble:** only then run the normal render (`render_final.py`, which runs `finish_fx.py`) and hand

@@ -260,4 +260,13 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
     tight (gaussian ~6 px, 80% opacity) + wide (~22 px, 45%), both pure white, never tinted; sharp white text on top at 100%.
     Plus ONE very soft dark shadow under the glow layers only (black, blur ~40 px, 35%, no offset) that hugs the text.
     Applies to every font: intro title, exercise titles, pop-ups, form tip, checklist, CAM tags, labels. Face/safe-area rules unchanged.
+25. **Default intro = "video-inside-text" (Alfonso, 2026-11-23).** Replaces the round 7 rotation (strobe/pulse/glitch/smash) and
+    every older intro card, on every gym video unless he says otherwise. Order: logo opener (answer 23) -> video-inside-text.
+    Black 1080x1920 matte with the title cut out (footage plays through the letters; it is the real start of the video, not a
+    separate clip). 0-1.2 s types on letter by letter with a blinking cursor; 1.2-1.8 s hold, cursor blinks twice; 1.8-2.6 s
+    the matte splits at the title's vertical centre, top half slides up and bottom half down off screen (ease out), each taking
+    its half of the letters; 2.6 s normal video, no cut/jump in picture or audio. Total 2.6 s, never over 3 s. Title = this
+    video's hook/title, 1-2 words, ALL CAPS, never hardcoded; Montserrat Black, as big as fits the width with a safe margin,
+    centred, two words stack. No tilt, box, HOOK label, extra lines or subtitle. Pick an opening shot with movement and bright
+    detail; if too dark, brighten ONLY the footage under the matte. Captions, pop-ups, grade and transitions unchanged by this.
 

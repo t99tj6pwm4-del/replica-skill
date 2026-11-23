@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""TEXT / VISUALS AGENT tool. Layered Title (Documentary Gold): ONE giant two-line gold title with the
+"""TEXT / VISUALS AGENT tool. Layered Title ("Documentary Gold" by name; WHITE text_look since 2026-11-23):
+ONE giant two-line title with the
 person sandwiched in the middle: "FONZI" BEHIND him, "STAYS FIT" and the small intro line IN FRONT
 (lines set in config/brand.json: layered_title_top / layered_title_bottom).
 
@@ -15,7 +16,10 @@ storyboard.json:
 
 The window is rebuilt frame by frame (bottom to top): the shot's background, the first name, the
 person cut out of the same frame (rembg human segmentation), the last name, the intro line.
-Still, no animation: it appears as one finished title, holds, cuts away. Gold, no box / shadow / outline.
+Still, no animation: it appears as one finished title, holds, cuts away. Since 2026-11-23 (Director answer 24)
+every word is pure white with the text_look (config.yaml text_look: soft dark shadow -> wide white glow -> tight
+white glow -> sharp white), no box / outline. The BACK word's glow and shadow sit behind him too: they are drawn
+before his cut-out goes on, so nothing glows over him.
 Picture only: the audio is copied untouched.
 """
 from __future__ import annotations
@@ -31,7 +35,8 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 sys.path.insert(0, str(Path(__file__).parent))
 from common import FPS, H, OUT, REMOTION, W, WORK, brand, die, load_json, probe, rel, run, save_json  # noqa: E402
 
-GOLD = (212, 160, 23)                       # mustard gold #D4A017 (Alfonso, Style Lab 2026-11-19)
+import text_look as TL  # noqa: E402
+TEXT_RGB = TL.text_rgb()                    # pure white (config text_look); gold #D4A017 until 2026-11-23
 SERIF = REMOTION / "public" / "fonts" / "Montserrat.ttf"   # Alfonso (2026-11-16): Montserrat everywhere (Black)
 TITLE_WEIGHT = "Black"
 SANS = REMOTION / "public" / "fonts" / "Montserrat.ttf"
@@ -62,7 +67,7 @@ def fit_font(path: Path, text: str, width: int, weight: str | None = TITLE_WEIGH
     return font_at(path, lo, weight)
 
 
-def text_layer(text: str, font: ImageFont.FreeTypeFont, cy: int, color=GOLD) -> Image.Image:
+def text_layer(text: str, font: ImageFont.FreeTypeFont, cy: int, color=TEXT_RGB) -> Image.Image:
     layer = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(layer)
     bb = font.getbbox(text)
@@ -76,7 +81,7 @@ def person_mask(session, frame: Image.Image) -> Image.Image:
     from rembg import remove
     m = remove(frame, session=session, only_mask=True)        # L image, 255 = person
     # hard matte: rembg leaves half-transparent areas on dark clothes in low light, which shows the back word
-    # through his body as a gold ghost. Binarise first, then only a ~1px soft edge.
+    # through his body as a ghost of the letters. Binarise first, then only a ~1px soft edge.
     m = m.point(lambda v: 255 if v >= 128 else 0)
     return m.filter(ImageFilter.MinFilter(3))   # no halo; the soft edge is added after temporal smoothing
 
@@ -93,14 +98,14 @@ def smooth_masks(masks: list, radius: int = 3, hold: bool = False) -> list:
     for k in range(len(arr)):
         win = arr[max(0, k - radius): k + radius + 1]
         med = (win.sum(axis=0) * 2 > len(win)) | arr[k]   # keep this frame's own cut-out: a fast fist/arm
-        med = med.astype(np.uint8) * 255                    # must not be voted away (gold specks over it)
+        med = med.astype(np.uint8) * 255                    # must not be voted away (letter specks over it)
         out.append(Image.fromarray(med, "L").filter(ImageFilter.GaussianBlur(0.8)))
     return out
 
 
 def drop_specks(mask: Image.Image, behind: Image.Image, min_px: int = 2500) -> Image.Image:
     """Bits of the back word that peek out in small fragments (mask edge noise around a fast fist / arm) are
-    hidden: a letter shows cleanly or not at all, no stray gold specks."""
+    hidden: a letter shows cleanly or not at all, no stray letter specks."""
     try:
         from scipy import ndimage
     except ImportError:
@@ -114,7 +119,7 @@ def drop_specks(mask: Image.Image, behind: Image.Image, min_px: int = 2500) -> I
     small = np.isin(lab, [i for i in range(1, n + 1) if sizes[i] < min_px])
     if not small.any():
         return mask
-    small = ndimage.binary_dilation(small, iterations=3) & (np.array(behind)[:, :, 3] > 0)   # no thin gold rim left
+    small = ndimage.binary_dilation(small, iterations=3) & (np.array(behind)[:, :, 3] > 0)   # no thin letter rim left
     m = np.where(small, 255, m).astype(np.uint8)
     return Image.fromarray(m, "L")
 
@@ -139,7 +144,7 @@ def cut_session():
 def raw_masks(session, model: str, frames: list) -> list:
     """Person cut-out for every frame of a title window. The big model is slow on CPU (~9 s a frame), so:
     - it runs on every `cut_every`-th frame; frames in between take the UNION of their two neighbours
-      (a slightly bigger person outline never shows gold specks over a moving fist);
+      (a slightly bigger person outline never shows letter specks over a moving fist);
     - results are cached by the frames' own bytes + model, so a re-render that only moves a title is instant."""
     import hashlib
     step = max(1, int(title_cfg().get("cut_every", 2))) if model != "u2net_human_seg" else 1
@@ -248,22 +253,25 @@ def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, i
     masks = smooth_masks(raws, hold=hold_mask)
     n = max(1, len(frames) - 1)
     behind0, front0, line0 = behind, front, line
+    # the text_look once per word (shadow + 2 white glows + sharp white), then moved with the virtual camera
+    behind_l, front_l, line_l = TL.stack(behind0), TL.stack(front0), TL.stack(line0)
     for k, f in enumerate(frames):
         img = Image.open(f).convert("RGBA")
         t = k / n
-        behind = depth_move(behind0, y1, t, back_push, -drift)       # back word drifts up
-        front = depth_move(front0, y2, t, front_push, drift)          # front words drift down, grow more
-        line = depth_move(line0, yi, t, front_push, drift)
+        behind = depth_move(behind0, y1, t, back_push, -drift)       # back word drifts up (sharp: specks / QA)
+        behind_look = depth_move(behind_l, y1, t, back_push, -drift)
+        front = depth_move(front_l, y2, t, front_push, drift)         # front words drift down, grow more
+        line = depth_move(line_l, yi, t, front_push, drift)
         mask = drop_specks(masks[k], behind)
         person = img.copy()
         person.putalpha(mask)
-        if front_only:   # no word behind him: the first word is drawn in front too, same gold look
-            comp = Image.alpha_composite(img, behind)
+        if front_only:   # no word behind him: the first word is drawn in front too, same look
+            comp = Image.alpha_composite(img, behind_look)
         else:
-            comp = Image.alpha_composite(img, behind)    # 1 background + 2 first name (behind)
-            comp = Image.alpha_composite(comp, person)   # 3 the person, cut out of the same frame
-        comp = Image.alpha_composite(comp, front)        # 4 last name in front
-        comp = Image.alpha_composite(comp, line)         # 5 intro line in front
+            comp = Image.alpha_composite(img, behind_look)   # 1 background + 2 first name with its glow (behind)
+            comp = Image.alpha_composite(comp, person)       # 3 the person over it: no back-word glow on him
+        comp = Image.alpha_composite(comp, front)        # 4 last name in front (with its glow)
+        comp = Image.alpha_composite(comp, line)         # 5 intro line in front (with its glow)
         comp.convert("RGB").save(tmp / "out" / f.name)
         if k == len(frames) // 2 and not front_only:
             ma, ba = np.array(mask) > 128, np.array(behind)[:, :, 3] > 0
@@ -294,7 +302,8 @@ def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, i
     if abs(probe(out)["duration"] - total) > 0.1:
         die("layered title changed the video length: not passing it on")
     info = {"style": "Layered Title (Documentary Gold)", "at": round(at, 3), "dur": round(seg_len, 3),
-            "first": first.upper(), "last": last.upper(), "intro_line": intro, "gold": "#D4A017",
+            "first": first.upper(), "last": last.upper(), "intro_line": intro, "gold": None,
+            "text_rgb": "#%02X%02X%02X" % TEXT_RGB, "text_look": TL.for_remotion(),
             "first_line_y": y1, "last_line_y": y2, "intro_y": yi,
             "first_name_covered_by_person": float(covered[0]) if covered else None, "front_only": front_only,
             "cut_model": model, "parallax": on, "frame": rel(frame_png)}
@@ -303,7 +312,8 @@ def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, i
 
 
 def exercise_plans() -> list[dict]:
-    """Per-exercise layered titles (Alfonso, 2026-11-15): each exercise name in the same gold layered style,
+    """Per-exercise layered titles (Alfonso, 2026-11-15): each exercise name in the same layered style (white
+    text_look since 2026-11-23),
     first word BEHIND him, the rest IN FRONT. storyboard.json:
       "exercise_titles": [{"at": 2.2, "dur": 1.8, "first": "DUMBBELL", "last": "CURL", "intro_line": "",
                            "first_y": 307, "intro_y": 1010, "last_y": 1130}, ...]   # *_y optional
