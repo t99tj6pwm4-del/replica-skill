@@ -103,6 +103,32 @@
       "posted_at": "2026-11-21 03:25:30",
       "reel": {},
       "handed_to_alfonso": "exports/2026-11-21_locked-in.mp4"
+    },
+    {
+      "sha256": "008c2d4f8da8d1e39d2ff56617efea79cdc70d36c367d14da3a368722983450a",
+      "source_sha256": "112844f79f51666d0f679012c9b026a6de848db34342f3ba4dd4efe8e53419c9",
+      "fingerprint": [
+        "c1c0046155009318",
+        "4304140100009318",
+        "1383311164151147",
+        "93c3111106650f06",
+        "d8dc063373535b8a",
+        "316c4cbcfd7b6070",
+        "474e667060606060",
+        "637eb9199ad81b38",
+        "637f3939db981938",
+        "43303939db981938",
+        "433039395b981b3a",
+        "671f4f7a960f1f0f",
+        "43303939db981938",
+        "b1391be07b009c76",
+        "6d65f0d3ac7e6040",
+        "33753b2e0ee0c042"
+      ],
+      "title": "Grind Day",
+      "posted_at": "2026-11-23 04:02:02",
+      "reel": {},
+      "handed_to_alfonso": "exports/2026-11-23_grind-day.mp4"
     }
   ]
 }
