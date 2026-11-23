@@ -11,7 +11,24 @@ The only things you may run are `scripts/qa_check.py`, `scripts/qa_verdict.py`, 
 
 Work inside `fonzi-gym-video-editor/` (cd there first).
 
-## White text look (Alfonso, 2026-11-23, Director answer 24): overrides every gold / colour rule in this file
+## Video-inside-text intro (Alfonso, 2026-11-23, Director answer 25): PENDING HIS PICK in Style Lab round 8
+Built behind `config.yaml intro.default_style` (`rotation` = the round 7 strobe / pulse / glitch / smash cycle stays
+the default; `video_text` = this intro for every gym video, the rotation stops). One render can force it:
+`render_final.py --intro-style video_text`. Order: logo opener -> video-inside-text -> normal video. Black frame;
+0-1.2 s the title (hook / storyboard intro.title, 1-2 words, ALL CAPS, Montserrat Black, as big as fits, 2 words
+stacked) types on as holes in the black with a cursor, his real footage showing through; 1.2-1.8 s hold, cursor blinks
+twice; 1.8-2.6 s the black splits at the title's middle, halves slide off (ease out); 2.6 s fixed, never over 3 s, no
+subtitle / logo / glow / box. Only the footage inside the letters may be brightened when too dark.
+`style_fx.py intro --style video_text` (`scripts/intro_video_text.py`), spliced by `finish_fx.py` over the real
+footage after the opener (no jump, audio untouched). Report: `output/work/intro_card.json` (style video_text).
+QA (`qa_check.py`): 2.6 s / never over 3; black outside the letters 0-1.8 s; footage through the letters; split on
+time and matte gone by the end; last frame = the footage (no jump); title 1-2 words, all caps.
+See `style-lab/STYLE.md` rule zero-B and `style-lab/round8/`.
+
+## White text look (Alfonso, 2026-11-23, Director answer 24): PENDING HIS PICK in Style Lab round 8
+Built behind `config.yaml text_look.enabled` (false = the shipped GOLD look stays the default until Alfonso picks a
+round 8 A card; one render can force it: `render_final.py --text-look white`). When it is on, it overrides every gold
+/ colour rule in this file:
 Every piece of text is pure white #FFFFFF: no gold, no colour, no stroke, no outline, no box, no background bar.
 Under the sharp white text (100 %), bottom to top: dark shadow (black, blur 40 px, 35 %, no offset, hugs the text) ->
 wide glow (white, blur 22 px, 45 %) -> tight glow (white, blur 6 px, 80 %). Blur at 1080x1920; the glow is never tinted.
@@ -117,7 +134,7 @@ Write fixes a person could act on without asking you anything, for example:
 
 If the edit uses it (qa_check lists it), Read `output/work/layered_title_frame.png` and frames across the
 title window and check: "FONZI" visibly BEHIND him (letters hidden where his body covers them),
-"STAYS FIT" visibly IN FRONT (over his chest / torso), the small intro line on his chest, all white text look (white + glow + soft shadow, no tint), all
+"STAYS FIT" visibly IN FRONT (over his chest / torso), the small intro line on his chest, all gold (white look on: all white + glow, no tint), all
 centred, ~90% width, no box / outline, clean cutout edges (no halo, no chopped hair or arms),
 still (no pop-in), and NO subtitles, captions, lower-thirds, title card or end card anywhere else. Put in
 your notes that the layered title was used and why it fit this video. A layered title on a fast gym
@@ -148,9 +165,10 @@ sets x reps + Spanish name, no invented lift), a Routine Checklist on every lift
 Form Tip tied to a lift in the video, and no pop-up inside a no_text_window (0.1s margin). A gym reel without
 "lifts" in the storyboard is a NOTE for the storyboard agent.
 
-Look at a frame inside each card: Montserrat, white text with the glow look, NO card / box / panel (since
-2026-11-23); bar = white caps name + "sets x reps • Spanish name"; form tip = FORM TIP / white cue / white Spanish
-line; checklist = TODAY'S ROUTINE, white check rows for finished lifts, bold white arrow row for the current one, dot rows for the rest,
+Look at a frame inside each card: Montserrat, dark translucent rounded card, gold #D4A017 (white look on: NO card,
+all white + glow, white checks); bar = gold caps name +
+"sets x reps • Spanish name" in white; form tip = FORM TIP / white cue / grey Spanish line; checklist = TODAY'S
+ROUTINE, gold check rows for finished lifts, bold white arrow row for the current one, grey dot rows for the rest,
 "X OF N DONE". None of them on his face, none under the top 110px / bottom 420px. A card on his face or wrong
 text -> text_visuals (wrong lift / cue / times in the storyboard -> storyboard).
 
@@ -178,7 +196,7 @@ Follow `fonzi-gym-video-editor/style-lab/STYLE.md`, section "Rules for every vid
 himself). Most cuts stay plain and on the beat; one effect per cut at most; cut-out at most 1-2 per video.
 
 **Intro card (2026-11-21, STYLE.md rule 0).** The hook is no longer a Remotion title card + snap: it is the Fonzi
-intro (Rubik Dirt title, white glow look, no drips, below his face; Fonzi logo behind him, whole logo in frame; title flickers
+intro (Rubik Dirt gold title (white + glow when the white look is on), no drips, below his face; Fonzi logo behind him, whole logo in frame; title flickers
 to the beat, strobe or pulse). `qa_check.py` passes "intro card" only if `finish_fx.py` logged THIS file
 (output/work/finish_fx.json, same sha256) with a clean intro, and the same for the logo drip end card; an intro is
 still required. Look at a frame around 1.0 s: no text on his face, no dark scrim, no white flash, no snap.

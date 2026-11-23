@@ -6,6 +6,8 @@
     python3 scripts/render_final.py --title-style layered-gold   # Layered Title (Documentary Gold) only, no subtitles
     python3 scripts/render_final.py --title-style layered-gold-plus   # layered title + the usual graphics (Alfonso asks)
     python3 scripts/render_final.py --out output/intro_test/final_edit_test.mp4   # a test render, final_edit.mp4 untouched
+    python3 scripts/render_final.py --text-look white   # this render in the white glow look (config text_look)
+    python3 scripts/render_final.py --intro-style video_text   # the video-inside-text intro (Director answer 25)
     python3 scripts/render_final.py --intro-style glitch --logo-style 3d   # force the intro title / logo style
         # (strobe | pulse | glitch | smash, flat | 3d; passed to finish_fx.finish; default = the rotation's pick)
 
@@ -103,7 +105,7 @@ def render_carousel(sb: dict, cm: dict, cdir: Path | None = None):
         pfile = WORK / f"carousel_{i}.json"
         import text_look
         save_json(pfile, {"brand": {k: b[k] for k in ("name", "handle", "color", "textColor", "darkColor")}, "slide": slide,
-                          "textLook": text_look.for_remotion()})
+                          **({"textLook": text_look.for_remotion()} if text_look.enabled() else {})})
         out = cdir / f"slide_{i + 1:02d}.png"
         remotion(["still", "src/index.ts", "CarouselSlide", str(out), f"--props={pfile}", f"--public-dir={pub}"])
         files.append(rel(out))
@@ -125,7 +127,7 @@ def target_path() -> Path:
     return OUT / "final_edit.mp4"
 
 
-INTRO_STYLES = ("strobe", "pulse", "glitch", "smash")   # finish_fx.ALL_INTRO_STYLES
+INTRO_STYLES = ("strobe", "pulse", "glitch", "smash", "video_text")   # finish_fx.ALL_INTRO_STYLES + answer 25
 LOGO_STYLES = ("flat", "3d")                            # finish_fx.ALL_LOGO_STYLES
 
 
@@ -144,9 +146,13 @@ def main():
     if "-h" in sys.argv or "--help" in sys.argv:
         print(__doc__.strip())
         print("\nflags: --out PATH  --preview T [T ...]  --title-style normal|layered-gold|layered-gold-plus  "
-              f"--intro-style {'|'.join(INTRO_STYLES)}  --logo-style {'|'.join(LOGO_STYLES)}  --no-opener (test only)")
+              f"--intro-style {'|'.join(INTRO_STYLES)}  --logo-style {'|'.join(LOGO_STYLES)}  --text-look white|gold  "
+              "--no-opener (test only)")
         return
     intro_style, logo_style = flag("--intro-style", INTRO_STYLES), flag("--logo-style", LOGO_STYLES)
+    tl = flag("--text-look", ("white", "gold"))
+    if tl:                       # this render only (and every script it calls): white glow look or the gold look
+        os.environ["FONZI_TEXT_LOOK"] = tl
     if not (OUT / "cut_version.mp4").exists():
         die("output/cut_version.mp4 is missing: the Cuts Agent has to run first")
     cut = base_video()   # multicam_version.mp4 when the Multicam/B-Roll Agent ran
@@ -154,12 +160,17 @@ def main():
     props_path = WORK / "overlay_props.json"
     props = load_json(props_path)
     check_text(props)
-    # Alfonso 2026-11-23 (answer 24): THE text look from config.yaml text_look, the same numbers the Python titles use
+    # Alfonso 2026-11-23 (answer 24): the white text look (config text_look, the same numbers the Python titles use)
+    # when it is ON (config text_look.enabled or --text-look white); else the shipped gold look (no textLook in props)
     import text_look
-    props["textLook"] = text_look.for_remotion()
+    if text_look.enabled():
+        props["textLook"] = text_look.for_remotion()
+    else:
+        props.pop("textLook", None)
     props.setdefault("brand", {}).update({k: v for k, v in brand().items() if k in ("color", "textColor", "darkColor")})
-    props["brand"]["popupColor"] = brand().get("popup_color", "#FFFFFF")
+    props["brand"]["popupColor"] = brand().get("popup_color", "#D4A017")
     save_json(props_path, props)
+    print(f"text look: {'WHITE + glow (config text_look)' if text_look.enabled() else 'gold (shipped default)'}")
     info = probe(cut)
     if abs(info["duration"] - props["duration"]) > 0.25:
         die("overlay_props.json was built for a different cut. Re-run scripts/build_overlay_props.py")
@@ -267,7 +278,8 @@ def main():
          fc, "-map", "[v]", "-map", "0:a?",
          "-t", f"{info['duration']:.3f}", "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-profile:v", "high",
          "-pix_fmt", "yuv420p", "-r", str(FPS), "-c:a", "copy", "-movflags", "+faststart", final])
-    measure_text_look(overlay, props, final)
+    if props.get("textLook"):          # the white look: measure the graphics layer (no tint, no box) for QA
+        measure_text_look(overlay, props, final)
     overlay.unlink(missing_ok=True)
     out = probe(final)
     v = out["video"]

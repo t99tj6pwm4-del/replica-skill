@@ -269,4 +269,10 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
     video's hook/title, 1-2 words, ALL CAPS, never hardcoded; Montserrat Black, as big as fits the width with a safe margin,
     centred, two words stack. No tilt, box, HOOK label, extra lines or subtitle. Pick an opening shot with movement and bright
     detail; if too dark, brighten ONLY the footage under the matte. Captions, pop-ups, grade and transitions unchanged by this.
+26. **"Cut on motion" (Alfonso, 2026-11-23), every gym video.** Cuts land while something moves (bar, arms, body, camera); never
+    on a still frame unless removing dead time. Same exercise from two angles: cut mid-rep, same rep point both sides, same
+    direction (never up -> down). Cut in the first third of a move. Beat is second: snap to the beat only if within 3 frames.
+    Same angle twice: no mid-rep jump cut, only between reps on the start of the next rep. Walk-ins, grabbing/re-racking the
+    bar, head turns are cut points between exercises. One angle only: never fake a second angle. Cut list gets "motion" and
+    "matched" columns; any stillness cut is flagged with why. Intro, captions, pop-ups, colour and music unchanged by this.
 

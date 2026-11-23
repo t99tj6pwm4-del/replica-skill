@@ -2,13 +2,17 @@ import React from "react";
 import { AbsoluteFill, Img, staticFile } from "remotion";
 import { BODY, DISPLAY, useFonts } from "./fonts";
 import { DEFAULT_LOOK, Glow, LookProvider } from "./look";
+import { CarouselSlideLegacy } from "./CarouselLegacy";
 import type { CarouselProps } from "./types";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
 // One still per slide: a cover, then one slide per exercise with sets x reps.
 // Since 2026-11-23 (Director answer 24): every text white in the glow look, no chip box, no accent bar.
-export const CarouselSlide: React.FC<CarouselProps> = ({ brand, slide, textLook }) => {
+export const CarouselSlide: React.FC<CarouselProps> = (p) =>
+  p.textLook ? <CarouselWhite {...p} /> : <CarouselSlideLegacy {...p} />;
+
+const CarouselWhite: React.FC<CarouselProps> = ({ brand, slide, textLook }) => {
   useFonts();
   const cover = slide.kind === "cover";
   const words = slide.title.split(/\s+/).filter(Boolean);

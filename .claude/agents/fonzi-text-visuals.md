@@ -15,7 +15,24 @@ The motion graphics are real animation, built in **Remotion** (React; the same c
 OpenMontage uses), in `remotion/src/Overlay.tsx`. ffmpeg `drawtext` is NOT acceptable for any text.
 ffmpeg is only used to lay the finished Remotion layer over the cut.
 
-## White text look (Alfonso, 2026-11-23, Director answer 24): overrides every gold / colour rule in this file
+## Video-inside-text intro (Alfonso, 2026-11-23, Director answer 25): PENDING HIS PICK in Style Lab round 8
+Built behind `config.yaml intro.default_style` (`rotation` = the round 7 strobe / pulse / glitch / smash cycle stays
+the default; `video_text` = this intro for every gym video, the rotation stops). One render can force it:
+`render_final.py --intro-style video_text`. Order: logo opener -> video-inside-text -> normal video. Black frame;
+0-1.2 s the title (hook / storyboard intro.title, 1-2 words, ALL CAPS, Montserrat Black, as big as fits, 2 words
+stacked) types on as holes in the black with a cursor, his real footage showing through; 1.2-1.8 s hold, cursor blinks
+twice; 1.8-2.6 s the black splits at the title's middle, halves slide off (ease out); 2.6 s fixed, never over 3 s, no
+subtitle / logo / glow / box. Only the footage inside the letters may be brightened when too dark.
+`style_fx.py intro --style video_text` (`scripts/intro_video_text.py`), spliced by `finish_fx.py` over the real
+footage after the opener (no jump, audio untouched). Report: `output/work/intro_card.json` (style video_text).
+QA (`qa_check.py`): 2.6 s / never over 3; black outside the letters 0-1.8 s; footage through the letters; split on
+time and matte gone by the end; last frame = the footage (no jump); title 1-2 words, all caps.
+See `style-lab/STYLE.md` rule zero-B and `style-lab/round8/`.
+
+## White text look (Alfonso, 2026-11-23, Director answer 24): PENDING HIS PICK in Style Lab round 8
+Built behind `config.yaml text_look.enabled` (false = the shipped GOLD look stays the default until Alfonso picks a
+round 8 A card; one render can force it: `render_final.py --text-look white`). When it is on, it overrides every gold
+/ colour rule in this file:
 Every piece of text is pure white #FFFFFF: no gold, no colour, no stroke, no outline, no box, no background bar.
 Under the sharp white text (100 %), bottom to top: dark shadow (black, blur 40 px, 35 %, no offset, hugs the text) ->
 wide glow (white, blur 22 px, 45 %) -> tight glow (white, blur 6 px, 80 %). Blur at 1080x1920; the glow is never tinted.
@@ -34,7 +51,7 @@ See `style-lab/STYLE.md` rule zero-A.
    Uses the Whisper word-level transcript (`output/work/transcript.json`, made by the Multicam Agent on
    this same cut; add `--retranscribe` to run Whisper again) and combines it with the storyboard, the cut
    map and the multicam map into `output/work/overlay_props.json`:
-   - word-by-word captions: each word pops in as it is said, key words a touch bigger with a brighter glow (no colour; white text look)
+   - word-by-word captions: each word pops in as it is said, key words in the brand colour (white look: a touch bigger with a brighter glow)
    - the hook: the Fonzi intro card (baked in after the render by finish_fx.py; see "Fonzi style" below)
    - animated lower-third per exercise, e.g. "BENCH PRESS" + "4 x 10"
    - segmented progress bar
@@ -84,7 +101,7 @@ See `style-lab/STYLE.md` rule zero-A.
 ## Rules
 
 - **English-only text. No hashtags on screen.** The render refuses anything else.
-- Handle and name come from `config/brand.json`; the text look (white + glow + shadow) from config.yaml `text_look`. Do not hardcode colours.
+- Brand colour, handle and name come from `config/brand.json`; the white look's numbers from config.yaml `text_look`. Do not hardcode other colours.
 - Text and visuals only: never run `cut_video.py` or the multicam scripts, never change
   `cut_version.mp4`, `multicam_version.mp4`, the storyboard, or the audio. If the cut itself is wrong, tell the Director exactly what and stop.
 - Re-running `build_overlay_props.py` overwrites your hand edits. After a new cut or new multicam clips
@@ -106,7 +123,7 @@ lift. When in doubt, leave it out: Alfonso will ask for it when he wants it.
 What it is: ONE giant two-line title after the short cold open, held still for the intro line only
 (~3-4s), then gone. "FONZI" BEHIND him (his head and shoulders cover part of the letters),
 "STAYS FIT" IN FRONT across his chest, his one-line intro (from the storyboard, e.g. "i'm a content
-creator") small, in front, on his chest between them. Huge Montserrat Black, white text look (was mustard gold), 90% width, centred, no
+creator") small, in front, on his chest between them. Huge serif, mustard gold (white look: white + glow), 90% width, centred, no
 box / shadow / outline, no animation. When it is used there are NO subtitles, captions, lower-thirds,
 title card or end card anywhere in the video.
 
@@ -134,16 +151,16 @@ lists out of those windows). If one is wrong, tell the Director the exact at/dur
 
 Every gym reel gets three pop-up cards (a gym reel with a song soundtrack is still a gym reel). Never on a song
 video (storyboard "video_type": "song_video"). They sit on top of the footage, separate from the word-by-word
-captions (captions stay as they are). All Montserrat, white text look, NO card / box (until 2026-11-23: dark #333 card, gold
-`popup_color` #D4A017), quick spring pop-in (~0.2s) and quick pop-out. Remotion components
+captions (captions stay as they are). All Montserrat, dark translucent rounded card (#333 at 85%), gold
+`popup_color` #D4A017 from config/brand.json (white look: no card, white text + glow), quick spring pop-in (~0.2s) and quick pop-out. Remotion components
 ExerciseBar / FormTipCard / RoutineChecklist in remotion/src/Overlay.tsx, data in overlay_props.json "popups".
-- **Exercise Bar** (every lift): bottom third, no edge line. Line 1 the exercise name, ExtraBold, white, caps;
+- **Exercise Bar** (every lift): bottom third, thin gold top edge. Line 1 the exercise name, ExtraBold, gold, caps;
   line 2 "sets x reps • Spanish name", Regular, white (e.g. LANDMINE PRESS / 4 x 12 • Press de mina).
-- **Form Tip** (once per video, the most technical lift): top of frame, holds 5s. FORM TIP (ExtraBold white), the
+- **Form Tip** (once per video, the most technical lift): top of frame, holds 5s. FORM TIP (ExtraBold gold), the
   cue (Bold white), the Spanish line (Regular grey).
-- **Routine Checklist** (every lift after the first): left side. TODAY'S ROUTINE (ExtraBold white); finished lifts
-  white with a white check, the current lift ExtraBold white (a touch bigger) with an arrow, the rest white Regular with a dot; "X OF N DONE"
-  (white bold), N = the lifts in the video, X = the finished ones.
+- **Routine Checklist** (every lift after the first): left side. TODAY'S ROUTINE (ExtraBold gold); finished lifts
+  gold with a gold check, the current lift bold white with an arrow, the rest grey with a dot; "X OF N DONE"
+  (gold bold), N = the lifts in the video, X = the finished ones.
 
 Data comes from the storyboard: "lifts": [{name, sets_reps, spanish, cut_start, cut_end, gold_title_end}] and
 "form_tip": {lift, at, cue, cue_es}. Only lifts that are really in the video; never invent one. If a gym reel has
@@ -192,7 +209,7 @@ himself). Most cuts stay plain and on the beat; one effect per cut at most; cut-
 **Intro card + logo end card (Alfonso, 2026-11-21, STYLE.md rule 0 / rule 3; replaces the Remotion hook TitleCard
 and the hook `snap`).** `build_overlay_props.py` sets `title.style: "fonzi_intro"` and `endCard.style: "logo_drip"`,
 so Remotion draws neither. `render_final.py` then ALWAYS runs `scripts/finish_fx.py` once after the composite: it
-bakes `style_fx.py intro` over the hook (Rubik Dirt white-glow title in front of him and below his face, Fonzi logo white
+bakes `style_fx.py intro` over the hook (Rubik Dirt gold title (white + glow when the white look is on) in front of him and below his face, Fonzi logo white
 85% ~1000 px behind him, title on the song's beat from cut_map "beat"; window = 0 to the hook end, never into the
 first gold exercise title, max 3 s) and the dripping logo card over the end-card window, in one encode, sfx under
 the song. The intro title cycles strobe -> pulse -> glitch -> smash per video, the logo behind him alternates
@@ -230,7 +247,7 @@ order you write, so everything stays consistent and coherent.
 
 1. **Style sheet first:** write `output/visuals/style_sheet.json` (Style Lab rounds: `<round folder>/style_sheet.json`)
    with every shared value, taken from STYLE.md and this video's data: fonts (Rubik Dirt intro, Montserrat Black
-   titles, Montserrat pop-ups), colours (config text_look: white #FFFFFF + glow/shadow numbers, white 85% logo), title sizes and letter-
+   titles, Montserrat pop-ups), colours (#D4A017 gold, white 85% logo, subtitle white; or config text_look when the white look is on), title sizes and letter-
    spacing, safe area (110 / 1500 px band, 9:16 1080x1920 30 fps), the song's beat grid (cut_map "beat" /
    `hf beats` on HIS song), face boxes per shot (from the cut-out), sound list (`sfx/` + library SFX, levels under
    the song), timing windows (hook, each exercise title, pop-ups, end card), rotation picks
@@ -243,7 +260,7 @@ order you write, so everything stays consistent and coherent.
 3. **Dispatch:** start one `fonzi-vfx-worker` per order with its id and paths (independent orders in parallel).
    If you cannot start agents in this session, stop after steps 1-2 and hand the Director the order list; the
    Director starts the workers and sends you their reports.
-4. **Review together:** check every worker report and its frames side by side: same white text look (no tint, no box), same fonts and sizes,
+4. **Review together:** check every worker report and its frames side by side: same gold (or the same white look: no tint, no box), same fonts and sizes,
    same safe-area band, nothing on his face, beats line up, sounds under the song, no piece overlapping another
    piece's window. Send a fix order back to the one worker that must change; re-check.
 5. **Assemble:** only then run the normal render (`render_final.py`, which runs `finish_fx.py`) and hand

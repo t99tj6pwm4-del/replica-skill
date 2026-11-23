@@ -10,6 +10,7 @@ import {
 } from "remotion";
 import { BODY, DISPLAY, MONTSERRAT, WEIGHT, useFonts } from "./fonts";
 import { DEFAULT_LOOK, Glow, LookProvider } from "./look";
+import { OverlayLegacy } from "./OverlayLegacy";
 import type {
   Brand,
   Callout,
@@ -267,7 +268,7 @@ const SegmentWipe: React.FC<{ brand: Brand }> = ({ brand }) => {
             bottom: -200,
             width: i === 0 ? 300 : 70,
             left: width / 2 - 150 - i * 240,
-            backgroundColor: i === 0 ? brand.color : brand.textColor,
+            backgroundColor: i === 0 ? brand.textColor : brand.textColor,
             opacity: i === 0 ? 0.92 : 0.8,
             transform: `translateX(${x * width}px) skewX(-18deg)`,
           }}
@@ -597,7 +598,7 @@ const EndCard: React.FC<{
                 width: 360,
                 height: 360,
                 borderRadius: 180,
-                border: `8px solid ${brand.color}`,
+                border: `8px solid ${brand.textColor}`,
                 opacity: 0.7 * (1 - ring),
                 transform: `scale(${0.7 + ring * 0.6})`,
               }}
@@ -610,7 +611,7 @@ const EndCard: React.FC<{
               </clipPath>
             </defs>
             <path d={BM} fill="none" stroke={brand.textColor} strokeWidth={14} strokeLinejoin="round" />
-            <path d={BM} fill={brand.color} stroke={brand.color} strokeWidth={14} strokeLinejoin="round" clipPath="url(#bmfill)" />
+            <path d={BM} fill={brand.textColor} stroke={brand.textColor} strokeWidth={14} strokeLinejoin="round" clipPath="url(#bmfill)" />
           </svg>
         </div>
         <div style={{ display: "flex", gap: 34, marginTop: 70 }}>
@@ -911,7 +912,12 @@ const RoutineChecklist: React.FC<{ item: ChecklistPopup; brand: Brand; frames: n
 };
 
 /* ------------------------------------------------------------------ */
-export const Overlay: React.FC<OverlayProps> = (p) => {
+export const Overlay: React.FC<OverlayProps> = (p) =>
+  // white glow look only when render_final.py passed props.textLook (config text_look.enabled / --text-look white);
+  // otherwise the shipped gold look, unchanged
+  p.textLook ? <OverlayWhite {...p} /> : <OverlayLegacy {...p} />;
+
+const OverlayWhite: React.FC<OverlayProps> = (p) => {
   useFonts();
   const { fps } = useVideoConfig();
   const fr = (s: number) => Math.max(0, Math.round(s * fps));

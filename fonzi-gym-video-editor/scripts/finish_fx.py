@@ -30,6 +30,14 @@ least `lead_frames` later (its beats move later by the opener length). It all si
 added to the video's length. If the hook is too short for opener + intro (intro < intro.min_dur), the opener shrinks
 one beat at a time down to `min_beats`; still too short = no opener (the intro alone, as before), with
 opener_fallback_reason in finish_fx.json and the rotation entry (QA soft-fails it with the reason).
+VIDEO-INSIDE-TEXT (Alfonso 2026-11-23, Director answer 25; built, NOT the default until he picks in Style Lab round 8):
+config intro.default_style: video_text (or storyboard intro.style "video_text", or render_final.py --intro-style
+video_text) = after the logo opener, style_fx.video_text over the REAL footage that follows the opener (the rendered
+final itself, so the picture runs on with no cut and the audio is never touched): black frame, the title typed as
+holes, split, 2.6 s fixed (not beat-snapped). The rotation stops for it (the entry records intro "video_text", which
+the strobe -> pulse -> glitch -> smash cycle ignores). Room: opener + 2.6 s must end by the hook end / first exercise
+title; else the opener shrinks a beat at a time (min_beats), else no opener, else the 2.6 s timeline is scaled into
+the room down to intro.video_text.min_dur (reason logged as video_text_fallback_reason / scaled_reason).
 Storyboard overrides: "intro": {"style", "logo", "smash_keep_out", "face_box", "title", "subtitle", "dur",
 "opener": false | {"beats": N}},
 "end_card": {"drips"}. Only the real render (out = output/final_edit.mp4) is recorded.
@@ -53,6 +61,7 @@ ALL_INTRO_STYLES = ["strobe", "pulse", "glitch", "smash"]   # style_fx.TITLE_STY
 ALL_LOGO_STYLES = ["flat", "3d"]                            # style_fx.LOGO_STYLES
 DRIPS = ["slow", "heavy", "wet"]
 FALLBACK = "pulse"          # style_sheet title_styles.fallback: an unfit glitch / smash is rendered as pulse
+VT = "video_text"           # Director answer 25: the video-inside-text intro (config intro.default_style)
 
 
 OPENER_DEFAULTS = {"enabled": True, "beats": "auto", "target": 1.5, "min_beats": 2, "max_beats": 4,
@@ -106,6 +115,11 @@ def picks(video: str, sb: dict) -> tuple[str, str, str]:
     last = others[-1] if others else {}
     last_intro = next((e for e in reversed(others) if _planned(e)), None)    # last other video WITH an intro card
     ov = sb.get("intro") or {}
+    if ov.get("style") == VT or (not ov.get("style") and cfg().get("default_style") == VT):
+        drips = (sb.get("end_card") or {}).get("drips") or (mine or {}).get("drips")
+        if not drips:
+            drips = DRIPS[(DRIPS.index(last["drips"]) + 1) % 3] if last.get("drips") in DRIPS else "heavy"
+        return VT, "flat", drips                          # no logo behind him, no rotation
     intro = ov.get("style") or (mine and _planned(mine))
     if not intro:
         intro = INTRO_STYLES[(INTRO_STYLES.index(_planned(last_intro)) + 1) % len(INTRO_STYLES)] if last_intro \
@@ -180,7 +194,7 @@ def beat_grid(cm: dict, sb: dict) -> list[float]:
     return [t for t in (phase + i * per for i in range(-1, 400)) if t >= -0.02]
 
 
-def opener_plan(props: dict, sb: dict, cm: dict) -> dict:
+def opener_plan(props: dict, sb: dict, cm: dict, need: float | None = None) -> dict:
     """Pick the logo opener: {"frames", "dur", "beats", "planned_beats", "intro_beats" (rel. to the intro window),
     "intro_dur", "end_beat_s"} or {"frames": 0, "fallback_reason": why}. The opener ends on a beat; the intro gets
     at least intro.min_dur and its beat 1 >= lead_frames after the opener."""
@@ -200,11 +214,12 @@ def opener_plan(props: dict, sb: dict, cm: dict) -> dict:
         end = intro_end(props, sb, o)
         nfr = int(round((end - o) * FPS))
         rel_b = [round(t - o, 4) for t in grid if (t - o) * FPS >= int(oc["lead_frames"]) and (t - o) * FPS < nfr - 8]
-        if nfr / FPS >= float(c["min_dur"]) and rel_b:
+        if (need is not None and nfr / FPS >= need - 1e-3) or (need is None and nfr / FPS >= float(c["min_dur"]) and rel_b):
             return {"frames": of, "dur": round(o, 3), "beats": nb, "planned_beats": planned, "end_beat_s": round(o_t, 3),
                     "intro_beats": rel_b, "intro_dur": round(nfr / FPS, 3), "tried": tried}
         tried.append(f"{nb} beats ({o:.2f}s) leaves {max(0.0, end - o):.2f}s for the intro (needs "
-                     f"{float(c['min_dur']):.1f}s with a beat {oc['lead_frames']}+ frames in)")
+                     + (f"{need:.1f}s)" if need is not None else
+                        f"{float(c['min_dur']):.1f}s with a beat {oc['lead_frames']}+ frames in)"))
     hook = intro_end(props, sb, 0.0)
     return {"frames": 0, "planned_beats": planned, "tried": tried,
             "fallback_reason": f"hook too short for the logo opener: the intro must end by {hook:.2f}s; "
@@ -268,7 +283,7 @@ def finish(final: Path, base: Path, props: dict, out: Path | None = None, intro_
         return {}
     style, logo, drp = picks(video, sb)
     style, logo, drp = intro_style or style, logo_style or logo, drips or drp
-    if style not in ALL_INTRO_STYLES or logo not in ALL_LOGO_STYLES:
+    if style not in ALL_INTRO_STYLES + [VT] or logo not in ALL_LOGO_STYLES:
         die(f"finish: unknown intro style {style!r} / logo {logo!r}")
     planned, fallback = style, None
     info = probe(final)
@@ -284,7 +299,9 @@ def finish(final: Path, base: Path, props: dict, out: Path | None = None, intro_
     if want_intro:
         t = props["title"]
         ov = sb.get("intro") or {}
-        op = opener_plan(props, sb, cm) if opener is not False else {"frames": 0, "off": "--no-opener"}
+        vt_c = {"dur": 2.6, "min_dur": 1.6, **(cfg().get("video_text") or {})}
+        op = opener_plan(props, sb, cm, need=float(vt_c["dur"]) if style == VT else None) if opener is not False \
+            else {"frames": 0, "off": "--no-opener"}
         entry["opener_checked"] = True          # this finish knows the opener rule (qa_check: missing = hard fail)
         if op.get("fallback_reason"):
             print(f"finish: no logo opener: {op['fallback_reason']}")
@@ -304,22 +321,37 @@ def finish(final: Path, base: Path, props: dict, out: Path | None = None, intro_
             alabels.append("[ao]")
             entry["opener"] = {**orep, **{k_: op[k_] for k_ in ("beats", "planned_beats", "end_beat_s", "tried")},
                                "frames": no, "dur": round(no / FPS, 3), "from": 0.0}
-            bts, bpm, phase = op["intro_beats"], None, None
+            bts, bpm, phase = op.get("intro_beats"), None, None
             dur = op["intro_dur"]
         else:
             entry["opener"] = None
             entry["opener_fallback_reason"] = op.get("fallback_reason") or op.get("off")
-            dur = intro_window(props, sb)
+            dur = intro_window(props, sb) if style != VT else round(round(intro_end(props, sb, 0.0) * FPS) / FPS, 3)
             bts, bpm, phase = beats(cm, sb)
+        if style == VT:                                   # fixed 2.6 s (not beat-snapped), never over 3 s
+            room = dur
+            dur = min(float(vt_c["dur"]), room)
+            if dur < float(vt_c["min_dur"]):
+                die(f"finish: only {room:.2f}s for the video-inside-text intro after the opener (needs "
+                    f"{vt_c['dur']}s, at least {vt_c['min_dur']}s). Storyboard: the hook must hold the opener + 2.6 s "
+                    "(~4.4-4.6 s).")
+            if dur < float(vt_c["dur"]) - 1e-3:
+                entry["video_text_fallback_reason"] = (f"hook too short: {room:.2f}s after the opener, the 2.6 s "
+                                                       f"timeline is scaled to {dur:.2f}s")
+                print(f"finish: {entry['video_text_fallback_reason']}")
         piece = tmp / "intro_piece.mp4"
         args = (final, piece, ov.get("title") or t["text"], ov.get("subtitle", t.get("subtitle", "")))
         kw = dict(piece=True, mask_src=base, report=WORK / "intro_card.json", face_box=_box(ov.get("face_box"),
                   "face_box"), logo=logo, smash_keep_out=_keep_out(ov.get("smash_keep_out")), start=no / FPS)
         try:
             style_fx.SOUNDS_USED.clear()
-            rep = style_fx.intro(*args, style, bts, bpm, phase, dur, **kw)
+            if style == VT:
+                rep = style_fx.video_text(final, piece, ov.get("title") or t["text"], dur=dur, piece=True,
+                                          start=no / FPS, report=WORK / "intro_card.json")
+            else:
+                rep = style_fx.intro(*args, style, bts, bpm, phase, dur, **kw)
         except style_fx.IntroStyleUnfit as e:
-            if style == FALLBACK:
+            if style in (FALLBACK, VT):
                 raise
             fallback = f"{getattr(e, 'style', style)} unfit: {getattr(e, 'reason', e)}"
             print(f"finish: intro {style} cannot be drawn cleanly for this video ({getattr(e, 'reason', e)}); "
@@ -379,7 +411,8 @@ def finish(final: Path, base: Path, props: dict, out: Path | None = None, intro_
     import shutil
     shutil.rmtree(tmp, ignore_errors=True)
     entry.update(output=rel(out), sha256=sha256(out), intro_style=style if want_intro else None,
-                 intro_planned=planned if want_intro else None, logo_style=logo if want_intro else None,
+                 intro_planned=planned if want_intro else None,
+                 logo_style=logo if want_intro and style != VT else None,
                  drips=drp if want_logo else None)
     if want_intro and fallback:
         entry["fallback_reason"] = fallback
@@ -388,10 +421,12 @@ def finish(final: Path, base: Path, props: dict, out: Path | None = None, intro_
     save_json(LOG, log)
     real = out.resolve() == (OUT / "final_edit.mp4").resolve()
     if rec if rec is not None else real:
-        record(video, style if want_intro else None, drp if want_logo else None, planned, logo, fallback, op)
+        record(video, style if want_intro else None, drp if want_logo else None, planned,
+               None if style == VT else logo, fallback, op)
         import effects
-        name = f"Fonzi intro card ({style} title, {logo} logo" + (f", planned {planned}: fell back" if fallback
-                                                                   else "") + ")"
+        name = ("Video-inside-text intro" if style == VT else
+                f"Fonzi intro card ({style} title, {logo} logo" + (f", planned {planned}: fell back" if fallback
+                                                                   else "") + ")")
         effects.log_title_style(video, {"style": name if want_intro else "no intro card", "at": no / FPS,
                                         "dur": ni / FPS})
     opn = f"logo opener 0-{no / FPS:.2f}s ({op.get('beats')} beats); " if no else ""
@@ -423,7 +458,7 @@ def main():
     ap.add_argument("--final", type=Path, default=OUT / "final_edit.mp4")
     ap.add_argument("--base", type=Path, help="the clean picture the graphics were laid over (default: the cut)")
     ap.add_argument("--out", type=Path)
-    ap.add_argument("--intro", choices=ALL_INTRO_STYLES, help="intro title style (default: the rotation's pick)")
+    ap.add_argument("--intro", choices=ALL_INTRO_STYLES + [VT], help="intro title style (default: config / rotation)")
     ap.add_argument("--logo", choices=ALL_LOGO_STYLES, help="intro logo style (default: the rotation's pick)")
     ap.add_argument("--drips", choices=DRIPS)
     ap.add_argument("--no-record", action="store_true")

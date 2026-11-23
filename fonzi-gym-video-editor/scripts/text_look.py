@@ -34,6 +34,7 @@ DEFAULT = {
     "neutral_max_spread": 12,
     "box_alpha_max": 0.5,
     "pulse_glow_boost": 0.6,
+    "enabled": False,
 }
 
 
@@ -44,7 +45,10 @@ def hex_rgb(h: str) -> tuple[int, int, int]:
 
 @lru_cache(maxsize=1)
 def look() -> dict:
-    """config.yaml text_look merged over the defaults (the defaults ARE Alfonso's numbers)."""
+    """config.yaml text_look merged over the defaults (the defaults ARE Alfonso's numbers). Env FONZI_TEXT_LOOK_JSON
+    = a JSON file with other layer numbers (Style Lab round 8 variants only; production never sets it)."""
+    import json
+    import os
     try:
         from common import load_config
         cfg = load_config().get("text_look") or {}
@@ -52,11 +56,27 @@ def look() -> dict:
         cfg = {}
     out = dict(DEFAULT)
     out.update({k: v for k, v in cfg.items() if v is not None})
+    if os.environ.get("FONZI_TEXT_LOOK_JSON"):
+        out.update(json.loads(Path(os.environ["FONZI_TEXT_LOOK_JSON"]).read_text()))
     return out
 
 
+GOLD_RGB = (212, 160, 23)                   # the old look (#D4A017): still the shipped default until Alfonso picks
+
+
+def enabled() -> bool:
+    """Is the white look ON? Env FONZI_TEXT_LOOK=white|gold (render_final.py --text-look sets it) wins over config
+    text_look.enabled (false = the shipped gold look until Alfonso picks in Style Lab round 8)."""
+    import os
+    env = os.environ.get("FONZI_TEXT_LOOK", "").strip().lower()
+    if env in ("white", "gold"):
+        return env == "white"
+    return bool(look().get("enabled", False))
+
+
 def text_rgb() -> tuple[int, int, int]:
-    return hex_rgb(look()["color"])
+    """The title colour the Python titles draw: white when the look is on, else the old gold."""
+    return hex_rgb(look()["color"]) if enabled() else GOLD_RGB
 
 
 def pad() -> int:

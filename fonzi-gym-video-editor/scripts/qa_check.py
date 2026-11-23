@@ -24,8 +24,9 @@ from common import (load_config, FPS, H, INPUT, OUT, W, WORK, find_duplicate, lo
 ROOT_BRAND = Path(__file__).resolve().parent.parent / "config" / "brand.json"
 INTRO_STYLES = ("strobe", "pulse", "glitch", "smash")   # finish_fx.ALL_INTRO_STYLES (Round 7, 2026-11-22)
 LOGO_STYLES = ("flat", "3d")
-# Alfonso 2026-11-23 (answer 24): all text pure white + glow (config text_look). The gold ceiling (#ECD497) is gone;
-# text must be white / neutral (no tint) and there must be no box behind it.
+TITLE_MAX_RGB = (0xEC, 0xD4, 0x97)                      # GOLD look (shipped default): title never brighter than #ECD497
+# Alfonso 2026-11-23 (answer 24): with the white look ON (config text_look.enabled / --text-look white) the gold
+# ceiling does not apply: text must be white / neutral (no tint) and there must be no box behind it.
 SPLIT_ALPHA_MAX = 0.6                                   # glitch split copies
 SMASH_MIN_GAP = 24                                      # smash scatter: never a glyph gap < 24 px
 LOGO_ON_FACE_SOFT = 2500                                # soft: a window sum (3 s windows go over it)
@@ -42,6 +43,8 @@ def intro_checks(ir: dict, fin: dict | None = None) -> list[dict]:
         out.append({"check": name, "pass": bool(ok), "detail": detail, "soft": soft})
 
     style, logo = ir.get("style"), ir.get("logo_style") or "flat"
+    if style == "video_text":                     # Director answer 25: the video-inside-text intro
+        return video_text_checks(ir, fin)
     c("intro title style is one of the 4", style in INTRO_STYLES, f"{style} ({' | '.join(INTRO_STYLES)})")
     c("intro logo style is flat or 3d", logo in LOGO_STYLES, f"{logo} ({' | '.join(LOGO_STYLES)})")
     box = ir.get("logo_box_max")
@@ -66,7 +69,14 @@ def intro_checks(ir: dict, fin: dict | None = None) -> list[dict]:
           f"{sm.get('land_frame')}" if sm else "style smash but no smash stats logged")
     import text_look as TL
     lim = int(TL.look()["neutral_max_spread"])
-    if "title_tint_spread_max" in ir:
+    rgb = ir.get("title_max_rgb")
+    if (ir.get("title_rgb") or "").upper() != TL.look()["color"].upper():      # the GOLD look (shipped default)
+        if rgb is not None:
+            ok = all(int(v) <= m for v, m in zip(rgb, TITLE_MAX_RGB))
+            c("title never brighter than #ECD497", ok,
+              f"brightest title pixel {list(rgb)} ({'ok' if ok else 'over #ECD497'}"
+              f"{'' if style == 'glitch' else ', window max incl. pulse frames: note only'})", soft=style != "glitch")
+    elif "title_tint_spread_max" in ir:
         sp = int(ir["title_tint_spread_max"])
         c("intro title is white (no tint, text_look)", sp <= lim and (ir.get("title_rgb") or "#FFFFFF") == TL.look()["color"],
           f"title {ir.get('title_rgb')}, max R-G-B spread over the window {sp} (<= {lim}), brightest "
@@ -82,6 +92,36 @@ def intro_checks(ir: dict, fin: dict | None = None) -> list[dict]:
     if fb or (fin.get("intro_planned") and fin.get("intro_planned") != style):
         c("intro style as planned by the rotation", False,
           f"planned {fin.get('intro_planned')}, rendered {style}: {fb or 'fallback'}", soft=True)
+    return out
+
+
+def video_text_checks(ir: dict, fin: dict | None = None) -> list[dict]:
+    """Director answer 25: the video-inside-text intro (style_fx intro --style video_text). All from its report,
+    which style_fx measured on the frames it wrote."""
+    out = []
+
+    def c(name, ok, detail, soft=False):
+        out.append({"check": name, "pass": bool(ok), "detail": detail, "soft": soft})
+    words = ir.get("title") or []
+    c("video-text intro: title 1-2 words, ALL CAPS", 1 <= len(words) <= 2 and all(w == w.upper() for w in words),
+      " / ".join(words))
+    d = float(ir.get("dur") or 0)
+    c("video-text intro is 2.6 s (never over 3 s)", abs(d - 2.6) < 0.04 or (ir.get("scaled_reason") and d <= 3.0),
+      f"{d:.2f}s{' (scaled: ' + ir['scaled_reason'] + ')' if ir.get('scaled_reason') else ''}",
+      soft=bool(ir.get("scaled_reason")))
+    c("video-text intro never over 3 s", d <= 3.0 + 1e-6, f"{d:.2f}s")
+    ob = ir.get("outside_letters_max_value_0_1_8")
+    c("outside the letters is black during 0-1.8 s", ob is not None and ob <= 2, f"max pixel value outside {ob}")
+    lu = ir.get("through_letters_luma_min")
+    c("his footage shows through the letters", lu is not None and lu >= 0.08,
+      f"luma through the letters min {lu} (raw {ir.get('through_letters_luma_raw')}, letters-only gain "
+      f"{ir.get('brighten_gain_letters_only')})")
+    sp, gone, n = ir.get("split_from_s"), ir.get("matte_gone_frame"), ir.get("frames")
+    c("split on time and the matte fully gone by the end", sp is not None and gone is not None and gone <= n - 1
+      and float(ir.get("cover_at_split_start", 0)) >= 0.5,
+      f"split from {sp}s, black cover at the split {ir.get('cover_at_split_start')}, matte gone at frame {gone} of {n}")
+    j = ir.get("last_frame_vs_footage_mean_abs")
+    c("no jump after the intro (last frame = the footage)", j is not None and j <= 0.5, f"mean abs diff {j}")
     return out
 
 
@@ -135,7 +175,8 @@ def opener_checks(fin: dict, ir: dict, final: Path) -> list[dict]:
     of = int(op.get("frames") or 0)
     st = int(ir.get("start_frame") if ir.get("start_frame") is not None else -1)
     b1 = (ir.get("beats_abs_s") or [None])[0]
-    c("intro starts after the opener", st >= of and b1 is not None and b1 * FPS > of,
+    vt = ir.get("style") == "video_text"          # fixed timeline, no beats: it starts right at the opener's end
+    c("intro starts after the opener", st >= of and (vt or (b1 is not None and b1 * FPS > of)),
       f"opener frames 0-{of - 1}, intro window from frame {st} ({ir.get('start')}s), intro beat 1 at {b1}s")
     t = (of - 4) / FPS if of > 8 else 0.5 * dur
     g = _frame_gray(final, t)
@@ -330,22 +371,25 @@ def main():
                             if not t.get("front_only") else f"{t['first']} {t['last']} front-only"
                             for t in ex_titles) + "; frames: "
                 + ", ".join(t["frame"] for t in ex_titles), "text_visuals")
-        # Alfonso 2026-11-23 (answer 24): every text white in the glow look, no box (replaces the gold checks)
+        # Alfonso 2026-11-23 (answer 24): every text white in the glow look, no box. Only when this render used the
+        # white look (props.textLook present); the gold look (shipped default) keeps the checks above.
         import text_look as TL
         lk = TL.look()
+        white = bool(props.get("textLook"))
         b = load_json(ROOT_BRAND, default={})
-        okc = (str(b.get("color", "")).upper() == lk["color"] and str(b.get("popup_color", "")).upper() == lk["color"]
-               and props.get("textLook") == TL.for_remotion())
-        add("text look: white everywhere (brand colours + Remotion textLook = config text_look)", okc,
-            f"brand color {b.get('color')}, popup_color {b.get('popup_color')}, props.textLook "
-            f"{'= config' if props.get('textLook') == TL.for_remotion() else 'missing / differs: re-render'}", "text_visuals")
-        if ex_titles:
+        if white:
+            okc = props.get("textLook") == TL.for_remotion()
+            add("text look: white everywhere (Remotion textLook = config text_look)", okc,
+                f"props.textLook {'= config' if okc else 'differs from config text_look: re-render'}", "text_visuals")
+        if white and ex_titles:
             nonw = [f"{t['first']} {t['last']}" for t in ex_titles if (t.get("text_rgb") or "") != lk["color"]]
             add("layered exercise titles are white with the glow look", not nonw,
                 "all white (back word's glow + shadow behind his cut-out)" if not nonw else f"not white: {nonw}",
                 "text_visuals")
         tl_chk = load_json(WORK / "text_look_check.json", default={})
-        if tl_chk and tl_chk.get("final") == rel(final):
+        if not white:
+            pass
+        elif tl_chk and tl_chk.get("final") == rel(final):
             bad = [r for r in tl_chk.get("samples", []) if not r.get("ok")]
             add("Remotion text white / neutral with no box (measured on the graphics layer)", not bad,
                 f"{len(tl_chk['samples'])} frames: max tint spread "
@@ -369,8 +413,12 @@ def main():
         if (props.get("title") or {}).get("style") == "fonzi_intro":
             ir = (fin or {}).get("intro") or {}
             ok = bool(ir.get("ok"))
-            add("intro card (Rubik Dirt title, logo behind him, title on the beat)", ok,
-                (f"{ir['style']} title, {ir.get('logo_style') or 'flat'} logo: {' / '.join(ir['title'])} "
+            vt = ir.get("style") == "video_text"
+            add("intro card (video-inside-text)" if vt else "intro card (Rubik Dirt title, logo behind him, title on the beat)", ok,
+                (f"video-inside-text: {' / '.join(ir['title'])} {ir.get('start', 0):.2f}-"
+                 f"{ir.get('start', 0) + ir['dur']:.2f}s, Montserrat Black {ir.get('size')}px, split at y={ir.get('split_y')}"
+                 if ok and vt else
+                 f"{ir['style']} title, {ir.get('logo_style') or 'flat'} logo: {' / '.join(ir['title'])} "
                  f"{ir.get('start', 0):.2f}-{ir.get('start', 0) + ir['dur']:.2f}s, beats "
                  f"{ir.get('beats_abs_s') or ir['beats_s']}, text y "
                  f"{ir['text_y_range'][0]}-{ir['text_y_range'][1]} below his face (down to y={ir['face_max_y']}), "

@@ -9,7 +9,27 @@ render or post anything. Your only outputs are `output/storyboard.json` and `out
 
 Work inside `fonzi-gym-video-editor/` (cd there first). The Director gives you the raw video path and the brief.
 
-## White text look (Alfonso, 2026-11-23, Director answer 24): overrides every gold / colour rule in this file
+## Video-inside-text intro (Alfonso, 2026-11-23, Director answer 25): PENDING HIS PICK in Style Lab round 8
+Built behind `config.yaml intro.default_style` (`rotation` = the round 7 strobe / pulse / glitch / smash cycle stays
+the default; `video_text` = this intro for every gym video, the rotation stops). One render can force it:
+`render_final.py --intro-style video_text`. Order: logo opener -> video-inside-text -> normal video. Black frame;
+0-1.2 s the title (hook / storyboard intro.title, 1-2 words, ALL CAPS, Montserrat Black, as big as fits, 2 words
+stacked) types on as holes in the black with a cursor, his real footage showing through; 1.2-1.8 s hold, cursor blinks
+twice; 1.8-2.6 s the black splits at the title's middle, halves slide off (ease out); 2.6 s fixed, never over 3 s, no
+subtitle / logo / glow / box. Only the footage inside the letters may be brightened when too dark.
+`style_fx.py intro --style video_text` (`scripts/intro_video_text.py`), spliced by `finish_fx.py` over the real
+footage after the opener (no jump, audio untouched). Report: `output/work/intro_card.json` (style video_text).
+QA (`qa_check.py`): 2.6 s / never over 3; black outside the letters 0-1.8 s; footage through the letters; split on
+time and matte gone by the end; last frame = the footage (no jump); title 1-2 words, all caps.
+See `style-lab/STYLE.md` rule zero-B and `style-lab/round8/`.
+Storyboard: when video_text is on, plan the hook to hold the logo opener (~1.8 s) + 2.6 s = about 4.4-4.6 s
+(a clean, bright, moving opening shot behind the title), and give `"intro": {"title": "GRIND DAY"}` (1-2 words, caps)
+when the video title is longer. A shorter hook makes finish_fx shrink / drop the opener, then scale the intro (logged).
+
+## White text look (Alfonso, 2026-11-23, Director answer 24): PENDING HIS PICK in Style Lab round 8
+Built behind `config.yaml text_look.enabled` (false = the shipped GOLD look stays the default until Alfonso picks a
+round 8 A card; one render can force it: `render_final.py --text-look white`). When it is on, it overrides every gold
+/ colour rule in this file:
 Every piece of text is pure white #FFFFFF: no gold, no colour, no stroke, no outline, no box, no background bar.
 Under the sharp white text (100 %), bottom to top: dark shadow (black, blur 40 px, 35 %, no offset, hugs the text) ->
 wide glow (white, blur 22 px, 45 %) -> tight glow (white, blur 6 px, 80 %). Blur at 1080x1920; the glow is never tinted.
@@ -65,7 +85,7 @@ See `style-lab/STYLE.md` rule zero-A.
 - **Song:** only Alfonso's own mp3s in `songs/`. If there are any, pick one, copy its `bpm` and
   `beat_offset` from the analysis, and set `song_volume` 0.12-0.2 when he talks (0.6+ if nobody talks).
   No songs in the folder: set `"song": null`. Never stock music, never AI music, never a download.
-- `key_words`: 8-15 words from what he says that deserve emphasis (exercise names, cues, numbers; shown a touch bigger with a brighter glow, no colour since 2026-11-23).
+- `key_words`: 8-15 words from what he says that deserve the brand colour (exercise names, cues, numbers; white look: a touch bigger with a brighter glow).
 - All on-screen text: **English only, no hashtags**, short, punchy.
 - **2 or more exercises:** fill `carousel` with every exercise, its sets x reps and one cue.
 - `caption`: the post caption, one or two lines.
@@ -176,7 +196,7 @@ Follow `fonzi-gym-video-editor/style-lab/STYLE.md`, section "Rules for every vid
 himself). Most cuts stay plain and on the beat; one effect per cut at most; cut-out at most 1-2 per video.
 
 **Intro card (2026-11-21, STYLE.md rule 0).** The hook text (`hook.text`, `hook.subtitle`) is now drawn as the
-Fonzi intro card (Rubik Dirt white-glow title on beat 1, Fonzi logo behind him), not a Remotion title card, and there is
+Fonzi intro card (Rubik Dirt gold title on beat 1, Fonzi logo behind him), not a Remotion title card, and there is
 no hook `snap`. Plan the hook shot so his face sits in the upper half and his chest is clear (the title goes
 below his face), keep the first gold exercise title at least ~1.5 s after 0, and optionally set
 `"intro": {"style": "strobe"|"pulse"}` only when Alfonso asks for one (otherwise it alternates per video).

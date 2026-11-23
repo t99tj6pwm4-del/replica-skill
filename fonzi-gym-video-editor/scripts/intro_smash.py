@@ -33,9 +33,12 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 W, H = 1080, 1920
-# Since 2026-11-23 (Director answer 24) the title is pure white (config text_look); the names stay for the port.
-GOLD = (255, 255, 255)                        # text_look.color #FFFFFF (was gold #D4A017)
-GOLD_MAX = (255, 255, 255)                    # white is the ceiling (was #ECD497)
+# The title colour follows config text_look (2026-11-23): gold #D4A017 while it is off (shipped), white when on.
+import os as _os, sys as _sys  # noqa: E401,E402
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+import text_look as _TL  # noqa: E402
+GOLD = _TL.text_rgb()                         # colours.gold #D4A017, or text_look.color #FFFFFF
+GOLD_MAX = (255, 255, 255) if _TL.enabled() else (236, 212, 151)   # white look: no ceiling; gold: #ECD497
 E = (1, 0.8, 0.55, 0.3, 0.12, 0)              # title_styles.pulse e
 # title_styles.smash (style sheet) / r7-05 hf/build.py
 SEED, TRIALS = 0x0C5E2026, 3000

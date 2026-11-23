@@ -37,6 +37,11 @@
                   smash home on beat 1 with a decaying shake, then the pulse (scripts/intro_smash.py, r7-05)
         Two logos: flat (fades up b1-4 -> b1, unchanged) or 3d (14 px white extrusion swinging to rest by b1+10,
         scripts/intro_logo3d.py, r7-04). Whoosh into beat 1, impact on beat 1, same for every style.
+          video_text  Director answer 25 (NOT the default until Alfonso picks, config intro.default_style): black
+                  frame, the title (Montserrat Black, 1-2 words) types on as holes showing his footage, cursor blinks
+                  twice, the black splits at the title's middle and slides off; 2.6 s fixed, no beats, no logo, no
+                  subtitle, no glow (scripts/intro_video_text.py)
+        The title / subtitle colour follows config text_look (enabled = white + glow; off = the shipped gold).
         No scrim, no box, no flash, no snap. Fails (exit 1) rather than draw on his face or clip the logo; a
         glitch or smash that cannot be drawn cleanly raises IntroStyleUnfit (finish_fx falls back to pulse).
         OUT = IN with the first --dur seconds replaced, IN's audio kept with the two sfx mixed under it.
@@ -349,7 +354,9 @@ def opener(out: Path, bg: Path, drips: str = "heavy", dur: float = 1.8, beats: l
 TITLE_FONT = ROOT / "brand" / "fonts" / "RubikDirt-Regular.ttf"
 SUB_FONT = ROOT / "remotion" / "public" / "fonts" / "Montserrat.ttf"
 import text_look as TL  # noqa: E402
-TITLE_RGB = TL.text_rgb()                   # pure white (config text_look; was gold #D4A017 until 2026-11-23)
+TITLE_RGB = TL.text_rgb()                   # white (text_look ON) or the shipped gold #D4A017 (text_look off)
+GOLD = (212, 160, 23)                       # #D4A017, the gold look (pulse tint maths)
+WHITE_LOOK = TL.enabled()                   # config text_look.enabled / env FONZI_TEXT_LOOK (render_final --text-look)
 SAFE_TOP, SAFE_BOTTOM = 110, H - 420        # Instagram's own buttons cover the rest
 BURST = [0, 1, 0, 0, 1, 1, 0, 1]            # the locked round-2 flicker-on, first 8 frames (pulse style)
 LOGO_ART_W = 1000                           # logo art width on screen (the png has margins round the art)
@@ -597,9 +604,10 @@ def place_title(spec: TitleSpec, heads: list, visible: list[int], style: str, ti
                      "--dur, or --title-y by hand; not drawing over his face.")
 
 
-TITLE_STYLES = ("strobe", "pulse", "glitch", "smash")
+TITLE_STYLES = ("strobe", "pulse", "glitch", "smash", "video_text")   # video_text: Director answer 25
 LOGO_STYLES = ("flat", "3d")
-NEUTRAL_MAX = int(TL.look()["neutral_max_spread"])   # title pixels must stay white / grey: max R-G-B spread
+NEUTRAL_MAX = int(TL.look()["neutral_max_spread"])   # white look: title pixels white / grey (max R-G-B spread)
+GOLD_MAX = (236, 212, 151)                  # gold look: #ECD497, brightest a title pixel may be (glitch / smash)
 LOGO_FIT_BOX = (4, 4, W - 4, H - 4)         # logo alpha > 8 bbox must stay inside on every frame
 
 
@@ -619,6 +627,8 @@ def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=Non
         raise SystemExit(f"intro: unknown style {style!r} ({' | '.join(TITLE_STYLES)})")
     if logo not in LOGO_STYLES:
         raise SystemExit(f"intro: unknown logo {logo!r} ({' | '.join(LOGO_STYLES)})")
+    if style == "video_text":                               # Director answer 25: its own module, no cut-out
+        return video_text(inp, out, title, dur=dur, piece=piece, start=start, report=report)
     total = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
                                   str(inp)], capture_output=True, text=True, check=True).stdout.strip())
     s0 = int(round(start * FPS))                            # logo opener before the intro: the window starts here
@@ -628,7 +638,10 @@ def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=Non
     bts = beat_frames(n, beats, bpm, phase)
     b1 = bts[0]
     if style == "glitch":                                   # unfit checks before the slow cut-out
-        import intro_glitch as ig
+        if WHITE_LOOK:
+            import intro_glitch as ig                       # white-only ghosts + slice (2026-11-23)
+        else:
+            import intro_glitch_gold as ig                  # the shipped red / cyan split (r7-03)
         if not ig.glitch_fits(bts, n):
             raise IntroStyleUnfit(f"no later beat with all 3 glitch frames inside the {n}-frame window "
                                   f"(beat frames {bts})", "glitch")
@@ -718,13 +731,18 @@ def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=Non
                 st = title_state(style, k, bts)
                 if st:
                     amt, sc = st
-                    boost = float(TL.look()["pulse_glow_boost"]) * amt / 0.55
-                    t = _scaled(tl, sc, gcx, gcy)
+                    t = tl
+                    if WHITE_LOOK:                          # white cannot get whiter: the glow brightens
+                        boost = float(TL.look()["pulse_glow_boost"]) * amt / 0.55
+                    elif amt:                               # gold look: the locked tint toward white
+                        g = np.array(GOLD, np.float32)
+                        t = _tint(tl, [int(v) for v in g + (255 - g) * amt])
+                    t = _scaled(t, sc, gcx, gcy)
             elif style == "glitch":
                 t = ig.glitch_title(tl, k, bts)
             else:
                 t = plan.title(k, tl, bts)
-                if t is not None and _pulse_window(k, bts) and k > b1:
+                if WHITE_LOOK and t is not None and _pulse_window(k, bts) and k > b1:
                     boost = float(TL.look()["pulse_glow_boost"]) * 0.5
             if t is not None:
                 txt = Image.alpha_composite(txt, t)
@@ -733,10 +751,15 @@ def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=Non
                 if on.any():
                     mx = ta[..., :3][on].max(0)
                     title_max = mx if title_max is None else np.maximum(title_max, mx)
-                    sp = TL.tint_spread(ta)
-                    title_spread = max(title_spread, sp)
-                    if sp > NEUTRAL_MAX:
-                        issues.append(f"f{k}: title pixel tinted (R-G-B spread {sp} > {NEUTRAL_MAX}): text must be white")
+                    if WHITE_LOOK:
+                        sp = TL.tint_spread(ta)
+                        title_spread = max(title_spread, sp)
+                        if sp > NEUTRAL_MAX:
+                            issues.append(f"f{k}: title pixel tinted (R-G-B spread {sp} > {NEUTRAL_MAX}): text must be white")
+                    else:
+                        hard = style == "glitch" or (style == "smash" and not _pulse_window(k, bts))
+                        if hard and (mx > np.array(GOLD_MAX)).any():
+                            issues.append(f"f{k}: title pixel {mx.tolist()} brighter than #ECD497")
             if dump_layers:
                 (t if t is not None else empty).save(dump_layers / f"title_{k:04d}.png")
                 lay.save(dump_layers / f"logo_{k:04d}.png")
@@ -747,7 +770,8 @@ def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=Non
                 sl.paste(sub, (0, int(18 * (1 - e))), sub)
                 txt = Image.alpha_composite(txt, _with_alpha(sl, e))
             if txt.getbbox():                               # every style: title, ghost copies, glyphs, subtitle
-                glow = TL.under(txt, boost)                 # text_look: shadow -> wide glow -> tight glow
+                # white look: shadow -> wide glow -> tight glow (text_look); gold look: the locked tight shadow
+                glow = TL.under(txt, boost) if WHITE_LOOK else _shadow(txt)
                 comp = Image.alpha_composite(Image.alpha_composite(comp, glow), txt)
                 ga = np.asarray(glow.getchannel("A"))
                 ys, xs = np.nonzero(np.asarray(txt.getchannel("A")) > 20)
@@ -760,7 +784,7 @@ def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=Non
                         c = int(((xs >= x0) & (xs < x1) & (ys >= y0) & (ys < y1)).sum())
                         if c:
                             issues.append(f"f{k}: {c} title px on his face box {hb}")
-                        g = int((ga[max(0, y0):y1, max(0, x0):x1] > 64).sum())
+                        g = int((ga[max(0, y0):y1, max(0, x0):x1] > 64).sum()) if WHITE_LOOK else 0
                         glow_face = max(glow_face, g)
                         if g:
                             issues.append(f"f{k}: {g} glow / shadow px (alpha > 25 %) on his face box {hb}")
@@ -789,19 +813,77 @@ def intro(inp: Path, out: Path, title: str, subtitle: str, style: str, beats=Non
                "logo_style": logo, "logo_scale": lg.scale if lg else 1.0, "logo_box_max": logo_max,
                "logo_on_face_px_max": logo_face,      # window total, as round 6 (2087)
                "title_max_rgb": [int(v) for v in title_max] if title_max is not None else None,
-               "title_rgb": "#%02X%02X%02X" % TITLE_RGB, "title_tint_spread_max": title_spread,
-               "text_look": TL.for_remotion(), "glow_on_face_px_max": glow_face,
+               "title_rgb": "#%02X%02X%02X" % TITLE_RGB, "look": "white" if WHITE_LOOK else "gold",
+               **({"title_tint_spread_max": title_spread, "text_look": TL.for_remotion(),
+                   "glow_on_face_px_max": glow_face} if WHITE_LOOK else {}),
                "glitch": gl, "smash": plan.stats() if plan else None}
         print(f"intro {style} / logo {logo}: {' / '.join(spec.lines)} ({spec.size}px, line 1 at y={spec.y1}), logo "
               f"{res['logo_size']} at {box} (scale {res['logo_scale']}), beats {res['beats_s']}, shots "
               f"{len(edges) - 1}, his face down to y={res['face_max_y']}, text y {yr[0]}-{yr[1]}: clear of his "
-              f"face in all {n} frames; title max rgb {res['title_max_rgb']} (tint spread {title_spread}), white glow look, "
+              f"face in all {n} frames; title max rgb {res['title_max_rgb']} ({res['look']} look), "
               f"logo on face {logo_face} px")
         if report:
             report.write_text(json.dumps(res, indent=1))
         return res
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
+
+
+def video_text(inp: Path, out: Path, title: str, dur: float = 2.6, piece: bool = True, start: float = 0.0,
+               report: Path | None = None, variant: dict | None = None) -> dict:
+    """VIDEO-INSIDE-TEXT intro (Alfonso 2026-11-23, Director answer 25; scripts/intro_video_text.py): black frame,
+    the title typed on as holes in the black (the real footage of IN from `start` shows through), cursor, split at the
+    title's middle, halves slide off; 2.6 s fixed, never over 3 s. OUT = the piece (piece=True: only the window, our
+    quiet sfx) or IN with the window replaced (its audio kept). Refuses to write a piece that fails its own checks."""
+    import json
+    import intro_video_text as ivt
+    total = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0",
+                                  str(inp)], capture_output=True, text=True, check=True).stdout.strip())
+    s0 = int(round(start * FPS))
+    if s0 and not piece:
+        raise SystemExit("video_text: --start needs --piece (finish_fx.py splices the piece in after the opener)")
+    c = {**ivt.cfg(), **(variant or {})}
+    n = int(round(min(float(dur), float(c["max_dur"]), total - s0 / FPS) * FPS))
+    if n / FPS < float(dur) - 1e-3:                       # a shorter window: scale the timeline (finish_fx fallback)
+        k = n / (float(c["dur"]) * FPS)
+        c.update(type_end=c["type_end"] * k, hold_end=c["hold_end"] * k)
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(inp), "-vf",
+                          f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},fps={FPS},"
+                          f"trim=start_frame={s0}:end_frame={s0 + n},setpts=PTS-STARTPTS", "-an",
+                          "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], check=True, capture_output=True).stdout
+    pics = list(np.frombuffer(raw, np.uint8).reshape(-1, H, W, 3))
+    if len(pics) < n:
+        raise SystemExit(f"video_text: {inp} has only {len(pics)} frames from {s0}, need {n}")
+    try:
+        fr, rep = ivt.render(pics[:n], title, c)
+    except ivt.VideoTextUnfit as e:
+        raise IntroStyleUnfit(e.reason, "video_text") from e
+    bad = ivt.checks(rep)
+    if bad:
+        raise SystemExit("video_text: refusing to write it:\n  " + "\n  ".join(bad))
+    pic = out.with_suffix(".vt.mp4")
+    enc = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
+                            "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-crf", "14", "-preset", "medium",
+                            "-pix_fmt", "yuv420p", str(pic)], stdin=subprocess.PIPE)
+    for f in fr:
+        enc.stdin.write(np.ascontiguousarray(f).tobytes())
+    enc.stdin.close()
+    if enc.wait():
+        raise SystemExit("video_text: ffmpeg failed writing the picture")
+    h_end = int(round(c["hold_end"] * FPS))
+    sounds = [("logo_click", k / FPS, float(c["tick_db"])) for k in rep["letter_frames"]]
+    sounds.append(("intro_whoosh", max(0.0, h_end / FPS - 0.12), float(c["whoosh_db"])))
+    _intro_out(pic, inp, out, n, total, sounds, piece)
+    pic.unlink(missing_ok=True)
+    rep.update(ok=True, start=round(s0 / FPS, 3), start_frame=s0, piece=piece, input=str(inp), output=str(out),
+               sounds=[list(x) for x in sounds], scaled_reason=None if n / FPS >= float(dur) - 1e-3 else
+               f"window {n / FPS:.2f}s < {dur}s: timeline scaled x{n / (float(c['dur']) * FPS):.2f}")
+    if report:
+        Path(report).write_text(json.dumps(rep, indent=1))
+    print(f"intro video_text: {' / '.join(rep['title'])} Montserrat Black {rep['size']}px, {rep['frames']} frames "
+          f"({rep['dur']}s) from {rep['start']}s, split at y={rep['split_y']}, outside black, letters-only gain "
+          f"{rep['brighten_gain_letters_only']}, matte gone at frame {rep['matte_gone_frame']}")
+    return rep
 
 
 def _intro_out(pic: Path, inp: Path, out: Path, n: int, total: float, sounds, piece: bool):
@@ -853,14 +935,15 @@ if __name__ == "__main__":
     it = sub.add_parser("intro"); it.add_argument("inp", type=Path); it.add_argument("out", type=Path)
     it.add_argument("--title", required=True); it.add_argument("--subtitle", default="")
     it.add_argument("--style", choices=list(TITLE_STYLES), required=True,
-                    help="strobe | pulse (round 6, unchanged) | glitch (r7-03 edge split) | smash (r7-05 letters)")
+                    help="strobe | pulse (round 6) | glitch (edge split; white-only in the white look) | smash (r7-05 "
+                         "letters) | video_text (Director answer 25: footage inside the typed title, 2.6 s, no beats)")
     it.add_argument("--logo", choices=list(LOGO_STYLES), default="flat",
                     help="flat (round 6, unchanged) | 3d (r7-04 extruded white logo swinging to rest)")
     it.add_argument("--smash-keep-out", help="smash only: left | right | none | x0,y0,x1,y1 (default: auto side)")
     it.add_argument("--dump-layers", type=Path, help="test use: save each frame's title / logo RGBA here")
     it.add_argument("--beats", help="beat times in seconds, comma list (beat 1 = first one)")
     it.add_argument("--bpm", type=float); it.add_argument("--phase", type=float, default=0.0)
-    it.add_argument("--dur", type=float, default=3.0)
+    it.add_argument("--dur", type=float, default=None, help="seconds (default 3.0; video_text 2.6)")
     it.add_argument("--piece", action="store_true", help="write only the intro window with only our sfx")
     it.add_argument("--mask-src", type=Path, help="clean picture (no graphics) to cut him out of; default IN")
     it.add_argument("--title-y", type=int, help="centre of the first title line by hand (still face-checked)")
@@ -870,7 +953,8 @@ if __name__ == "__main__":
     a = ap.parse_args()
     if a.cmd == "intro":
         intro(a.inp, a.out, a.title, a.subtitle, a.style,
-              [float(x) for x in a.beats.split(",") if x.strip()] if a.beats else None, a.bpm, a.phase, a.dur,
+              [float(x) for x in a.beats.split(",") if x.strip()] if a.beats else None, a.bpm, a.phase,
+              a.dur or (2.6 if a.style == "video_text" else 3.0),
               a.piece, a.mask_src, a.report, a.title_y,
               tuple(int(v) for v in a.face_box.split(",")) if a.face_box else None, a.logo,
               (tuple(int(v) for v in a.smash_keep_out.split(",")) if "," in a.smash_keep_out else a.smash_keep_out)

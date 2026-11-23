@@ -1,0 +1,89 @@
+{
+ "round": 8,
+ "frame": "1080x1920 30 fps",
+ "source": "output/white_look_test (Grind Day opener-test copy)",
+ "fonts": {
+  "intro_title_rotation": "Rubik Dirt",
+  "video_text": "Montserrat Black",
+  "everything_else": "Montserrat"
+ },
+ "text_look_A1": {
+  "shadow": [
+   40,
+   0.35
+  ],
+  "wide": [
+   22,
+   0.45
+  ],
+  "tight": [
+   6,
+   0.8
+  ],
+  "color": "#FFFFFF"
+ },
+ "text_look_A2": {
+  "shadow": [
+   40,
+   0.35
+  ],
+  "wide": [
+   16,
+   0.3
+  ],
+  "tight": [
+   4,
+   0.6
+  ]
+ },
+ "text_look_A3": {
+  "shadow": [
+   50,
+   0.45
+  ],
+  "wide": [
+   30,
+   0.6
+  ],
+  "tight": [
+   8,
+   0.9
+  ]
+ },
+ "text_look_A4": {
+  "shadow": null,
+  "wide": [
+   22,
+   0.45
+  ],
+  "tight": [
+   6,
+   0.8
+  ]
+ },
+ "video_text": {
+  "dur": 2.6,
+  "type_end": 1.2,
+  "hold_end": 1.8,
+  "max_dur": 3.0,
+  "blinks": 2,
+  "ease": "cubic",
+  "margin": 80
+ },
+ "opener": {
+  "beats": 3,
+  "frames": 53,
+  "drips": "wet"
+ },
+ "safe_area": [
+  110,
+  1500
+ ],
+ "never": [
+  "gold or any tint in A",
+  "box / bar / panel behind text",
+  "glow over his face",
+  "subtitle or logo in the video-text intro",
+  "grade outside the letters"
+ ]
+}

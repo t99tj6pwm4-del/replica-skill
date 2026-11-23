@@ -1,6 +1,8 @@
 # Fonzi style (Style Lab)
 
-## RULE ZERO-A: the white text look (Alfonso, 2026-11-23, Director answer 24). Overrides every gold rule below.
+## RULE ZERO-A: the white text look (Alfonso, 2026-11-23, Director answer 24). PENDING HIS PICK (Style Lab round 8)
+Built and wired behind `config.yaml text_look.enabled` (false = the shipped gold look stays the default). When he
+picks a round 8 A card, set `enabled: true` (+ that card's numbers) and this rule then overrides every gold rule below.
 "Text color: pure white #FFFFFF. No gold, no color, no stroke, no outline, no box, no background bar."
 Every piece of text we draw (intro title + subtitle in all 4 beat styles, layered exercise / name titles, pop-ups,
 CAM tags, progress label, captions, lower-thirds, callouts, end card, carousel) is drawn as, bottom to top:
@@ -20,7 +22,26 @@ by `scripts/text_look.py` for the Python titles and passed to Remotion as `props
 - Unchanged: the logo (already white) in the intro, opener and end card; the CAM tag's white flash.
 - QA (`qa_check.py`): text pixels must be neutral (R-G-B spread <= `text_look.neutral_max_spread`) and no dark pixel
   in the graphics layer more opaque than `text_look.box_alpha_max` (= a box); the old gold ceiling #ECD497 is gone.
-Gold mentions below are history: **replaced 2026-11-23** by this rule (style names such as `layered-gold` stay as keys).
+Once switched on, the gold mentions below are history (**replaced** on that date; style names such as `layered-gold`
+stay as keys).
+
+## RULE ZERO-B: the video-inside-text intro (Alfonso, 2026-11-23, Director answer 25). PENDING HIS PICK (round 8 B)
+Built and wired behind `config.yaml intro.default_style` (`rotation` = the round 7 cycle stays the default;
+`video_text` = this intro for every gym video). When on, it replaces rule 0's intro card and the round 7 rotation
+(old styles stay in the code, unused). Order: logo opener (answer 23) -> video-inside-text -> normal video.
+1. 0.0 s full black over the first seconds; the video is already playing underneath.
+2. 0.0-1.2 s the title types on letter by letter with a blinking cursor at the end; the letters are cut OUT of the
+   black, his footage shows through them; everything outside the letters solid black.
+3. 1.2-1.8 s hold, the cursor blinks twice.
+4. 1.8-2.6 s the black splits on a horizontal line through the title's middle; top half slides up off screen,
+   bottom half down, each taking its half of the letters; ease out. The full video is revealed.
+5. 2.6 s over: the normal video continues with no cut, no jump in picture or audio. Never over 3 s.
+Text: the video's hook / title, 1-2 words, ALL CAPS, Montserrat Black, as big as fits (80 px margins), centred, two
+words stacked. No tilt, box, label, subtitle, logo or glow (letters are holes). Too dark through the letters =
+brighten ONLY the footage inside the letters (the one allowed brightening). The hook must hold opener (~1.8 s) +
+2.6 s = ~4.4-4.6 s; shorter = the opener shrinks a beat at a time, then is dropped, then the 2.6 s timeline is
+scaled into the room (min 1.6 s), reason logged. Tool: `style_fx.py intro --style video_text`
+(`scripts/intro_video_text.py`), run by `finish_fx.py`.
 
 ## The brief (draft, from the standing rules; Alfonso still to confirm)
 1. **For:** gym reels for FB Fonzi.stays.fit / IG @fonzi.stays.fit (his own footage, his own songs).
@@ -35,7 +56,7 @@ Gold mentions below are history: **replaced 2026-11-23** by this rule (style nam
      - Brandon Bartley @brandon.basics (instagram.com/reel/DYQiIaTRLXX): mask transition (hand over a plate), rise effect, pin effect.
    - (No reference #2 was sent.)
 5. **Never:** non-English text except the Spanish pop-up lines, hashtags on screen, text over his face, stock or AI music, other creators' footage.
-6. **Already has:** Montserrat (Black for titles), Documentary Gold layered titles (back word behind him), the three pop-up cards, honey + salt opener. Colours: 5-step teal & orange film grade (see `GRADE_AND_TRANSITIONS.md`), titles ~~mustard gold #D4A017~~ white text look (replaced 2026-11-23, rule zero-A), Montserrat. Logo: `brand/fonzi_logo.png` (white drip "Fonzi" with horns, halo, devil tail; transparent PNG). His animated logo clip `input/fonzi_logo_anim.mp4` carries a small moving badge that looks like a Sora watermark, so it is not used (no-Sora rule); we animate the PNG ourselves.
+6. **Already has:** Montserrat (Black for titles), Documentary Gold layered titles (back word behind him), the three pop-up cards, honey + salt opener. Colours: 5-step teal & orange film grade (see `GRADE_AND_TRANSITIONS.md`), titles mustard gold #D4A017 (white text look once rule zero-A is switched on), Montserrat. Logo: `brand/fonzi_logo.png` (white drip "Fonzi" with horns, halo, devil tail; transparent PNG). His animated logo clip `input/fonzi_logo_anim.mp4` carries a small moving badge that looks like a Sora watermark, so it is not used (no-Sora rule); we animate the PNG ourselves.
 7. **Movement:** cinematic, with the transitions above (match cuts, masks, wipes, luma/film-burn, cut-out zoom). Speed/feel: a mix: smooth cinematic moves between lifts, hard snaps on the big moments (titles, heaviest rep, beat drops).
 8. **Sound:** his own songs. SFX (Alfonso, 2026-11-23): from OpenFilm's free CC0 library (`scripts/openfilm_library.sh`), one pick per role in config.yaml `sfx.roles` / `sfx.library`, prepared by `scripts/library_sfx.py prep` into `sfx/library/fonzi/`; our synthesised `sfx/*.wav` (`scripts/make_sfx.py`) are only the fallback. Always UNDER his song, never replacing it. No library music, no paid packs, no AI sounds.
 9. **Build first:** TODO (ask).
@@ -47,7 +68,7 @@ Gold mentions below are history: **replaced 2026-11-23** by this rule (style nam
   on the punch, whoosh into the next shot.
   **Occasional alternate: flicker to white** (r4-c1; Alfonso 2026-11-20 "occasionally"): `--to white`, about one
   video in four, never both in the same video.
-- **Gold name title, clean** (r1-t1, round 1; colour replaced 2026-11-23 by the white text look, rule zero-A): layered title over the footage, gold stays clean and flat (#D4A017, Montserrat Black): big word behind him, small intro line on his chest, second line in front of his chest. Whoosh in.
+- **Gold name title, clean** (r1-t1, round 1; colour becomes the white text look once rule zero-A is on): layered title over the footage, gold stays clean and flat (#D4A017, Montserrat Black): big word behind him, small intro line on his chest, second line in front of his chest. Whoosh in.
 - **Gold name title + snap** (r1-t3, round 1): same, but it lands with a 2-frame white flash, a 1.08 -> 1 punch-in over 6 frames and a small shake, on an impact hit. For the big name moment.
 - **Zoom through the shirt** (r1-x5, round 1) **with zoom blur** (r2-x5, round 2): punch into a dark object (his black tank) over 10 frames (ease-in, zoom to 6x, darkening 80%) with a radial zoom blur that builds as it speeds up; next shot fades up out of the dark over 8 frames. Whoosh 0.45 s before, impact on the cut.
 - **Logo end card: flicker on** (r1-l2, round 1): flickers on like a sign warming up, then a steady glow. Clicks. **With real drips** (round 2, all three kept): drips run down from the halo, letters and tail after the flicker. Allowed amounts: a few slow drips (6, drops fall now and then), heavy drips (14, drops falling), wet paint (14, creep down and stay). Rotate between them across videos.
@@ -71,18 +92,18 @@ Gold mentions below are history: **replaced 2026-11-23** by this rule (style nam
 - Item 9 (what to build first): proposed round 1 = gold name title (youngla style), the teal & orange grade, transitions. Waiting for his OK.
 
 ## Rules for every video (written 2026-11-20 after round 4)
-**First: rule zero-A at the top of this file (2026-11-23): every text pure white with the glow + soft shadow look, no gold, no box.**
+**Pending Alfonso's pick (round 8): rule zero-A (white text look) and rule zero-B (video-inside-text intro) at the top of this file; config flags off until he picks.**
 Tool: `scripts/style_fx.py` (snap / zoom / cutout / logo). Our own sounds only (`sfx/`). Never a colour grade.
-1. **Name title** (gold replaced 2026-11-23: white text look, rule zero-A): layered title (Montserrat Black): big word behind him, small intro line on his
+1. **Name title**: gold layered title (#D4A017, Montserrat Black; white text look once rule zero-A is on): big word behind him, small intro line on his
    chest, second line in front of his chest (`layered_title.py`). The big name moment lands with `style_fx.py snap`
    (flash + punch-in + shake + impact); exercise titles stay clean with a whoosh in.
 2. **Transitions** (pick by moment, never more than one effect per cut, leave most cuts plain and on the beat):
    - `zoom`: between sets / exercises, into a dark object (his black tank by default) with zoom blur. Whoosh + impact.
    - `cutout --to black`: the hype moment (heaviest set, the drop): freeze, cut out, black strobe, punch-in.
      At most 1-2 per video. Now and then (about one video in four) use `--to white` instead, never mixed.
-0. **Intro card** (locked 2026-11-21, Style Lab rounds 5-6; replaces the old Montserrat hook card, its stripes,
+0. **Intro card** (to be **replaced** by rule zero-B, video-inside-text, once Alfonso picks it in round 8 / config intro.default_style: video_text; locked 2026-11-21, Style Lab rounds 5-6; replaces the old Montserrat hook card, its stripes,
    gold box, dark scrim and the hook `snap`): first ~2-3 s. Title (e.g. "LOCKED IN") in **Rubik Dirt**
-   (`brand/fonts/RubikDirt-Regular.ttf`, OFL), ~~gold #D4A017~~ white text look (2026-11-23), **no drips ever**, in front of him and off his face;
+   (`brand/fonts/RubikDirt-Regular.ttf`, OFL), gold #D4A017 (white text look with rule zero-A on), **no drips ever**, in front of him and off his face;
    small white letter-spaced subtitle under it. **Fonzi logo** (`brand/fonzi_logo.png`, white ~85%) **behind him**
    (rembg cut-out), as big as fits (~1000 px wide), whole logo always inside the frame. The title **flickers to the
    beat** of his song: rotate per video between **strobe** (snaps on at beat 1, blinks off 2 frames on each beat) and
@@ -92,7 +113,7 @@ Tool: `scripts/style_fx.py` (snap / zoom / cutout / logo). Our own sounds only (
    **Round 7 (2026-11-22, HyperFrames, kept r7-03 / r7-04 / r7-05):** the title beat style now rotates per video
    between FOUR: strobe, burst + pulse, **glitch** (round-6 burst at beat 1, then on beats 2-4 a 3-frame red/green
    split, 8/5/2 px, alpha <= 0.6, on the letter EDGES only, never inside the letters, snaps back to clean gold; no
-   pulse; **replaced 2026-11-23** by the white-only burst, rule zero-A) and **letters smash** (letters fade in scattered on his chest, never over his face or the dumbbell side,
+   pulse; with rule zero-A on: the white-only burst) and **letters smash** (letters fade in scattered on his chest, never over his face or the dumbbell side,
    >= 24 px apart, fly into a spaced LOCKED / IN row, smash together exactly on beat 1 with a decaying shake
    +6/-3, -4/+2, +2/-1, then the pulse on each beat). The logo behind him alternates per video between **flat** and
    **3D** (r7-04: white logo with 14 px depth, sides 30 % white, swings in rotateY -8 -> 0 / rotateX 4 -> 0 over

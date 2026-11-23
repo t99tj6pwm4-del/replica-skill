@@ -16,8 +16,9 @@ storyboard.json:
 
 The window is rebuilt frame by frame (bottom to top): the shot's background, the first name, the
 person cut out of the same frame (rembg human segmentation), the last name, the intro line.
-Still, no animation: it appears as one finished title, holds, cuts away. Since 2026-11-23 (Director answer 24)
-every word is pure white with the text_look (config.yaml text_look: soft dark shadow -> wide white glow -> tight
+Still, no animation: it appears as one finished title, holds, cuts away. Gold #D4A017 (shipped) or, when config
+text_look.enabled / --text-look white (Director answer 24, not the default until Alfonso picks), every word is pure
+white with the text_look (config.yaml text_look: soft dark shadow -> wide white glow -> tight
 white glow -> sharp white), no box / outline. The BACK word's glow and shadow sit behind him too: they are drawn
 before his cut-out goes on, so nothing glows over him.
 Picture only: the audio is copied untouched.
@@ -36,7 +37,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from common import FPS, H, OUT, REMOTION, W, WORK, brand, die, load_json, probe, rel, run, save_json  # noqa: E402
 
 import text_look as TL  # noqa: E402
-TEXT_RGB = TL.text_rgb()                    # pure white (config text_look); gold #D4A017 until 2026-11-23
+TEXT_RGB = TL.text_rgb()                    # white (config text_look ON) or the shipped gold #D4A017 (off)
 SERIF = REMOTION / "public" / "fonts" / "Montserrat.ttf"   # Alfonso (2026-11-16): Montserrat everywhere (Black)
 TITLE_WEIGHT = "Black"
 SANS = REMOTION / "public" / "fonts" / "Montserrat.ttf"
@@ -254,7 +255,8 @@ def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, i
     n = max(1, len(frames) - 1)
     behind0, front0, line0 = behind, front, line
     # the text_look once per word (shadow + 2 white glows + sharp white), then moved with the virtual camera
-    behind_l, front_l, line_l = TL.stack(behind0), TL.stack(front0), TL.stack(line0)
+    look = TL.stack if TL.enabled() else (lambda l: l)            # gold look: flat letters, as shipped
+    behind_l, front_l, line_l = look(behind0), look(front0), look(line0)
     for k, f in enumerate(frames):
         img = Image.open(f).convert("RGBA")
         t = k / n
@@ -302,8 +304,9 @@ def build(base: Path, out: Path, at: float, dur: float, first: str, last: str, i
     if abs(probe(out)["duration"] - total) > 0.1:
         die("layered title changed the video length: not passing it on")
     info = {"style": "Layered Title (Documentary Gold)", "at": round(at, 3), "dur": round(seg_len, 3),
-            "first": first.upper(), "last": last.upper(), "intro_line": intro, "gold": None,
-            "text_rgb": "#%02X%02X%02X" % TEXT_RGB, "text_look": TL.for_remotion(),
+            "first": first.upper(), "last": last.upper(), "intro_line": intro,
+            "gold": None if TL.enabled() else "#D4A017", "text_rgb": "#%02X%02X%02X" % TEXT_RGB,
+            "text_look": TL.for_remotion() if TL.enabled() else None,
             "first_line_y": y1, "last_line_y": y2, "intro_y": yi,
             "first_name_covered_by_person": float(covered[0]) if covered else None, "front_only": front_only,
             "cut_model": model, "parallax": on, "frame": rel(frame_png)}

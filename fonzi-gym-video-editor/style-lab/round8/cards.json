@@ -1,0 +1,38 @@
+{
+ "round": 8,
+ "date": "2026-11-23",
+ "cards": [
+  {
+   "id": "r8-B1",
+   "section": "B",
+   "title": "Video-inside-text intro: B1",
+   "description": "His exact spec: types on 0-1.2 s, holds with 2 cursor blinks to 1.8 s, splits 1.8-2.6 s ease-out. 2.6 s after the logo opener.",
+   "mp4": "output/style_lab/r8/r8-B1/card.mp4",
+   "jpg": "output/style_lab/r8/r8-B1/card.jpg"
+  },
+  {
+   "id": "r8-B2",
+   "section": "B",
+   "title": "Video-inside-text intro: B2",
+   "description": "Same, with a thinner cursor that blinks faster (4 blinks) and a harder expo-out split. 2.6 s after the logo opener.",
+   "mp4": "output/style_lab/r8/r8-B2/card.mp4",
+   "jpg": "output/style_lab/r8/r8-B2/card.jpg"
+  },
+  {
+   "id": "r8-B3",
+   "section": "B",
+   "title": "Video-inside-text intro: B3",
+   "description": "Same, with the footage under the letters brightened x1.5 (the only brightening allowed). 2.6 s after the logo opener.",
+   "mp4": "output/style_lab/r8/r8-B3/card.mp4",
+   "jpg": "output/style_lab/r8/r8-B3/card.jpg"
+  },
+  {
+   "id": "r8-B4",
+   "section": "B",
+   "title": "Video-inside-text intro: B4",
+   "description": "Same, but a thin 8 px line of video opens at the seam for 2 frames before the halves move. 2.6 s after the logo opener.",
+   "mp4": "output/style_lab/r8/r8-B4/card.mp4",
+   "jpg": "output/style_lab/r8/r8-B4/card.jpg"
+  }
+ ]
+}

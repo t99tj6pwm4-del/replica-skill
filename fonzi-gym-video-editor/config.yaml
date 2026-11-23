@@ -121,7 +121,7 @@ audio:
 
 titles:
   # normal       = the usual animated title card, captions, lower-thirds, end card
-  # layered-gold = Layered Title (Documentary Gold; since 2026-11-23 drawn in the white text_look, the key name stays):
+  # layered-gold = Layered Title (Documentary Gold; white text_look when text_look.enabled):
   #                ONE giant two-line title, "FONZI" BEHIND the
   #                person, "STAYS FIT" + intro line IN FRONT, ~3.5s after the cold open; NO subtitles,
   #                captions, lower-thirds or end card anywhere. Only when it seems right (story / intro /
@@ -211,10 +211,14 @@ sfx:
 
 # Alfonso 2026-11-23 (Director answer 24): THE text look for every piece of text we draw (intro title + subtitle,
 # layered exercise titles, every Remotion text: pop-ups, CAM tags, progress label, captions, lower-thirds ...).
-# It replaces gold everywhere. ONE place: Python (scripts/text_look.py) and Remotion (props.textLook, injected by
+# When enabled it replaces gold everywhere. ONE place: Python (scripts/text_look.py) and Remotion (props.textLook, injected by
 # render_final.py) both read these numbers. Pure white #FFFFFF, no colour, no stroke / outline, no box, no bar.
 # Layers bottom -> top; blur = gaussian standard deviation in px at 1080x1920 (PIL GaussianBlur radius = CSS blur()).
 text_look:
+  # Alfonso 2026-11-23 ("Run both through Style Lab so I can help pick"): built and wired, NOT the default until he
+  # picks in Style Lab round 8. false = the shipped gold look; true = white everywhere. One render can force it:
+  # render_final.py --text-look white|gold (env FONZI_TEXT_LOOK).
+  enabled: false
   color: "#FFFFFF"                 # sharp text on top, 100 %
   layers:                          # under the sharp text, bottom first
     - {name: shadow,     color: "#000000", blur: 40, opacity: 0.35}   # hugs the text only, no offset
@@ -239,7 +243,24 @@ intro:
   logo_sfx_db: -6                  # the logo end card's clicks / crackle under the song
   # Alfonso 2026-11-23 (answer 23, "logo card first, then intro"): every video opens with ~1.5 s of the END-CARD
   # look (style_fx.py opener: live footage blurred + darkened to 35 %, the white logo flickering on, the same drips
-  # as this video's end card), THEN the intro above (white text_look since 2026-11-23), on the next beat. Inside the hook: nothing is added.
+  # as this video's end card), THEN the intro above, on the next beat. Inside the hook: nothing is added.
+  # Alfonso 2026-11-23 (Director answer 25): VIDEO-INSIDE-TEXT intro (style_fx.py intro --style video_text,
+  # scripts/intro_video_text.py): after the logo opener, black frame, the title types on as holes in the black (his
+  # footage shows through), cursor blinks twice, the black splits at the title's middle and slides off; 2.6 s fixed,
+  # never over 3 s. Built and wired, NOT the default until Alfonso picks in Style Lab round 8:
+  # default_style: rotation = the round 7 cycle above (shipped); video_text = the new intro for every video (the
+  # rotation then stops: nothing new is recorded for the title style). One render can force it:
+  # render_final.py --intro-style video_text.
+  default_style: rotation
+  video_text:
+    dur: 2.6                       # fixed seconds, not beat-snapped
+    type_end: 1.2                  # letters typed by here (cursor solid while typing)
+    hold_end: 1.8                  # hold; the cursor blinks twice; then the split (ease out cubic) to the end
+    max_dur: 3.0
+    margin: 80                     # px each side; Montserrat Black as big as fits, 2 words on 2 lines
+    min_luma: 0.32                 # footage through the letters darker than this: brighten ONLY inside the letters
+    max_gain: 1.9
+    min_dur: 1.6                   # hook too short even without the opener: the timeline is scaled down to here
   opener:
     enabled: true
     beats: auto                    # auto = the beat count nearest `target` seconds (min..max); or a fixed number

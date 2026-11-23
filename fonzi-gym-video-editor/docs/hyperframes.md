@@ -21,7 +21,7 @@ beat accents, camera shake, 3D logo, etc.), `render` (MP4, or WebM / PNG sequenc
 - Telemetry on.
 
 ## House style every composition must follow
-`style-lab/STYLE.md` (rule 0 intro, white text look since 2026-11-23 (config `text_look`, STYLE.md rule zero-A; was gold #D4A017), Rubik Dirt for the intro title, Montserrat for the rest, safe
+`style-lab/STYLE.md` (rule 0 intro, white text look since 2026-11-23 (config `text_look`, STYLE.md rule zero-A, pending his pick; shipped: gold #D4A017), Rubik Dirt for the intro title, Montserrat for the rest, safe
 area, never over his face, no colour grade, no dark tint, no white flash on the beat), and the supervisor's
 `output/visuals/style_sheet.json` for the video.
 
