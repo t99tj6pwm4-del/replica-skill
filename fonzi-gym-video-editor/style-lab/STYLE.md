@@ -28,10 +28,10 @@ by `scripts/text_look.py` for the Python titles and passed to Remotion as `props
   checklist / bar is on screen (<= the card with the text shadows over it, + 0.03); the old gold ceiling #ECD497 is gone.
 The gold mentions below are history (**replaced 2026-11-23**; style names such as `layered-gold` stay as keys).
 
-## RULE ZERO-B: the video-inside-text intro (Alfonso, 2026-11-23, Director answer 25). PENDING HIS PICK (round 8b B5 / B6)
+## RULE ZERO-B: the video-inside-text intro (Alfonso, 2026-11-23, Director answer 25). PICKED: round 8b B5 (slower B1), DEFAULT for every gym video
 Round 8: B1 and B3 MAYBE, "Slower open fine if it needs to go past 3 seconds": the cap is now 3.5 s and the timeline is
 configurable (`intro.video_text` type_end / hold_end / dur / max_dur / force_gain). Round 8b: B5 = type 0-1.6 s, hold
-to 2.4 s, split 2.4-3.4 s; B6 = the same + x1.5 inside the letters. The spec below is B1 (the current config).
+to 2.4 s, split 2.4-3.4 s; B6 = the same + x1.5 inside the letters. He picked B5 (type 0-1.6 s, hold with 2 blinks to 2.4 s, split 2.4-3.4 s, no extra brightening beyond the automatic dark boost); B6 dropped. The spec below is B1 with the B5 timing in config.
 Built and wired behind `config.yaml intro.default_style` (`rotation` = the round 7 cycle stays the default;
 `video_text` = this intro for every gym video). When on, it replaces rule 0's intro card and the round 7 rotation
 (old styles stay in the code, unused). Order: logo opener (answer 23) -> video-inside-text -> normal video.
@@ -98,7 +98,7 @@ scaled into the room (min 1.6 s), reason logged. Tool: `style_fx.py intro --styl
 - Item 9 (what to build first): proposed round 1 = gold name title (youngla style), the teal & orange grade, transitions. Waiting for his OK.
 
 ## Rules for every video (written 2026-11-20 after round 4)
-**First: rule zero-A (white text look, A2 + the checklist / bar card) at the top of this file. Rule zero-B (video-inside-text intro) is still pending his pick (round 8b); until then the intro is rule 0's rotation.**
+**First: rule zero-A (white text look, A2 + the checklist / bar card) at the top of this file. Rule zero-B (video-inside-text intro, B5, 3.4 s) is the default intro; rule 0's rotation is replaced. The card behind the checklist and bar is black 50% (round 8b C1).**
 Tool: `scripts/style_fx.py` (snap / zoom / cutout / logo). Our own sounds only (`sfx/`). Never a colour grade.
 1. **Name title**: layered title (Montserrat Black; white text look, rule zero-A; gold #D4A017 replaced 2026-11-23): big word behind him, small intro line on his
    chest, second line in front of his chest (`layered_title.py`). The big name moment lands with `style_fx.py snap`

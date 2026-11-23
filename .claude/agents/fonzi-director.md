@@ -271,6 +271,8 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
     video's hook/title, 1-2 words, ALL CAPS, never hardcoded; Montserrat Black, as big as fits the width with a safe margin,
     centred, two words stack. No tilt, box, HOOK label, extra lines or subtitle. Pick an opening shot with movement and bright
     detail; if too dark, brighten ONLY the footage under the matte. Captions, pop-ups, grade and transitions unchanged by this.
+    Style Lab 8b (2026-11-23): he picked B5 = type 0-1.6 s, hold 2 blinks to 2.4 s, split to 3.4 s (cap 3.5 s; "slower open fine
+    past 3 seconds"). Default ON (config intro.default_style: video_text). Hooks ~5.2 s. Card behind checklist + bar: C1 black 50%.
 26. **"Cut on motion" (Alfonso, 2026-11-23), every gym video.** Cuts land while something moves (bar, arms, body, camera); never
     on a still frame unless removing dead time. Same exercise from two angles: cut mid-rep, same rep point both sides, same
     direction (never up -> down). Cut in the first third of a move. Beat is second: snap to the beat only if within 3 frames.

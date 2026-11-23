@@ -260,13 +260,13 @@ intro:
   # default_style: rotation = the round 7 cycle above (shipped); video_text = the new intro for every video (the
   # rotation then stops: nothing new is recorded for the title style). One render can force it:
   # render_final.py --intro-style video_text.
-  default_style: rotation
+  default_style: video_text      # Alfonso picked round 8b B5 (2026-11-23); rotation kept in code for history
   # Round 8 (2026-11-23): B1 and B3 MAYBE, "Slower open fine if it needs to go past 3 seconds" -> max_dur 3.5; round 8b
   # B5 = type 1.6 / hold 2.4 / dur 3.4, B6 = the same + force_gain 1.5. Drop his pick's numbers in here.
   video_text:
-    dur: 2.6                       # total seconds, fixed (not beat-snapped); B5 / B6: 3.4
-    type_end: 1.2                  # letters typed by here (cursor solid while typing); B5 / B6: 1.6
-    hold_end: 1.8                  # hold; the cursor blinks twice; then the split (ease out cubic) to the end; B5 / B6: 2.4
+    dur: 3.4                       # total seconds, fixed (not beat-snapped); B5 picked 2026-11-23
+    type_end: 1.6                  # letters typed by here (cursor solid while typing); B5
+    hold_end: 2.4                  # hold; the cursor blinks twice; then the split (ease out cubic) to the end; B5
     max_dur: 3.5                   # hard cap (was 3.0 until his round 8 note)
     force_gain: null               # null = only the automatic dark-footage boost; B6: 1.5 (letters only)
     margin: 80                     # px each side; Montserrat Black as big as fits, 2 words on 2 lines

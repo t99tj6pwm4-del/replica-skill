@@ -24,8 +24,8 @@ footage after the opener (no jump, audio untouched). Report: `output/work/intro_
 QA (`qa_check.py`): config dur / never over max_dur (3.5); black outside the letters 0-1.8 s; footage through the letters; split on
 time and matte gone by the end; last frame = the footage (no jump); title 1-2 words, all caps.
 See `style-lab/STYLE.md` rule zero-B and `style-lab/round8/`.
-Storyboard: when video_text is on, plan the hook to hold the logo opener (~1.8 s) + the intro (2.6 s now; 3.4 s if he picks round 8b
-B5 / B6) = about 4.4-4.6 s (5.2-5.4 s with the slower open)
+Storyboard: when video_text is on, plan the hook to hold the logo opener (~1.8 s) + the intro (3.4 s, round 8b B5 picked
+2026-11-23) = about 5.2-5.4 s. video_text is ON by default
 (a clean, bright, moving opening shot behind the title), and give `"intro": {"title": "GRIND DAY"}` (1-2 words, caps)
 when the video title is longer. A shorter hook makes finish_fx shrink / drop the opener, then scale the intro (logged).
 
