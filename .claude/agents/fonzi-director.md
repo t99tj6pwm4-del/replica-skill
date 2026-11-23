@@ -255,4 +255,9 @@ OpenCode + DeepSeek run is used only when he asks for "a free run"; it never rep
     sounds going forward" (2026-11-23): the library picks are approved.
 23. **Logo card opener (Alfonso, 2026-11-23).** Every video opens with ~1.5 s of the end-card look (Fonzi logo over blurred,
     darkened footage), THEN the gold title intro (rule 0). It sits inside the 90 s, it is not added on top.
+24. **New text LOOK for all fonts (Alfonso, 2026-11-23, replaces gold everywhere).** Text colour pure white #FFFFFF: no gold,
+    no colour, no stroke, no outline, no box, no background bar. Glow = 2 blurred copies of the same text under the sharp text:
+    tight (gaussian ~6 px, 80% opacity) + wide (~22 px, 45%), both pure white, never tinted; sharp white text on top at 100%.
+    Plus ONE very soft dark shadow under the glow layers only (black, blur ~40 px, 35%, no offset) that hugs the text.
+    Applies to every font: intro title, exercise titles, pop-ups, form tip, checklist, CAM tags, labels. Face/safe-area rules unchanged.
 
