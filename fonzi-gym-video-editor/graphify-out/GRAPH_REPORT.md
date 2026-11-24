@@ -1,7 +1,7 @@
 # Graph Report - fonzi-gym-video-editor  (2026-11-24)
 
 ## Corpus Check
-- 68 files · ~126,889 words
+- 68 files · ~127,012 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 11 file(s) not represented in the graph (top: (none) 6, .ttf 4, .example 1)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `9d221910`
+- Built from commit: `54f21674`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -115,7 +115,7 @@
 7. `load_config()` - 25 edges
 8. `main()` - 24 edges
 9. `finish()` - 23 edges
-10. `intro()` - 21 edges
+10. `resolve()` - 21 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `b_shared()` --calls--> `load_json()`  [INFERRED]
@@ -124,10 +124,10 @@
   scripts/post_to_meta.py → scripts/common.py
 - `render()` --indirect_call--> `beats()`  [INFERRED]
   scripts/intro_smash.py → scripts/finish_fx.py
-- `sound()` --calls--> `sfx_log_entry()`  [EXTRACTED]
-  scripts/style_fx.py → scripts/common.py
-- `intro()` --calls--> `Logo3D`  [EXTRACTED]
-  scripts/style_fx.py → scripts/intro_logo3d.py
+- `Overlay()` --calls--> `OverlayLegacy()`  [EXTRACTED]
+  remotion/src/Overlay.tsx → remotion/src/OverlayLegacy.tsx
+- `OverlayWhite()` --calls--> `useFonts()`  [EXTRACTED]
+  remotion/src/Overlay.tsx → remotion/src/fonts.ts
 
 ## Import Cycles
 - None detected.
@@ -471,16 +471,16 @@ Nodes (5): DEFAULT_LOOK, LookCard, LookCtx, LookLayer, TextLook
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `die()` connect `die` to `storyboard_md.py`, `re`, `rel`, `multicam_generate.py`, `common.py`, `run`, `Graph`, `effects.py`, `layered_title.py`, `motion_cuts.py`, `cut_video.py`, `load_json`?**
-  _High betweenness centrality (0.046) - this node is a cross-community bridge._
+  _High betweenness centrality (0.037) - this node is a cross-community bridge._
 - **What connects `DO_NOT_TRACK`, `HYPERFRAMES_NO_TELEMETRY` to the rest of the system?**
   _2 weakly-connected nodes found - possible missing edges._
 - **Should `package.json` be split into smaller, more focused modules?**
   _Cohesion score 0.1286549707602339 - nodes in this community are weakly interconnected._
-- **Why does `main()` connect `load_json` to `re`, `rel`, `multicam_generate.py`, `common.py`, `run`, `intro_checks`, `opener_checks`?**
-  _High betweenness centrality (0.028) - this node is a cross-community bridge._
+- **Why does `sfx` connect `library` to `roles`, `config.yaml`?**
+  _High betweenness centrality (0.021) - this node is a cross-community bridge._
 - **Should `round5/build.py` be split into smaller, more focused modules?**
   _Cohesion score 0.13 - nodes in this community are weakly interconnected._
-- **Why does `sfx` connect `library` to `roles`, `config.yaml`?**
-  _High betweenness centrality (0.023) - this node is a cross-community bridge._
 - **Should `re` be split into smaller, more focused modules?**
   _Cohesion score 0.07955596669750231 - nodes in this community are weakly interconnected._
+- **Should `common.py` be split into smaller, more focused modules?**
+  _Cohesion score 0.12280701754385964 - nodes in this community are weakly interconnected._

@@ -123,6 +123,8 @@ export type OverlayProps = {
   noTextWindows?: { from: number; to: number }[];
   /** false = progress bar without the segment name under it */
   progressLabels?: boolean;
+  /** cut-time windows where only the progress label text is blanked (the thin line stays) */
+  progressLabelHide?: { from: number; to: number }[];
   /** pop-up cards: exercise bar, form tip, routine checklist (optional; absent = no pop-ups) */
   popups?: Popups;
   /** THE text look (config.yaml text_look, injected by render_final.py): white + 2 white glows + soft dark shadow */

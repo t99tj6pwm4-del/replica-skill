@@ -281,15 +281,19 @@ const SegmentWipe: React.FC<{ brand: Brand }> = ({ brand }) => {
 /* ------------------------------------------------------------------ */
 /* Segmented progress bar (top)                                        */
 /* ------------------------------------------------------------------ */
-const ProgressBar: React.FC<{ segments: ProgressSegment[]; brand: Brand; showLabel?: boolean; top?: number }> = ({
+const ProgressBar: React.FC<{ segments: ProgressSegment[]; brand: Brand; showLabel?: boolean; top?: number;
+  hideLabelAt?: { from: number; to: number }[] }> = ({
   segments,
   brand,
   showLabel = true,
   top = 118,
+  hideLabelAt = [],
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const t = frame / fps;
+  // label-only blanking windows (props.progressLabelHide, e.g. a top card that would run into the label); the line stays
+  const labelHidden = hideLabelAt.some((w) => t >= w.from && t < w.to);
   if (!segments.length) return null;
   const total = segments[segments.length - 1].to - segments[0].from;
   const current = segments.find((s) => t >= s.from && t < s.to) ?? segments[segments.length - 1];
@@ -313,7 +317,7 @@ const ProgressBar: React.FC<{ segments: ProgressSegment[]; brand: Brand; showLab
           })}
         </div>
       </Glow>
-      {showLabel ? (
+      {showLabel && !labelHidden ? (
         <Glow style={{ marginTop: 12, fontFamily: BODY, fontWeight: 800, fontSize: 28, letterSpacing: 3,
           textTransform: "uppercase" }}>
           {current.label}
@@ -1026,7 +1030,8 @@ const OverlayWhite: React.FC<OverlayProps> = (p) => {
       ) : null}
      </AbsoluteFill>
       <Sequence from={0} durationInFrames={Math.max(1, fr(end))}>
-        <ProgressBar segments={p.progress} brand={p.brand} showLabel={p.progressLabels !== false && !textHidden} top={p.layout.progressY ?? 118} />
+        <ProgressBar segments={p.progress} brand={p.brand} showLabel={p.progressLabels !== false && !textHidden} top={p.layout.progressY ?? 118}
+          hideLabelAt={p.progressLabelHide ?? []} />
       </Sequence>
       {p.endCard && p.endCard.style !== "logo_drip" ? (
         <Sequence {...seq(p.endCard.from, p.endCard.to)}>
