@@ -324,6 +324,7 @@ def _logo_card(bg: Path, n: int, drips: str, solid_at: int = 14):
     src = frames(bg, n + 2)                     # only the frames the card covers (bg may be the whole video)
     bgs = [np.asarray(u8(src[k % len(src)]).filter(ImageFilter.GaussianBlur(18)), np.float32) / 255 * 0.35
            for k in range(n)]
+    del src                                     # free the full-res float frames before building the card (memory)
     ntips, period, length, drops = DRIP_SETS[drips]
     tips = drip_tips(lay[..., 3], ntips)
     ph = np.random.default_rng(11).uniform(0, max(period, 1), len(tips))
@@ -340,7 +341,7 @@ def _logo_card(bg: Path, n: int, drips: str, solid_at: int = 14):
 
 
 def logo(out: Path, bg: Path, drips: str = "heavy", dur: float = 3.5):
-    res, clicks, _ = _logo_card(bg, int(dur * FPS), drips)
+    res, clicks, _ = _logo_card(bg, int(round(dur * FPS)), drips)   # round: 3.433 s = 103 frames, not 102
     write(res, out, [("logo_click", c, -10) for c in clicks] + [("logo_crackle", 0.0, -14)])
 
 

@@ -1,7 +1,7 @@
 # Graph Report - fonzi-gym-video-editor  (2026-11-24)
 
 ## Corpus Check
-- 68 files · ~126,738 words
+- 68 files · ~126,889 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 11 file(s) not represented in the graph (top: (none) 6, .ttf 4, .example 1)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `9e3ea939`
+- Built from commit: `9d221910`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -120,10 +120,10 @@
 ## Surprising Connections (you probably didn't know these)
 - `b_shared()` --calls--> `load_json()`  [INFERRED]
   style-lab/round8/build.py → scripts/common.py
-- `render()` --indirect_call--> `beats()`  [INFERRED]
-  scripts/intro_smash.py → scripts/finish_fx.py
 - `remember()` --calls--> `save_json()`  [EXTRACTED]
   scripts/post_to_meta.py → scripts/common.py
+- `render()` --indirect_call--> `beats()`  [INFERRED]
+  scripts/intro_smash.py → scripts/finish_fx.py
 - `sound()` --calls--> `sfx_log_entry()`  [EXTRACTED]
   scripts/style_fx.py → scripts/common.py
 - `intro()` --calls--> `Logo3D`  [EXTRACTED]
@@ -470,17 +470,17 @@ Nodes (5): DEFAULT_LOOK, LookCard, LookCtx, LookLayer, TextLook
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `sfx` connect `library` to `roles`, `config.yaml`?**
-  _High betweenness centrality (0.042) - this node is a cross-community bridge._
+- **Why does `die()` connect `die` to `storyboard_md.py`, `re`, `rel`, `multicam_generate.py`, `common.py`, `run`, `Graph`, `effects.py`, `layered_title.py`, `motion_cuts.py`, `cut_video.py`, `load_json`?**
+  _High betweenness centrality (0.046) - this node is a cross-community bridge._
 - **What connects `DO_NOT_TRACK`, `HYPERFRAMES_NO_TELEMETRY` to the rest of the system?**
   _2 weakly-connected nodes found - possible missing edges._
 - **Should `package.json` be split into smaller, more focused modules?**
   _Cohesion score 0.1286549707602339 - nodes in this community are weakly interconnected._
-- **Why does `library` connect `library` to `cutout_hit`, `intro_impact`, `intro_whoosh`, `logo_click`, `logo_crackle`, `popup_pop`, `riser`, `title_whoosh`, `zoom_whoosh`?**
-  _High betweenness centrality (0.032) - this node is a cross-community bridge._
+- **Why does `main()` connect `load_json` to `re`, `rel`, `multicam_generate.py`, `common.py`, `run`, `intro_checks`, `opener_checks`?**
+  _High betweenness centrality (0.028) - this node is a cross-community bridge._
 - **Should `round5/build.py` be split into smaller, more focused modules?**
   _Cohesion score 0.13 - nodes in this community are weakly interconnected._
-- **Why does `roles` connect `roles` to `cutout_whoosh`, `intro_impact`, `intro_whoosh`, `logo_click`, `logo_crackle`, `opener_click`, `opener_crackle`, `opener_impact`, `popup_pop`, `riser`, `snap_hit`, `title_whoosh`, `zoom_impact`, `zoom_whoosh`, `library`, `cutout_hit`, `cutout_pop`?**
-  _High betweenness centrality (0.025) - this node is a cross-community bridge._
+- **Why does `sfx` connect `library` to `roles`, `config.yaml`?**
+  _High betweenness centrality (0.023) - this node is a cross-community bridge._
 - **Should `re` be split into smaller, more focused modules?**
   _Cohesion score 0.07955596669750231 - nodes in this community are weakly interconnected._
