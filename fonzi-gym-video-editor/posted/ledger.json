@@ -129,6 +129,32 @@
       "posted_at": "2026-11-23 04:02:02",
       "reel": {},
       "handed_to_alfonso": "exports/2026-11-23_grind-day.mp4"
+    },
+    {
+      "sha256": "3063765085607d2d07cc2e2d799dc6678dd75716336c497dc7be599771bbf1ea",
+      "source_sha256": "605d0073cba5dca9a908effbaa0b168ab1fd32938ca67f2c3ec96af8f1baa79e",
+      "fingerprint": [
+        "0000086b40000000",
+        "72556f666271786e",
+        "32722a86c373686a",
+        "95543526070d4458",
+        "4c4996962f161733",
+        "95543406060a5878",
+        "9ca4b0f9f9790066",
+        "8ea4f4c1e1e00066",
+        "1e9c470bcf140004",
+        "1f9fce8ccb300008",
+        "1f9e4c0cc9767428",
+        "61bcdc3db92c0038",
+        "07b2cbb372182c2e",
+        "03c64e4f0e0c282e",
+        "586cd59123273686",
+        "0040291e8eae2686"
+      ],
+      "title": "Full Body Grind",
+      "posted_at": "2026-11-24 11:52:14",
+      "reel": {},
+      "handed_to_alfonso": "exports/2026-11-24_full-body-grind.mp4"
     }
   ]
 }
