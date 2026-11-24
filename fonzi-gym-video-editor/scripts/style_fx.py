@@ -9,7 +9,8 @@
     python3 scripts/style_fx.py cutout A.mp4 B.mp4 OUT.mp4 [--to black|white]
         Cut out + punch in: A freezes on its last frame, he is cut out (rembg), the ORIGINAL background strobes
         to black (locked; white = optional) behind him for 10 frames, 5-frame punch-in with shake, hard cut to B
-        (+ pop, clicks on the flickers, impact, whoosh).
+        (+ pop, clicks on the flickers, impact, whoosh). The punch-in pans toward him but its crop is clamped inside
+        the frame (crop_box): near an edge it stops there, never black padding; every zoom frame is self-checked.
     python3 scripts/style_fx.py logo OUT.mp4 --bg CLIP.mp4 [--drips slow|heavy|wet] [--dur 3.5]
         Logo end card: brand/fonzi_logo.png flickers on, then real drips run from the halo, letters and tail.
         Rotate slow / heavy / wet across videos. Background = CLIP blurred and darkened to 35 %.
@@ -133,11 +134,40 @@ def u8(f):
     return Image.fromarray((np.clip(f, 0, 1) * 255).astype(np.uint8))
 
 
+def crop_box(z, cx, cy, dx=0, dy=0):
+    """Integer crop box of a z-times zoom centred on (cx + dx, cy + dy), CLAMPED inside the W x H frame so a
+    punch-in / pan never reaches past the picture edge (no black padding). Near an edge the crop just stops there."""
+    if z < 1:
+        raise ValueError(f"zoom {z} < 1 would need padding")
+    cw, ch = min(W, int(round(W / z))), min(H, int(round(H / z)))
+    l = int(round(min(max(cx + dx - cw / 2, 0), W - cw)))
+    t = int(round(min(max(cy + dy - ch / 2, 0), H - ch)))
+    return l, t, l + cw, t + ch
+
+
+def _black_frac(strip):
+    return float((strip.max(axis=-1) < 0.03).mean())
+
+
+def assert_no_pad(src, out, box, edge=3):
+    """Self-check for a rendered zoom / pan frame: no side of OUT may be a full-black band unless the source pixels
+    at that crop edge are black too (a padding band). Slices only: cheap, no extra frame copies."""
+    l, t, r, b = box
+    if not (0 <= l < r <= W and 0 <= t < b <= H):
+        raise SystemExit(f"style_fx: zoom crop {box} leaves the {W}x{H} frame (padding)")
+    se = max(1, int(round(edge * (r - l) / W)))
+    sides = {"left": (out[:, :edge], src[t:b, l:l + se]), "right": (out[:, -edge:], src[t:b, r - se:r]),
+             "top": (out[:edge], src[t:t + se, l:r]), "bottom": (out[-edge:], src[b - se:b, l:r])}
+    for name, (o, s) in sides.items():
+        if _black_frac(o) >= 0.98 and _black_frac(s) < 0.98:
+            raise SystemExit(f"style_fx: zoom frame has a black {name} band the source does not have (crop {box})")
+
+
 def zoom(f, z, cx, cy, dx=0, dy=0):
-    cw, ch = W / z, H / z
-    l, t = cx - cw / 2 + dx, cy - ch / 2 + dy
-    return np.asarray(u8(f).crop((int(l), int(t), int(l + cw), int(t + ch))).resize((W, H), Image.BICUBIC),
-                      np.float32) / 255
+    box = crop_box(z, cx, cy, dx, dy)
+    out = np.asarray(u8(f).crop(box).resize((W, H), Image.BICUBIC), np.float32) / 255
+    assert_no_pad(f, out, box)
+    return out
 
 
 def screen(a, b):
@@ -164,10 +194,11 @@ def zoom_through(a: Path, b: Path, out: Path, cx=0.5, cy=0.52):
     for k in range(n):
         t = ((k + 1) / n) ** 2
         z = 1 + 5 * t
-        im = u8(A[len(A) - n + k])
-        cw, ch = W / z, H / z
-        im = im.crop((int(cx - cw / 2), int(cy - ch / 2), int(cx + cw / 2), int(cy + ch / 2))).resize((W, H))
+        src = A[len(A) - n + k]
+        box = crop_box(z, cx, cy)                            # clamped: never past the frame edge
+        im = u8(src).crop(box).resize((W, H))
         acc, m = np.asarray(im, np.float32) / 255, 1
+        assert_no_pad(src, acc, box)
         for s in (1.03, 1.06, 1.1)[: 1 + int(3 * t)]:       # radial zoom blur
             big = im.resize((int(W * s), int(H * s)))
             l, tp = (big.width - W) // 2, (big.height - H) // 2
