@@ -85,9 +85,9 @@
     "semantic_hash": "845c833c6da4676b891e92028e11f860"
   },
   "scripts/build_overlay_props.py": {
-    "mtime": 1795420955.2630858,
-    "seen": 1795421141.174422,
-    "ast_hash": "9aca466add2c42c967c7e90001bf1928",
+    "mtime": 1795490869.965554,
+    "seen": 1795490871.0893102,
+    "ast_hash": "49c9734dbbdfff4059154424ea715ab1",
     "semantic_hash": ""
   },
   "scripts/common.py": {
@@ -211,9 +211,9 @@
     "semantic_hash": ""
   },
   "HANDOVER.md": {
-    "mtime": 1795445123.1662161,
-    "seen": 1795488958.6340816,
-    "ast_hash": "5f9196e4cf34ee4ce223d9e894ba5e15",
+    "mtime": 1795490386.2955606,
+    "seen": 1795490871.0894217,
+    "ast_hash": "2636c92608ea709f7ffe436d465b612a",
     "semantic_hash": ""
   },
   "README.md": {
