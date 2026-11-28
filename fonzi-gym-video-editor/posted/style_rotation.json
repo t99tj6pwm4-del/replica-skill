@@ -20,6 +20,19 @@
         "planned_beats": 3
       },
       "updated": "2026-11-24 11:49"
+    },
+    {
+      "video": "input/icloud_0f9TiGQq.mov",
+      "intro": "video_text",
+      "intro_planned": "video_text",
+      "logo": null,
+      "drips": "heavy",
+      "opener": {
+        "beats": 3,
+        "dur": 1.6,
+        "planned_beats": 3
+      },
+      "updated": "2026-11-28 10:23"
     }
   ],
   "note": "Fonzi style rotation (finish_fx.py, Round 7): intro title strobe -> pulse -> glitch -> smash (intro = rendered, intro_planned = what the cycle asked for; an unfit glitch / smash renders pulse with fallback_reason), intro logo flat <-> 3d (no logo key = flat), logo drips slow -> heavy -> wet; one entry per video, in render order"
