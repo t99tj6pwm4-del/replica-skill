@@ -349,8 +349,11 @@ def finish(final: Path, base: Path, props: dict, out: Path | None = None, intro_
         try:
             style_fx.SOUNDS_USED.clear()
             if style == VT:
+                # per-video letters-only gain (storyboard intro.force_gain, Director-approved per video; config
+                # intro.video_text.force_gain stays the global default)
+                vt_var = {"force_gain": float(ov["force_gain"])} if ov.get("force_gain") else None
                 rep = style_fx.video_text(final, piece, ov.get("title") or t["text"], dur=dur, piece=True,
-                                          start=no / FPS, report=WORK / "intro_card.json")
+                                          start=no / FPS, report=WORK / "intro_card.json", variant=vt_var)
             else:
                 rep = style_fx.intro(*args, style, bts, bpm, phase, dur, **kw)
         except style_fx.IntroStyleUnfit as e:
