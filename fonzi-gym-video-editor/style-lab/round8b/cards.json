@@ -1,0 +1,39 @@
+{
+ "round": "8b",
+ "date": "2026-11-23",
+ "after": "round 8 ratings: A2 keep (+ card note), B1 / B3 maybe (slower open ok past 3 s)",
+ "cards": [
+  {
+   "id": "r8b-C1",
+   "section": "C",
+   "title": "Checklist + bar card: C1",
+   "description": "A2 softer glow + a black card at 50 % (rounded, no stroke) behind the Routine Checklist and the Exercise Bar; Form Tip, CAM tags and titles stay box-free.",
+   "mp4": "output/style_lab/r8b/r8b-C1/card.mp4",
+   "jpg": "output/style_lab/r8b/r8b-C1/card.jpg"
+  },
+  {
+   "id": "r8b-C2",
+   "section": "C",
+   "title": "Checklist + bar card: C2",
+   "description": "A2 softer glow + a gray #333 card at 55 % (rounded, no stroke) behind the Routine Checklist and the Exercise Bar; Form Tip, CAM tags and titles stay box-free.",
+   "mp4": "output/style_lab/r8b/r8b-C2/card.mp4",
+   "jpg": "output/style_lab/r8b/r8b-C2/card.jpg"
+  },
+  {
+   "id": "r8b-B5",
+   "section": "B",
+   "title": "Video-inside-text, slower: B5",
+   "description": "B1 slowed down: types 0-1.6 s, holds with 2 cursor blinks to 2.4 s, splits 2.4-3.4 s ease-out (3.4 s); only the automatic dark-footage boost inside the letters.",
+   "mp4": "output/style_lab/r8b/r8b-B5/card.mp4",
+   "jpg": "output/style_lab/r8b/r8b-B5/card.jpg"
+  },
+  {
+   "id": "r8b-B6",
+   "section": "B",
+   "title": "Video-inside-text, slower: B6",
+   "description": "The same slower 3.4 s timing with B3's x1.5 brightening inside the letters only.",
+   "mp4": "output/style_lab/r8b/r8b-B6/card.mp4",
+   "jpg": "output/style_lab/r8b/r8b-B6/card.jpg"
+  }
+ ]
+}

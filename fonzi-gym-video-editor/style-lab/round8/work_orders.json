@@ -1,0 +1,62 @@
+{
+ "round": "Style Lab round 8",
+ "note": "Built by the Text/Visuals supervisor with style-lab/round8/build.py (no fonzi-vfx-worker agents could be started in this session).",
+ "orders": [
+  {
+   "id": "r8-A1",
+   "outputs": [
+    "output/style_lab/r8/r8-A1/"
+   ],
+   "tool": "style-lab/round8/build.py A1"
+  },
+  {
+   "id": "r8-A2",
+   "outputs": [
+    "output/style_lab/r8/r8-A2/"
+   ],
+   "tool": "style-lab/round8/build.py A2"
+  },
+  {
+   "id": "r8-A3",
+   "outputs": [
+    "output/style_lab/r8/r8-A3/"
+   ],
+   "tool": "style-lab/round8/build.py A3"
+  },
+  {
+   "id": "r8-A4",
+   "outputs": [
+    "output/style_lab/r8/r8-A4/"
+   ],
+   "tool": "style-lab/round8/build.py A4"
+  },
+  {
+   "id": "r8-B1",
+   "outputs": [
+    "output/style_lab/r8/r8-B1/"
+   ],
+   "tool": "style-lab/round8/build.py B1"
+  },
+  {
+   "id": "r8-B2",
+   "outputs": [
+    "output/style_lab/r8/r8-B2/"
+   ],
+   "tool": "style-lab/round8/build.py B2"
+  },
+  {
+   "id": "r8-B3",
+   "outputs": [
+    "output/style_lab/r8/r8-B3/"
+   ],
+   "tool": "style-lab/round8/build.py B3"
+  },
+  {
+   "id": "r8-B4",
+   "outputs": [
+    "output/style_lab/r8/r8-B4/"
+   ],
+   "tool": "style-lab/round8/build.py B4"
+  }
+ ]
+}

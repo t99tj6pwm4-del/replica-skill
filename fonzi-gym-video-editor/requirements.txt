@@ -1,0 +1,7 @@
+faster-whisper>=1.0
+numpy
+requests
+pyyaml
+fal-client
+gradio_client
+rembg[cpu]

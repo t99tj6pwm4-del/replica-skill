@@ -1,0 +1,70 @@
+{
+ "round": 8,
+ "date": "2026-11-23",
+ "cards": [
+  {
+   "id": "r8-A1",
+   "section": "A",
+   "title": "White text look: A1",
+   "description": "His exact spec: tight glow 6 px / 80 %, wide glow 22 px / 45 %, dark shadow 40 px / 35 %. Progress bar: a thin white line in the same glow look (done part 4 px, the rest a 2 px hairline at 35 %). Glitch intro in this look: white-only, a 2-frame burst of white ghost copies (8 / 4 px) on the letter edges + a 2-band slice jitter, no red / cyan.",
+   "mp4": "output/style_lab/r8/r8-A1/card.mp4",
+   "jpg": "output/style_lab/r8/r8-A1/card.jpg"
+  },
+  {
+   "id": "r8-A2",
+   "section": "A",
+   "title": "White text look: A2",
+   "description": "Softer glow: tight 4 px / 60 %, wide 16 px / 30 %, same shadow. Progress bar: a thin white line in the same glow look (done part 4 px, the rest a 2 px hairline at 35 %). Glitch intro in this look: white-only, a 2-frame burst of white ghost copies (8 / 4 px) on the letter edges + a 2-band slice jitter, no red / cyan.",
+   "mp4": "output/style_lab/r8/r8-A2/card.mp4",
+   "jpg": "output/style_lab/r8/r8-A2/card.jpg"
+  },
+  {
+   "id": "r8-A3",
+   "section": "A",
+   "title": "White text look: A3",
+   "description": "Stronger glow: tight 8 px / 90 %, wide 30 px / 60 %, shadow 50 px / 45 %. Progress bar: a thin white line in the same glow look (done part 4 px, the rest a 2 px hairline at 35 %). Glitch intro in this look: white-only, a 2-frame burst of white ghost copies (8 / 4 px) on the letter edges + a 2-band slice jitter, no red / cyan.",
+   "mp4": "output/style_lab/r8/r8-A3/card.mp4",
+   "jpg": "output/style_lab/r8/r8-A3/card.jpg"
+  },
+  {
+   "id": "r8-A4",
+   "section": "A",
+   "title": "White text look: A4",
+   "description": "His spec WITHOUT the dark shadow (glows only), to show what the shadow does on bright footage. Progress bar: a thin white line in the same glow look (done part 4 px, the rest a 2 px hairline at 35 %). Glitch intro in this look: white-only, a 2-frame burst of white ghost copies (8 / 4 px) on the letter edges + a 2-band slice jitter, no red / cyan.",
+   "mp4": "output/style_lab/r8/r8-A4/card.mp4",
+   "jpg": "output/style_lab/r8/r8-A4/card.jpg"
+  },
+  {
+   "id": "r8-B1",
+   "section": "B",
+   "title": "Video-inside-text intro: B1",
+   "description": "His exact spec: types on 0-1.2 s, holds with 2 cursor blinks to 1.8 s, splits 1.8-2.6 s ease-out. 2.6 s after the logo opener.",
+   "mp4": "output/style_lab/r8/r8-B1/card.mp4",
+   "jpg": "output/style_lab/r8/r8-B1/card.jpg"
+  },
+  {
+   "id": "r8-B2",
+   "section": "B",
+   "title": "Video-inside-text intro: B2",
+   "description": "Same, with a thinner cursor that blinks faster (4 blinks) and a harder expo-out split. 2.6 s after the logo opener.",
+   "mp4": "output/style_lab/r8/r8-B2/card.mp4",
+   "jpg": "output/style_lab/r8/r8-B2/card.jpg"
+  },
+  {
+   "id": "r8-B3",
+   "section": "B",
+   "title": "Video-inside-text intro: B3",
+   "description": "Same, with the footage under the letters brightened x1.5 (the only brightening allowed). 2.6 s after the logo opener.",
+   "mp4": "output/style_lab/r8/r8-B3/card.mp4",
+   "jpg": "output/style_lab/r8/r8-B3/card.jpg"
+  },
+  {
+   "id": "r8-B4",
+   "section": "B",
+   "title": "Video-inside-text intro: B4",
+   "description": "Same, but a thin 8 px line of video opens at the seam for 2 frames before the halves move. 2.6 s after the logo opener.",
+   "mp4": "output/style_lab/r8/r8-B4/card.mp4",
+   "jpg": "output/style_lab/r8/r8-B4/card.jpg"
+  }
+ ]
+}
