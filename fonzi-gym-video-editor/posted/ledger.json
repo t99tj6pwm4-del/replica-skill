@@ -155,6 +155,32 @@
       "posted_at": "2026-11-24 11:52:14",
       "reel": {},
       "handed_to_alfonso": "exports/2026-11-24_full-body-grind.mp4"
+    },
+    {
+      "sha256": "a5c18322bdcfb81982135682a5354d6f8bc6c173199a37c380c4724eecf39770",
+      "source_sha256": "4947ef122e580a4693d9081d13d89677c9b879d5071e1541f6004f4623f82871",
+      "fingerprint": [
+        "0000003120000000",
+        "6565e3c0d39a4466",
+        "678e2d33ccccb223",
+        "d8e6a0a02b0fd980",
+        "f838a8b4d2dec880",
+        "c8c2a0ecae6ec080",
+        "0f1c18387e1e78b8",
+        "0e0e1eac7e1878b8",
+        "5841337268457060",
+        "c0c01372e0e09840",
+        "50d05372e0c0a040",
+        "701838e32376e0c0",
+        "708013b4d4c3c2c0",
+        "1d455123b3b0b020",
+        "59d0f033f2b1a060",
+        "00800003b3a00000"
+      ],
+      "title": "Shoulders & Arms",
+      "posted_at": "2026-11-28 10:29:38",
+      "reel": {},
+      "handed_to_alfonso": "exports/2026-11-28_shoulders-arms.mp4"
     }
   ]
 }
